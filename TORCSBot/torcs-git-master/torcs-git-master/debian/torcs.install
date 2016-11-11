@@ -1,0 +1,9 @@
+usr/games/accc usr/games
+usr/games/nfs2ac usr/games
+usr/games/nfsperf usr/games
+usr/games/torcs usr/games
+usr/games/trackgen usr/games
+usr/lib usr
+usr/share usr
+debian/torcs.desktop usr/share/applications
+torcs.xpm usr/share/pixmaps

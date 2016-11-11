@@ -1,0 +1,22 @@
+﻿Build started 26/10/2016 23:14:17.
+     1>Project "C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\tools\trackgen\trackgen.vcxproj" on node 4 (Build target(s)).
+     1>Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\Debug/trackgen.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:../../../export/libd /LIBPATH:../../windows/lib sl_vs2008_32.lib client.lib robottools.lib sg_vs2008_32.lib ssg_vs2008_32.lib ssggraphlib.lib txml.lib ul_vs2008_32.lib libpng15_vs2008_32.lib tgf.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:LIBCMT /MANIFEST:NO /DEBUG /PDB:".\Debug/trackgen.pdb" /MAP:".\Debug/trackgen.map" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE:NO /IMPLIB:".\Debug\trackgen.lib" /MACHINE:X86 /SAFESEH:NO .\Debug/windowsspec.obj
+         .\Debug/ac3d.obj
+         .\Debug/easymesh.obj
+         .\Debug/elevation.obj
+         .\Debug/maintrackgen.obj
+         .\Debug/objects.obj
+         .\Debug/relief.obj
+         .\Debug/track.obj
+         .\Debug/util.obj
+         trackgen.vcxproj -> C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\tools\trackgen\.\Debug\trackgen.exe
+       PostBuildEvent:
+         copy C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\tools\trackgen\Debug\trackgen.exe C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\runtimed
+         :VCEnd
+                 1 file(s) copied.
+     1>Done Building Project "C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\tools\trackgen\trackgen.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:02.21

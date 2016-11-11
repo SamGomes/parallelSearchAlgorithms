@@ -1,0 +1,18 @@
+﻿Build started 11/11/2016 03:48:46.
+     1>Project "C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\tgf\tgf.vcxproj" on node 2 (Build target(s)).
+     1>Link:
+         tgf.vcxproj -> C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\tgf\.\Debug\tgf.dll
+       PostBuildEvent:
+         copy C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\tgf\Debug\*.dll C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\runtimed
+         copy C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\tgf\Debug\*.lib C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\export\libd
+         
+         :VCEnd
+         C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\tgf\Debug\tgf.dll
+                 1 file(s) copied.
+         C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\tgf\Debug\tgf.lib
+                 1 file(s) copied.
+     1>Done Building Project "C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\tgf\tgf.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.10

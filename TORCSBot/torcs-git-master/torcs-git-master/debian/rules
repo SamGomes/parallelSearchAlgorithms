@@ -1,0 +1,58 @@
+#!/usr/bin/make -f
+
+DEB_AUTO_UPDATE_LIBTOOL := pre
+DEB_AUTO_UPDATE_ACLOCAL := 1.11
+DEB_AUTO_UPDATE_AUTOCONF := yes
+DEB_AUTO_UPDATE_AUTOMAKE := 1.11
+
+# Documentation to install
+DEB_INSTALL_DOCS_ALL = debian/TODO.Debian
+
+# changelog
+DEB_INSTALL_CHANGELOGS_ALL = README
+
+VERSION=$(shell dpkg-parsechangelog | grep Version | cut -d ' ' -f 2 | cut -d '-' -f 1)
+
+# rules for package building
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/autotools.mk
+
+DEB_CONFIGURE_EXTRA_FLAGS := --bindir=\$${prefix}/games --x-libraries=/usr/lib/
+
+# Nasty hack to get this target call configure script before compile
+# the code. This should be improved/removed/cleaned, see TODO.Debian
+#debian/stamp-makefile-build:
+#	$(DEB_CONFIGURE_INVOKE) $(cdbs_configure_flags) $(DEB_CONFIGURE_EXTRA_FLAGS) $(DEB_CONFIGURE_USER_FLAGS)
+#	$(DEB_MAKE_INVOKE) $(DEB_MAKE_BUILD_TARGET)
+#	touch debian/stamp-makefile-build
+
+cleanbuilddir/torcs::
+# remove VCS files present in source
+	find $(CURDIR) -type d -name "CVS" | xargs rm -rf
+	rm -f $(CURDIR)/debian/stamp*
+
+binary-predeb/torcs::
+# removing shipped Makefiles 
+	find debian/torcs/usr/share/games/torcs -type f -name Makefile | xargs --no-run-if-empty rm -f
+# stripped installed files that go into -data packages.
+	rm -rf debian/torcs/usr/share/games/torcs
+# removes empty script to make lintian happy
+	rm -f debian/torcs/usr/share/games/torcs/telemetry/telemetry.sh
+
+build/torcs-data::
+	$(MAKE) datainstall DESTDIR=$(CURDIR)/debian/tmp
+
+binary-predeb/torcs-data::
+# removing empty script until it's ready
+	rm -f debian/torcs-data/usr/share/games/torcs/telemetry/telemetry.sh
+
+# torcs-data-cars packaging bits
+# Fix permissions on data files according policy for games
+binary-predeb/torcs-data-cars::
+	find debian/torcs-data-cars/usr/share/games/torcs -type f | xargs --no-run-if-empty chmod 644
+
+# torcs-data-tracks packaging bits
+binary-predeb/torcs-data-tracks::
+	find debian/torcs-data-tracks/usr/share/games/torcs -type f | xargs --no-run-if-empty chmod 644
+# remove unneeded script
+	rm -f debian/torcs-data-tracks/usr/share/games/torcs/tracks/road/ole-road-1/generate.sh

@@ -1,0 +1,68 @@
+﻿Build started 26/10/2016 23:14:06.
+     1>Project "C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\client\client.vcxproj" on node 4 (Build target(s)).
+     1>Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\Debug/client.dll" /INCREMENTAL:NO /NOLOGO /LIBPATH:../../../export/libd /LIBPATH:../../windows/lib txml.lib libpng15_vs2008_32.lib sg_vs2008_32.lib ul_vs2008_32.lib tgf.lib robottools.lib ssggraphlib.lib ssg_vs2008_32.lib ssgAux_vs2008_32.lib sl_vs2008_32.lib OpenAL32.lib Alut.lib libogg.lib libvorbis.lib libvorbisfile.lib zlib1_vs2008_32.lib js_vs2008_32.lib Advapi32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:LIBCMT /DEF:".\client.def" /MANIFEST:NO /DEBUG /PDB:".\Debug/client.pdb" /MAP:".\Debug/client.map" /TLBID:1 /DYNAMICBASE:NO /IMPLIB:".\Debug/client.lib" /MACHINE:X86 /SAFESEH:NO /DLL .\Debug/controlconfig.obj
+         .\Debug/driverconfig.obj
+         .\Debug/graphconfig.obj
+         .\Debug/joystickconfig.obj
+         .\Debug/mouseconfig.obj
+         .\Debug/openglconfig.obj
+         .\Debug/simuconfig.obj
+         .\Debug/soundconfig.obj
+         .\Debug/musicplayer.obj
+         .\Debug/OggSoundStream.obj
+         .\Debug/OpenALMusicPlayer.obj
+         .\Debug/SoundStream.obj
+         .\Debug/raceengine.obj
+         .\Debug/racegl.obj
+         .\Debug/raceinit.obj
+         .\Debug/racemain.obj
+         .\Debug/racemanmenu.obj
+         .\Debug/raceresults.obj
+         .\Debug/racestate.obj
+         .\Debug/singleplayer.obj
+         .\Debug/driverselect.obj
+         .\Debug/fileselect.obj
+         .\Debug/loadingscreen.obj
+         .\Debug/miscscreens.obj
+         .\Debug/pitmenu.obj
+         .\Debug/racemenu.obj
+         .\Debug/results.obj
+         .\Debug/trackselect.obj
+         .\Debug/control.obj
+         .\Debug/glfeatures.obj
+         .\Debug/gui.obj
+         .\Debug/guibutton.obj
+         .\Debug/guiedit.obj
+         .\Debug/guifont.obj
+         .\Debug/guihelp.obj
+         .\Debug/guiimage.obj
+         .\Debug/guilabel.obj
+         .\Debug/guimenu.obj
+         .\Debug/guiobject.obj
+         .\Debug/guiscrollbar.obj
+         .\Debug/guiscrollist.obj
+         .\Debug/img.obj
+         .\Debug/screen.obj
+         .\Debug/tgfclient.obj
+         .\Debug/entry.obj
+         .\Debug/exitmenu.obj
+         .\Debug/mainmenu.obj
+         .\Debug/optionmenu.obj
+         .\Debug/splash.obj
+            Creating library .\Debug/client.lib and object .\Debug/client.exp
+         client.vcxproj -> C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\client\.\Debug\client.dll
+       PostBuildEvent:
+         copy C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\client\Debug\*.dll C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\runtimed
+         copy C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\client\Debug\*.lib C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\export\libd
+         
+         :VCEnd
+         C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\client\Debug\client.dll
+                 1 file(s) copied.
+         C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\client\Debug\client.lib
+                 1 file(s) copied.
+     1>Done Building Project "C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\client\client.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:11.46

@@ -1,0 +1,39 @@
+﻿Build started 11/11/2016 01:21:49.
+     1>Project "C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\txml\txml.vcxproj" on node 2 (Rebuild target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I../../../export/include /I../../windows/include /I../../.. /Zi /nologo /W2 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D TXML_EXPORTS /D DEBUG /D DEBUG_OUT /D _VC80_UPGRADE=0x0600 /D _WINDLL /D _MBCS /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Debug/" /Fd".\Debug/vc120.pdb" /FR".\Debug\\" /Gd /TC /analyze- /errorReport:prompt dllmain.c gennmtab.c hashtable.c xmlparse.c xmlrole.c xmltok.c
+         dllmain.c
+         gennmtab.c
+         hashtable.c
+         xmlparse.c
+         xmlrole.c
+         xmltok.c
+         Generating Code...
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I../../../export/include /I../../windows/include /I../../.. /Zi /nologo /W2 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D TXML_EXPORTS /D DEBUG /D DEBUG_OUT /D _VC80_UPGRADE=0x0600 /D _WINDLL /D _MBCS /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Debug/" /Fd".\Debug/vc120.pdb" /FR".\Debug\\" /Gd /TP /analyze- /errorReport:prompt xml.cpp
+         xml.cpp
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\Debug/txml.dll" /INCREMENTAL:NO /NOLOGO /LIBPATH:../../windows/lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:LIBCMT /DEF:".\txml.def" /MANIFEST:NO /DEBUG /PDB:".\Debug/txml.pdb" /MAP:".\Debug/txml.map" /TLBID:1 /DYNAMICBASE:NO /IMPLIB:".\Debug/txml.lib" /MACHINE:X86 /SAFESEH:NO /DLL .\Debug/dllmain.obj
+         .\Debug/gennmtab.obj
+         .\Debug/hashtable.obj
+         .\Debug/xml.obj
+         .\Debug/xmlparse.obj
+         .\Debug/xmlrole.obj
+         .\Debug/xmltok.obj
+            Creating library .\Debug/txml.lib and object .\Debug/txml.exp
+         txml.vcxproj -> C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\txml\.\Debug\txml.dll
+       BscMake:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\bscmake.exe /nologo /o".\Debug/txml.bsc" .\Debug\dllmain.sbr .\Debug\gennmtab.sbr .\Debug\hashtable.sbr .\Debug\xml.sbr .\Debug\xmlparse.sbr .\Debug\xmlrole.sbr .\Debug\xmltok.sbr
+       PostBuildEvent:
+         copy C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\txml\Debug\*.dll C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\runtimed
+         copy C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\txml\Debug\*.lib C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\export\libd
+         
+         :VCEnd
+         C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\txml\Debug\txml.dll
+                 1 file(s) copied.
+         C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\txml\Debug\txml.lib
+                 1 file(s) copied.
+     1>Done Building Project "C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\txml\txml.vcxproj" (Rebuild target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:05.74

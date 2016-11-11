@@ -1,0 +1,24 @@
+﻿Build started 26/10/2016 23:14:05.
+     1>Project "C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\learning\learning.vcxproj" on node 2 (Build target(s)).
+     1>Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\Debug/learning.dll" /INCREMENTAL:NO /NOLOGO /LIBPATH:../../../export/libd /LIBPATH:../../windows/lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:LIBCMT /DEF:"./learning.def" /MANIFEST:NO /DEBUG /PDB:".\Debug/learning.pdb" /MAP:".\Debug/learning.map" /TLBID:1 /DYNAMICBASE:NO /IMPLIB:".\Debug/learning.lib" /MACHINE:X86 /SAFESEH:NO /DLL .\Debug/ANN.obj
+         .\Debug/ann_policy.obj
+         .\Debug/Distribution.obj
+         .\Debug/List.obj
+         .\Debug/MathFunctions.obj
+         .\Debug/policy.obj
+         .\Debug/string_utils.obj
+     1>learning.def : warning LNK4022: cannot find unique match for symbol 'message'
+     1>learning.def : warning LNK4002: "void __cdecl message(char const *,...)" (?message@@YAXPBDZZ) defined in .\Debug/string_utils.obj
+     1>learning.def : warning LNK4002: "public: virtual class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __thiscall std::_Future_error_category::message(int)const " (?message@_Future_error_category@std@@UBE?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@H@Z) defined in C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\lib\libcpmtd.lib
+     1>learning.def : warning LNK4002: "public: virtual class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __thiscall std::_Generic_error_category::message(int)const " (?message@_Generic_error_category@std@@UBE?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@H@Z) defined in C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\lib\libcpmtd.lib
+     1>learning.def : warning LNK4002: "public: virtual class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __thiscall std::_Iostream_error_category::message(int)const " (?message@_Iostream_error_category@std@@UBE?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@H@Z) defined in C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\lib\libcpmtd.lib
+     1>learning.def : warning LNK4002: "public: virtual class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __thiscall std::_System_error_category::message(int)const " (?message@_System_error_category@std@@UBE?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@H@Z) defined in C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\lib\libcpmtd.lib
+     1>learning.def : warning LNK4002: "public: class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __thiscall std::error_code::message(void)const " (?message@error_code@std@@QBE?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@XZ) defined in C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\lib\libcpmtd.lib
+     1>learning.def : error LNK2001: unresolved external symbol message
+     1>.\Debug/learning.lib : fatal error LNK1120: 1 unresolved externals
+     1>Done Building Project "C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\learning\learning.vcxproj" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:00.26

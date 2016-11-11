@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{466039f6-ee50-4208-aa52-4f81384521ab}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{2fb59ec9-624e-4918-ab49-1100eb74940e}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="Header Files\PlanningModule">
+      <UniqueIdentifier>{7ec18869-b1bb-44dd-bcb8-fa220b224930}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\PlanningModule">
+      <UniqueIdentifier>{0bbecc7f-6f3d-41fb-9878-1aa0149b9369}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ControlModule">
+      <UniqueIdentifier>{fe4b7468-68cf-4a66-a7e1-e30fc20d751d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ControlModule">
+      <UniqueIdentifier>{65d332d6-7ba8-4c3c-bf3c-eb2cf4ec6682}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="bt.cpp">
+      <Filter>Source Files\ControlModule</Filter>
+    </ClCompile>
+    <ClCompile Include="cardata.cpp">
+      <Filter>Source Files\ControlModule</Filter>
+    </ClCompile>
+    <ClCompile Include="driver.cpp">
+      <Filter>Source Files\ControlModule</Filter>
+    </ClCompile>
+    <ClCompile Include="learn.cpp">
+      <Filter>Source Files\ControlModule</Filter>
+    </ClCompile>
+    <ClCompile Include="opponent.cpp">
+      <Filter>Source Files\ControlModule</Filter>
+    </ClCompile>
+    <ClCompile Include="pit.cpp">
+      <Filter>Source Files\ControlModule</Filter>
+    </ClCompile>
+    <ClCompile Include="spline.cpp">
+      <Filter>Source Files\ControlModule</Filter>
+    </ClCompile>
+    <ClCompile Include="strategy.cpp">
+      <Filter>Source Files\ControlModule</Filter>
+    </ClCompile>
+    <ClCompile Include="SeqRRTStar.cpp">
+      <Filter>Source Files\PlanningModule</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Kernel.cuh">
+      <Filter>Header Files\PlanningModule</Filter>
+    </ClInclude>
+    <ClInclude Include="cardata.h">
+      <Filter>Header Files\ControlModule</Filter>
+    </ClInclude>
+    <ClInclude Include="driver.h">
+      <Filter>Header Files\ControlModule</Filter>
+    </ClInclude>
+    <ClInclude Include="learn.h">
+      <Filter>Header Files\ControlModule</Filter>
+    </ClInclude>
+    <ClInclude Include="linalg.h">
+      <Filter>Header Files\ControlModule</Filter>
+    </ClInclude>
+    <ClInclude Include="opponent.h">
+      <Filter>Header Files\ControlModule</Filter>
+    </ClInclude>
+    <ClInclude Include="pit.h">
+      <Filter>Header Files\ControlModule</Filter>
+    </ClInclude>
+    <ClInclude Include="spline.h">
+      <Filter>Header Files\ControlModule</Filter>
+    </ClInclude>
+    <ClInclude Include="strategy.h">
+      <Filter>Header Files\ControlModule</Filter>
+    </ClInclude>
+    <ClInclude Include="Macros.h">
+      <Filter>Header Files\PlanningModule</Filter>
+    </ClInclude>
+    <ClInclude Include="State.cuh">
+      <Filter>Header Files\PlanningModule</Filter>
+    </ClInclude>
+    <ClInclude Include="SeqRRTStar.h">
+      <Filter>Header Files\PlanningModule</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="Kernel.cu">
+      <Filter>Source Files\PlanningModule</Filter>
+    </CudaCompile>
+    <CudaCompile Include="State.cu">
+      <Filter>Source Files\PlanningModule</Filter>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bt.def">
+      <Filter>Source Files\ControlModule</Filter>
+    </None>
+  </ItemGroup>
+</Project>
