@@ -1,5 +1,5 @@
-﻿Build started 11/11/2016 01:21:49.
-     1>Project "C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\txml\txml.vcxproj" on node 2 (Rebuild target(s)).
+﻿Build started 11/11/2016 17:40:23.
+     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\libs\txml\txml.vcxproj" on node 2 (Rebuild target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I../../../export/include /I../../windows/include /I../../.. /Zi /nologo /W2 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D TXML_EXPORTS /D DEBUG /D DEBUG_OUT /D _VC80_UPGRADE=0x0600 /D _WINDLL /D _MBCS /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Debug/" /Fd".\Debug/vc120.pdb" /FR".\Debug\\" /Gd /TC /analyze- /errorReport:prompt dllmain.c gennmtab.c hashtable.c xmlparse.c xmlrole.c xmltok.c
          dllmain.c
@@ -20,20 +20,20 @@
          .\Debug/xmlrole.obj
          .\Debug/xmltok.obj
             Creating library .\Debug/txml.lib and object .\Debug/txml.exp
-         txml.vcxproj -> C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\txml\.\Debug\txml.dll
+         txml.vcxproj -> C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\libs\txml\.\Debug\txml.dll
        BscMake:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\bscmake.exe /nologo /o".\Debug/txml.bsc" .\Debug\dllmain.sbr .\Debug\gennmtab.sbr .\Debug\hashtable.sbr .\Debug\xml.sbr .\Debug\xmlparse.sbr .\Debug\xmlrole.sbr .\Debug\xmltok.sbr
        PostBuildEvent:
-         copy C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\txml\Debug\*.dll C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\runtimed
-         copy C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\txml\Debug\*.lib C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\export\libd
+         copy C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\libs\txml\Debug\*.dll C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\runtimed
+         copy C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\libs\txml\Debug\*.lib C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\export\libd
          
          :VCEnd
-         C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\txml\Debug\txml.dll
+         C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\libs\txml\Debug\txml.dll
                  1 file(s) copied.
-         C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\txml\Debug\txml.lib
+         C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\libs\txml\Debug\txml.lib
                  1 file(s) copied.
-     1>Done Building Project "C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\libs\txml\txml.vcxproj" (Rebuild target(s)).
+     1>Done Building Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\libs\txml\txml.vcxproj" (Rebuild target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:05.74
+Time Elapsed 00:00:02.70

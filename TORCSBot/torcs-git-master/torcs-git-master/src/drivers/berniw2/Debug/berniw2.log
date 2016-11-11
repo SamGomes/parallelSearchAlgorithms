@@ -1,20 +1,30 @@
-﻿Build started 26/10/2016 23:14:06.
-     1>Project "C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\drivers\berniw2\berniw2.vcxproj" on node 5 (Build target(s)).
-     1>Link:
+﻿Build started 11/11/2016 15:42:35.
+     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\berniw2\berniw2.vcxproj" on node 7 (Rebuild target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I../../../export/include /I../../windows/include /I../../.. /Zi /nologo /W2 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D BERNIW2_EXPORTS /D DEBUG /D DEBUG_OUT /D _VC80_UPGRADE=0x0600 /D _WINDLL /D _MBCS /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Debug/" /Fd".\Debug/vc120.pdb" /FR".\Debug\\" /Gd /TP /analyze- /errorReport:prompt berniw2.cpp mycar.cpp pathfinder.cpp spline.cpp trackdesc.cpp
+         berniw2.cpp
+         mycar.cpp
+         pathfinder.cpp
+         spline.cpp
+         trackdesc.cpp
+         Generating Code...
+       Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\Debug/berniw2.dll" /INCREMENTAL:NO /NOLOGO /LIBPATH:../../../export/libd /LIBPATH:../../windows/lib tgf.lib robottools.lib sg_vs2008_32.lib ul_vs2008_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:LIBCMT /DEF:".\berniw2.def" /MANIFEST:NO /DEBUG /PDB:".\Debug/berniw2.pdb" /MAP:".\Debug/berniw2.map" /TLBID:1 /DYNAMICBASE:NO /IMPLIB:".\Debug/berniw2.lib" /MACHINE:X86 /SAFESEH:NO /DLL .\Debug/berniw2.obj
          .\Debug/mycar.obj
          .\Debug/pathfinder.obj
          .\Debug/spline.obj
          .\Debug/trackdesc.obj
             Creating library .\Debug/berniw2.lib and object .\Debug/berniw2.exp
-         berniw2.vcxproj -> C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\drivers\berniw2\.\Debug\berniw2.dll
+         berniw2.vcxproj -> C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\berniw2\.\Debug\berniw2.dll
+       BscMake:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\bscmake.exe /nologo /o".\Debug/berniw2.bsc" .\Debug\berniw2.sbr .\Debug\mycar.sbr .\Debug\pathfinder.sbr .\Debug\spline.sbr .\Debug\trackdesc.sbr
        PostBuildEvent:
-         copy C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\drivers\berniw2\Debug\*.dll C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\runtimed\drivers\berniw2
+         copy C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\berniw2\Debug\*.dll C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\runtimed\drivers\berniw2
          :VCEnd
-         C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\drivers\berniw2\Debug\berniw2.dll
+         C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\berniw2\Debug\berniw2.dll
                  1 file(s) copied.
-     1>Done Building Project "C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\drivers\berniw2\berniw2.vcxproj" (Build target(s)).
+     1>Done Building Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\berniw2\berniw2.vcxproj" (Rebuild target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:05.40
+Time Elapsed 00:00:58.71

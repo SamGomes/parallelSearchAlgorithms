@@ -425,7 +425,7 @@ void Driver::update(tSituation *s)
 
 
 		if (delay == 0){
-			SeqRRTStar RRTStar = SeqRRTStar(State(), 10);
+			SeqRRTStar RRTStar = SeqRRTStar(new State(), 20);
 			std::vector<State> path = RRTStar.search();
 
 			std::cout << "bauauauauyeye...: \n" << std::endl;

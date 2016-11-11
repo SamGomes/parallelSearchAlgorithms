@@ -1,5 +1,6 @@
 #include "State.cuh"
 
+
 CUDA_HOSTDEV
 State::State(){
 	this->pedalPos = 0;
@@ -26,14 +27,14 @@ State::State(double pedalPos, double steerAngle,State* parent){
 
 
 CUDA_HOSTDEV
-State State::getParent(){
-	return *this->parent;
+State* State::getParent(){
+	return this->parent;
 }
 
 
 CUDA_HOSTDEV
-void State::setParent(State parent){
-	this->parent = &parent;
+void State::setParent(State* parent){
+	this->parent = parent;
 }
 
 

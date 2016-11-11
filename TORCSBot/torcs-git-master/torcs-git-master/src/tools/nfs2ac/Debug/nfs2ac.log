@@ -1,19 +1,19 @@
-﻿Build started 18/10/2016 06:09:22.
-     1>Project "C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\tools\nfs2ac\nfs2ac.vcxproj" on node 7 (Rebuild target(s)).
+﻿Build started 11/11/2016 15:42:12.
+     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\tools\nfs2ac\nfs2ac.vcxproj" on node 5 (Rebuild target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /nologo /W2 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _VC80_UPGRADE=0x0600 /D _MBCS /Gm- /EHsc /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Debug/" /Fd".\Debug/vc120.pdb" /FR".\Debug\\" /Gd /TP /analyze- /errorReport:prompt mainnfs2ac.cpp
          mainnfs2ac.cpp
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\Debug/nfs2ac.exe" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:LIBCMT /MANIFEST:NO /DEBUG /PDB:".\Debug/nfs2ac.pdb" /MAP:".\Debug/nfs2ac.map" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE:NO /IMPLIB:".\Debug\nfs2ac.lib" /MACHINE:X86 /SAFESEH:NO .\Debug/mainnfs2ac.obj
-         nfs2ac.vcxproj -> C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\tools\nfs2ac\.\Debug\nfs2ac.exe
+         nfs2ac.vcxproj -> C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\tools\nfs2ac\.\Debug\nfs2ac.exe
        BscMake:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\bscmake.exe /nologo /o".\Debug/nfs2ac.bsc" .\Debug\mainnfs2ac.sbr
        PostBuildEvent:
-         copy C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\tools\nfs2ac\Debug\nfs2ac.exe C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\runtimed
+         copy C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\tools\nfs2ac\Debug\nfs2ac.exe C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\runtimed
          :VCEnd
                  1 file(s) copied.
-     1>Done Building Project "C:\Users\Samuel\Downloads\torcs-git-master\torcs-git-master\src\tools\nfs2ac\nfs2ac.vcxproj" (Rebuild target(s)).
+     1>Done Building Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\tools\nfs2ac\nfs2ac.vcxproj" (Rebuild target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:03.41
+Time Elapsed 00:00:04.16

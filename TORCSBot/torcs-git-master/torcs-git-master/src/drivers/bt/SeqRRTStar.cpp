@@ -1,14 +1,14 @@
 #include "SeqRRTStar.h"
 
-SeqRRTStar::SeqRRTStar(State initialState,double nIterations){
+SeqRRTStar::SeqRRTStar(State* initialState,double nIterations){
 	this->nIterations = nIterations;
 	graph.push_back(initialState);
 	std::srand(time(NULL));
 }
 
-State SeqRRTStar::randomState(){
-	return State(
-		         2*(std::rand() / RAND_MAX)-1,
+State* SeqRRTStar::randomState(){
+	return new State(
+		         (2*std::rand() / RAND_MAX)-1,
 		         ((PI * std::rand()) / RAND_MAX)-PI/2
 				 );
 
@@ -17,21 +17,21 @@ State SeqRRTStar::randomState(){
 double  SeqRRTStar::evaluateDistance(State s1, State s2){
 	//MOCK!
 	//Here is where the cost of a state (an action) is calculated
-	return std::rand();
+	return std::abs(std::rand()%10);
 }
 
-State SeqRRTStar::nearestNeighbor(State state, std::vector<State> graph){
+State* SeqRRTStar::nearestNeighbor(State state, std::vector<State*> graph){
 	//MOCK!
 
 	return graph[std::rand() % graph.size()];
 }
 
-std::vector<State> SeqRRTStar::nearestNeighbors(State state, std::vector<State> graph){
+std::vector<State> SeqRRTStar::nearestNeighbors(State state, std::vector<State*> graph){
 	//MOCK!
 	std::vector<State> neighbors = std::vector<State>();
 
 	for (int i = 0; i < NEIGHBOR_SAMPLE_BOUNDARY; i++){
-		neighbors.push_back(graph[std::rand() % graph.size()]);
+		neighbors.push_back(*graph[std::rand() % graph.size()]);
 	}
 	return neighbors;
 }
@@ -41,30 +41,32 @@ bool SeqRRTStar::considerFinalState(State finalState){
 	return true;
 }
 
-State SeqRRTStar::generateRRT(){
+State* SeqRRTStar::generateRRT(){
 	double maxDistance = 0;
-	State bestState = State();
+	State* bestState;
 
 	for (int k = 0; k < nIterations; k++){
 
-		State xRand = randomState();
+		State* xRand = randomState();
 		
-		State xNearest = nearestNeighbor(xRand, graph);
-		double xRandDistance = evaluateDistance(xNearest, xRand);
-		double cMin = xNearest.getDistance() + xRandDistance;
+		State* xNearest = nearestNeighbor(*xRand, graph);
+		double xRandNearDistance = evaluateDistance(*xNearest, *xRand);
 
-		xRand.setParent(xNearest);
-		xRand.setDistance(xRandDistance);
+		double cMin = xNearest->getDistance() + xRandNearDistance;
+		double xRandDistance = cMin;
+
+		xRand->setParent(xNearest);
+		xRand->setDistance(xRandDistance);
 		graph.push_back(xRand);
 
-		/*std::cout << "aaaaaaaaaa...: " << std::endl;
 
-		for (std::vector<State>::iterator i = graph.begin(); i != graph.end(); ++i)
-			std::cout << i->toString() << ' ' << std::endl;*/
+
+		//std::cout << "nearest...: " << xNearest->toString() << std::endl;
+
+		//std::cout << "xrand...: " << xRand->toString() << std::endl;
 		
 		
-		/*
-
+/*
 		std::vector<State> nearNeighbors = nearestNeighbors(xRand, graph);
 
 		State xMin = xNearest;*/
@@ -90,28 +92,40 @@ State SeqRRTStar::generateRRT(){
 		//	}
 		//}
 
-		if (xRand.getDistance() > maxDistance){
-			maxDistance = xRand.getDistance();
+		if (xRand->getDistance() > maxDistance){
+			maxDistance = xRand->getDistance();
 			bestState = xRand;
 		}
+		
+
 	}
+
+
+	std::cout << "escreve porco!: " << std::endl;
+
+	for (std::vector<State*>::iterator i = graph.begin(); i != graph.end(); ++i)
+	std::cout << (*i)->toString() << ' ' << std::endl;
+
 	return bestState;
 }
 
 
 std::vector<State> SeqRRTStar::search(){
 	std::vector<State> path = std::vector<State>();
-	State bestState = this->generateRRT();
-	State* currState = &bestState;
-	while (&(currState->getParent()) != NULL){
-		std::cout << "node...: " << currState->toString() << std::endl;
+	State* bestState = this->generateRRT();
+	State* currState = bestState;
+
+	std::cout << "best...: " << bestState->toString() << std::endl;
+
+
+	while (currState->getParent() != NULL){
 		path.push_back(*currState);
-		currState = &(currState->getParent());
+		currState = currState->getParent();
 	}
-	/*std::cout << "path...: " << std::endl;
+	std::cout << "path...: " << std::endl;
 
 	for (std::vector<State>::iterator i = path.begin(); i != path.end(); ++i)
-		std::cout << i->toString() << ' ' << std::endl;*/
+		std::cout << i->toString() << ' ' << std::endl;
 
 
 	return path;

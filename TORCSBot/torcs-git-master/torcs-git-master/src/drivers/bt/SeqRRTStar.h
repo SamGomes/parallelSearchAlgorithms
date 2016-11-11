@@ -16,17 +16,17 @@
 
 class SeqRRTStar{
 	private:
-		std::vector<State> graph;
+		std::vector<State*> graph;
 		State dynamicFinalState;
 		double nIterations;
 	public:
-		SeqRRTStar(State initialState, double nIterations);
+		SeqRRTStar(State* initialState, double nIterations);
 		std::vector<State> search();
-		State generateRRT();
+		State* generateRRT();
 		double evaluateDistance(State s1, State s2);
-		State randomState();
-		State nearestNeighbor(State state, std::vector<State> graph);
-		std::vector<State> nearestNeighbors(State state, std::vector<State> graph);
+		State* randomState();
+		State* nearestNeighbor(State state, std::vector<State*> graph);
+		std::vector<State> nearestNeighbors(State state, std::vector<State*> graph);
 		bool considerFinalState(State finalState);
 };
 

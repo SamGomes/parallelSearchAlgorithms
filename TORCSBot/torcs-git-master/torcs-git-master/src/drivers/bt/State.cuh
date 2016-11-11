@@ -24,12 +24,13 @@ public:
 	CUDA_HOSTDEV State(double pedalPos, double steerAngle, State* parent);
 	CUDA_HOSTDEV State(double pedalPos, double steerAngle);
 
+
 	CUDA_HOSTDEV double getPedalPos();
 	CUDA_HOSTDEV double getSteerAngle();
 	CUDA_HOSTDEV double getDistance();
-	CUDA_HOSTDEV State getParent();
+	CUDA_HOSTDEV State* getParent();
 
-	CUDA_HOSTDEV void setParent(State parent);
+	CUDA_HOSTDEV void setParent(State* parent);
 	CUDA_HOSTDEV void setDistance(double distance);
 
 	CUDA_HOST std::string toString();
