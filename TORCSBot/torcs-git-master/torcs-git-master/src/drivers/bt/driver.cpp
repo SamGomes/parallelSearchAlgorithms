@@ -412,7 +412,7 @@ float Driver::getClutch()
 	}
 }
 
-
+std::vector<State> path;
 int delay = 0;
 // Update my private data every timestep.
 void Driver::update(tSituation *s)
@@ -425,8 +425,16 @@ void Driver::update(tSituation *s)
 
 
 		if (delay == 0){
-			SeqRRTStar RRTStar = SeqRRTStar(new State(), 20);
-			std::vector<State> path = RRTStar.search();
+			SeqRRTStar RRTStar = SeqRRTStar(new State(), 40);
+			path = RRTStar.search();
+
+
+		}
+		
+		if (delay == 300){
+			/*currState = cuda_search(State())[0];
+			std::cout << "B ou Smol? " << currState.getPedalPos() << " , " << currState.getSteerAngle() << std::endl;*/
+
 
 			std::cout << "bauauauauyeye...: \n" << std::endl;
 
@@ -435,30 +443,31 @@ void Driver::update(tSituation *s)
 				std::cout << i->toString() << ' ' << std::endl;
 
 
+			std::cout << "curr...:" << currState.toString() << std::endl;
 
+			currState = path[(currPoint++)%path.size()];
+
+
+			delay = 1;
 		}
-		if (delay < 10){
+		else{
+
+			//tPosd otherPos;
+
+			//otherPos.x = opponent->getCarPtr()->_pos_X;
+			//otherPos.y = opponent->getCarPtr()->_pos_Y;
+			//otherPos.z = opponent->getCarPtr()->_pos_Z;
+
+			////printf("------%d------\n", delay);
+			//this->seek(otherPos);
+
+			car->_steerCmd = currState.getSteerAngle();
+			car->_accelCmd = currState.getPedalPos() > 0 ? currState.getPedalPos() : 0;
+			car->_brakeCmd = currState.getPedalPos() < 0 ? -1.0*currState.getPedalPos() : 0;
+			car->_gearCmd = getGear();
+
 			delay++;
 		}
-
-		//if (delay == 300){
-		//	currState = cuda_search(State())[0];
-		//	std::cout << "B ou Smol? " << currState.getPedalPos() << " , " << currState.getSteerAngle() << std::endl;
-		//	delay = 0;
-		//}
-		//else{
-
-		//	tPosd otherPos;
-
-		//	otherPos.x = opponent->getCarPtr()->_pos_X;
-		//	otherPos.y = opponent->getCarPtr()->_pos_Y;
-		//	otherPos.z = opponent->getCarPtr()->_pos_Z;
-
-		//	//printf("------%d------\n", delay);
-		//	this->seek(otherPos);
-
-		//	delay++;
-		//}
 	}
 
 	// Update the local data rest.

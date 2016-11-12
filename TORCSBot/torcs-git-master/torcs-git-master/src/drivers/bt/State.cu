@@ -75,7 +75,7 @@ std::string State::toString(){
 	std::string res = std::string("----------StateInfo:----------- \n") + 
 		std::string("address: ") + std::to_string((int)this) + std::string("\n") +
 		std::string("steeringAngle: ") + std::to_string(this->steerAngle) + std::string("\n") +
-		std::string("pedalPos: ") + std::to_string(this->pedalPos) + std::string("\n") +
+		std::string("pedalPos: ") + std::to_string((float)this->pedalPos) + std::string("\n") +
 		std::string("parent: ") + std::to_string((int)this->parent) + std::string("\n") +
 		std::string("distance: ") + std::to_string(this->distance) + std::string("\n");
 

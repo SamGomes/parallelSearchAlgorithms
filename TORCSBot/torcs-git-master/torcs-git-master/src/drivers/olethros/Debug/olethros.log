@@ -1,5 +1,5 @@
-﻿Build started 11/11/2016 15:43:33.
-     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\olethros\olethros.vcxproj" on node 8 (Rebuild target(s)).
+﻿Build started 12/11/2016 01:22:39.
+     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\olethros\olethros.vcxproj" on node 3 (Rebuild target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I../../../export/include /I../../windows/include /I../../.. /Zi /nologo /W2 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D OLETHROS_EXPORTS /D _VC80_UPGRADE=0x0600 /D _WINDLL /D _MBCS /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Debug/" /Fd".\Debug/vc120.pdb" /FR".\Debug\\" /Gd /TP /analyze- /errorReport:prompt ..\..\libs\learning\MathFunctions.cpp cardata.cpp driver.cpp geometry.cpp learn.cpp olethros.cpp opponent.cpp pit.cpp spline.cpp strategy.cpp TrackData.cpp Trajectory.cpp
          MathFunctions.cpp
@@ -41,4 +41,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:21.44
+Time Elapsed 00:00:16.94

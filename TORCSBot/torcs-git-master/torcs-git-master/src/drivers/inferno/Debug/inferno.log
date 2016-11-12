@@ -1,6 +1,5 @@
-﻿Build started 11/11/2016 15:42:34.
-     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\inferno\inferno.vcxproj" on node 5 (Rebuild target(s)).
-     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120\Microsoft.CppClean.targets(76,5): warning : The process cannot access the file 'c:\users\samuel\documents\faculdademestrado\2ºano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\inferno\debug\pathfinder.obj' because it is being used by another process.
+﻿Build started 12/11/2016 01:22:24.
+     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\inferno\inferno.vcxproj" on node 9 (Rebuild target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I../../../export/include /I../../windows/include /I../../.. /Zi /nologo /W2 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D BERNIW_2004_EXPORTS /D _VC80_UPGRADE=0x0600 /D _WINDLL /D _MBCS /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Debug/" /Fd".\Debug/vc120.pdb" /Gd /TP /analyze- /errorReport:prompt inferno.cpp mycar.cpp pathfinder.cpp spline.cpp trackdesc.cpp
          inferno.cpp
@@ -26,4 +25,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:01:00.23
+Time Elapsed 00:00:09.58

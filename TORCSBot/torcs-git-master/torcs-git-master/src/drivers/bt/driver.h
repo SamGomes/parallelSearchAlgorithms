@@ -35,7 +35,7 @@
 #include <portability.h>
 
 
-//#include "Kernel.cuh"
+#include "Kernel.cuh"
 #include "SeqRRTStar.h"
 
 #include "opponent.h"
