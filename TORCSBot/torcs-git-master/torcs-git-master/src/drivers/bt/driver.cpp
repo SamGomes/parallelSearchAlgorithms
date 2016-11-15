@@ -45,7 +45,6 @@ Driver::~Driver()
 		delete cardata;
 		cardata = NULL;
 	}
-	delete mycardata;
 }
 
 
@@ -307,7 +306,7 @@ void Driver::update(tSituation *s)
 
 			currState = path[(currPoint++)%path.size()];
 
-			std::cout << "curr...:" << currState.toString() << std::endl;
+			//std::cout << "curr...:" << currState.toString() << std::endl;
 
 
 			delay = 1;

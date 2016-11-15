@@ -137,7 +137,7 @@ std::vector<State> SeqRRTStar::search(){
 	State* currState = bestState;
 
 	while (currState->getParent() != NULL){
-		std::cout << currState->toString() << std::endl;
+		//std::cout << currState->toString() << std::endl;
 		path.push_back(*currState);
 		currState = currState->getParent();
 	}
