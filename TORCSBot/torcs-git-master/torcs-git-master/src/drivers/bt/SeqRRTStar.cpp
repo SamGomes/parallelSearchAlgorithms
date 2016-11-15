@@ -6,6 +6,13 @@ SeqRRTStar::SeqRRTStar(State* initialState,double nIterations){
 	std::srand(time(NULL));
 }
 
+
+SeqRRTStar::~SeqRRTStar(){
+	/*for (std::vector<State*>::iterator i = graph.begin(); i != graph.end(); ++i)
+		delete (*i);*/
+}
+
+
 State* SeqRRTStar::randomState(){
 
 	double rand = 2 * ((double)std::rand() / (double)RAND_MAX) - 1;
@@ -90,19 +97,20 @@ State* SeqRRTStar::generateRRT(){
 		xRand->setDistance(cMin);
 		
 		//reorder path to create a better path (it is not working now as it creates loops)
-		//for (State* xCurr : nearNeighbors){
-		//	//except xMin
-		//	if (xCurr == xMin) continue;
+		for (State* xCurr : nearNeighbors){
+			//except xMin
+			if (xCurr == xMin || xRand->getParent() == NULL || xRand->getParent() != xCurr) 
+				continue;
 
-		//	double cCurr = xRand->getDistance() + evaluateDistance(xCurr, xRand);
-		//	if (cCurr > xCurr->getDistance() && xRand->getParent() != xCurr){
-		//		xCurr->setParent(xRand);
-		//		xCurr->setDistance(cCurr);
-		//	}
+			double cCurr = xRand->getDistance() + evaluateDistance(xCurr, xRand);
+			if (cCurr > xCurr->getDistance()){
+				xCurr->setParent(xRand);
+				xCurr->setDistance(cCurr);
+			}
 
-		//	//missing costs update to the path!
+			//missing costs update to the path!
 
-		//}
+		}
 
 
 		if (xRand->getDistance() > maxDistance){

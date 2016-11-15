@@ -103,18 +103,23 @@ void _tgf_win_free(void * memblock)
 	char * p = (char*)memblock - 2*sizeof(int);
 
 	if (!_CrtIsValidPointer(p, sizeof(int), TRUE)) {
+		printf("memblock:%d\n", (char*) memblock);
 		assert(0);
 	}
 
 	if (!_CrtIsValidPointer(p, *(int*)p, TRUE)) {
+		printf("memblock:%d\n", (char*) memblock);
 		assert( 0 );
 	}
 
 	if (*((int*)p + 1) != 123456789) {
+		printf("memblock:%d\n", (char*) memblock);
+		printf("pointr:%d\n", *((int*)p + 1));
 		assert( 0 );
 	}
 
 	if(*((int*)(p + *(int*)p ) - 1) != 987654321) {
+		printf("memblock:%d\n", (char*) memblock);
 		assert( 0 );
 	}
 

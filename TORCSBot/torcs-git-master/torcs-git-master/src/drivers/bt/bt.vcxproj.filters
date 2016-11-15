@@ -23,32 +23,20 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="bt.cpp">
-      <Filter>Source Files\ControlModule</Filter>
-    </ClCompile>
     <ClCompile Include="cardata.cpp">
       <Filter>Source Files\ControlModule</Filter>
     </ClCompile>
     <ClCompile Include="driver.cpp">
       <Filter>Source Files\ControlModule</Filter>
     </ClCompile>
-    <ClCompile Include="learn.cpp">
-      <Filter>Source Files\ControlModule</Filter>
-    </ClCompile>
     <ClCompile Include="opponent.cpp">
-      <Filter>Source Files\ControlModule</Filter>
-    </ClCompile>
-    <ClCompile Include="pit.cpp">
-      <Filter>Source Files\ControlModule</Filter>
-    </ClCompile>
-    <ClCompile Include="spline.cpp">
-      <Filter>Source Files\ControlModule</Filter>
-    </ClCompile>
-    <ClCompile Include="strategy.cpp">
       <Filter>Source Files\ControlModule</Filter>
     </ClCompile>
     <ClCompile Include="SeqRRTStar.cpp">
       <Filter>Source Files\PlanningModule</Filter>
+    </ClCompile>
+    <ClCompile Include="bt.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -61,22 +49,7 @@
     <ClInclude Include="driver.h">
       <Filter>Header Files\ControlModule</Filter>
     </ClInclude>
-    <ClInclude Include="learn.h">
-      <Filter>Header Files\ControlModule</Filter>
-    </ClInclude>
-    <ClInclude Include="linalg.h">
-      <Filter>Header Files\ControlModule</Filter>
-    </ClInclude>
     <ClInclude Include="opponent.h">
-      <Filter>Header Files\ControlModule</Filter>
-    </ClInclude>
-    <ClInclude Include="pit.h">
-      <Filter>Header Files\ControlModule</Filter>
-    </ClInclude>
-    <ClInclude Include="spline.h">
-      <Filter>Header Files\ControlModule</Filter>
-    </ClInclude>
-    <ClInclude Include="strategy.h">
       <Filter>Header Files\ControlModule</Filter>
     </ClInclude>
     <ClInclude Include="Macros.h">
@@ -99,7 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="bt.def">
-      <Filter>Source Files\ControlModule</Filter>
+      <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
 </Project>

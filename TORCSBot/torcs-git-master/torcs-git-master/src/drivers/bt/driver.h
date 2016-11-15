@@ -26,7 +26,6 @@
 #include <cstring>
 #include <math.h>
 
-#include <tgf.h>
 #include <track.h>
 #include <car.h>
 #include <raceman.h>
@@ -39,28 +38,69 @@
 #include "SeqRRTStar.h"
 
 #include "opponent.h"
-#include "pit.h"
-#include "learn.h"
-#include "strategy.h"
 #include "cardata.h"
 
 #define BT_SECT_PRIV "bt private"
-#define BT_ATT_FUELPERLAP "fuelperlap"
 #define BT_ATT_MUFACTOR "mufactor"
-#define BT_ATT_PITTIME "pittime"
-#define BT_ATT_BESTLAP "bestlap"
-#define BT_ATT_WORSTLAP "worstlap"
-#define BT_ATT_TEAMMATE "teammate"
 
 
 class Opponents;
 class Opponent;
-class Pit;
-class AbstractStrategy;
 
 
 class Driver {
+
+	private:
+		// Utility functions.
+		void computeRadius(float *radius);
+		void update(tSituation *s);
+
+		float getAccel();
+		float getBrake();
+		int getGear();
+		float getSteer(tPosd target);
+		float getClutch();
+		float getOffset();
+
+
+
+		int currPoint = 0;
+		State currState;
+		std::vector<State> path;
+		int delay = 0;
+
+
+		// Per robot global data.
+		tCarElt *car;			// Pointer to tCarElt struct.
+
+		Opponents *opponents;	// The container for opponents.
+		Opponent *opponent;		// The array of opponents.
+
+
+		static Cardata *cardata;		// Data about all cars shared by all instances.
+		SingleCardata *mycardata;		// Pointer to "global" data about my car.
+		static double currentsimtime;	// Store time to avoid useless updates.
+
+		float clutchtime;		// Clutch timer.
+
+		float *radius;
+
+		// Data that should stay constant after first initialization.
+		int INDEX;
+		float MU_FACTOR;				// [-]
+
+		// Class constants.
+		static const float SHIFT;
+		static const float SHIFT_MARGIN;
+		static const float CLUTCH_SPEED;
+		static const float CLUTCH_FULL_MAX_TIME;
+
+		// Track variable.
+		tTrack* track;
+
+
 	public:
+
 		Driver(int index);
 		~Driver();
 
@@ -71,121 +111,13 @@ class Driver {
 		void newRace(tCarElt* car, tSituation *s);
 		bool validPoint(tPosd target);
 		void drive(tSituation *s);
-		int pitCommand(tSituation *s);
-		void endRace(tSituation *s);
 
 		tCarElt *getCarPtr() { return car; }
 		tTrack *getTrackPtr() { return track; }
 		float getSpeed() { return mycardata->getSpeedInTrackDirection(); /*speed;*/ }
 
-	private:
-		// Utility functions.
-		int isAlone();
-		void computeRadius(float *radius);
-		void update(tSituation *s);
-		float getAccel();
-		float getBrake();
-		int getGear();
-		float getSteer();
-		float getClutch();
-		vec2f getTargetPoint();
-		float getOffset();
-		
-		float filterABS(float brake);
-		float filterBPit(float brake);
-		float filterBrakeSpeed(float brake);
-		float filterTurnSpeed(float brake);
-
-		float filterTCL(float accel);
-		float filterTrk(float accel);
-
-		float filterSColl(float steer);
-
-		float filterTCL_RWD();
-		float filterTCL_FWD();
-		float filterTCL_4WD();
-		void initTCLfilter();
-
-		void initCa();
-		void initCw();
-		void initTireMu();
-
-
-		// Per robot global data.
-		int stuck;
-		float speedangle;		// the angle of the speed vector relative to trackangle, > 0.0 points to right.
-		float mass;				// Mass of car + fuel.
-		float myoffset;			// Offset to the track middle.
-		tCarElt *car;			// Pointer to tCarElt struct.
-
-		Opponents *opponents;	// The container for opponents.
-		Opponent *opponent;		// The array of opponents.
-
-		Pit *pit;						// Pointer to the pit instance.
-		AbstractStrategy *strategy;		// Pit stop strategy.
-
-		static Cardata *cardata;		// Data about all cars shared by all instances.
-		SingleCardata *mycardata;		// Pointer to "global" data about my car.
-		static double currentsimtime;	// Store time to avoid useless updates.
-
-		float currentspeedsqr;	// Square of the current speed_x.
-		float clutchtime;		// Clutch timer.
-		float oldlookahead;		// Lookahead for steering in the previous step.
-
-		float *radius;
-		SegLearn *learn;
-		int alone;
-
-		// Data that should stay constant after first initialization.
-		int MAX_UNSTUCK_COUNT;
-		int INDEX;
-		float CARMASS;		// Mass of the car only [kg].
-		float CA;			// Aerodynamic downforce coefficient.
-		float CW;			// Aerodynamic drag coefficient.
-		float TIREMU;		// Friction coefficient of tires.
-		float (Driver::*GET_DRIVEN_WHEEL_SPEED)();
-		float OVERTAKE_OFFSET_INC;		// [m/timestep]
-		float MU_FACTOR;				// [-]
-
-		// Class constants.
-		static const float MAX_UNSTUCK_ANGLE;
-		static const float UNSTUCK_TIME_LIMIT;
-		static const float MAX_UNSTUCK_SPEED;
-		static const float MIN_UNSTUCK_DIST;
-		static const float G;
-		static const float FULL_ACCEL_MARGIN;
-		static const float SHIFT;
-		static const float SHIFT_MARGIN;
-		static const float ABS_SLIP;
-		static const float ABS_RANGE ;
-		static const float ABS_MINSPEED;
-		static const float TCL_SLIP;
-		static const float LOOKAHEAD_CONST;
-		static const float LOOKAHEAD_FACTOR;
-		static const float WIDTHDIV;
-		static const float SIDECOLL_MARGIN;
-		static const float BORDER_OVERTAKE_MARGIN;
-		static const float OVERTAKE_OFFSET_SPEED;
-		static const float PIT_LOOKAHEAD;
-		static const float PIT_BRAKE_AHEAD;
-		static const float PIT_MU;
-		static const float MAX_SPEED;
-		static const float TCL_RANGE;
-		static const float MAX_FUEL_PER_METER;
-		static const float CLUTCH_SPEED;
-		static const float CENTERDIV;
-		static const float DISTCUTOFF;
-		static const float MAX_INC_FACTOR;
-		static const float CATCH_FACTOR;
-		static const float CLUTCH_FULL_MAX_TIME;
-		static const float USE_LEARNED_OFFSET_RANGE;
-
-		static const float TEAM_REAR_DIST;
-		static const int TEAM_DAMAGE_CHANGE_LEAD;
-
-		// Track variables.
-		tTrack* track;
+	
 };
 
-#endif // _DRIVER_H_
+#endif
 

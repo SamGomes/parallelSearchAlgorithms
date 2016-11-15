@@ -178,15 +178,11 @@
     <ClCompile Include="bt.cpp" />
     <ClCompile Include="cardata.cpp" />
     <ClCompile Include="driver.cpp" />
-    <ClCompile Include="learn.cpp" />
     <ClCompile Include="opponent.cpp" />
-    <ClCompile Include="pit.cpp" />
     <ClCompile Include="SeqRRTStar.cpp">
       <FileType>CppCode</FileType>
     </ClCompile>
-    <ClCompile Include="spline.cpp" />
     <CudaCompile Include="State.cu" />
-    <ClCompile Include="strategy.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="bt.def" />
@@ -195,15 +191,10 @@
     <ClInclude Include="cardata.h" />
     <ClInclude Include="driver.h" />
     <ClInclude Include="Kernel.cuh" />
-    <ClInclude Include="learn.h" />
-    <ClInclude Include="linalg.h" />
     <ClInclude Include="Macros.h" />
     <ClInclude Include="opponent.h" />
-    <ClInclude Include="pit.h" />
     <ClInclude Include="SeqRRTStar.h" />
-    <ClInclude Include="spline.h" />
     <ClInclude Include="State.cuh" />
-    <ClInclude Include="strategy.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\libs\robottools\robottools.vcxproj">

@@ -1,8 +1,10 @@
+
+
+#pragma once
+
 #ifndef NEIGHBOR_SAMPLE_BOUNDARY
 #define NEIGHBOR_SAMPLE_BOUNDARY 2
 #endif
-
-#pragma once
 
 #ifndef SEQRRTSTAR_H
 #define SEQRRTSTAR_H
@@ -21,6 +23,7 @@ class SeqRRTStar{
 		double nIterations;
 	public:
 		SeqRRTStar(State* initialState, double nIterations);
+		~SeqRRTStar();
 		std::vector<State> search();
 		State* generateRRT();
 		double evaluateDistance(State* s1, State* s2);
