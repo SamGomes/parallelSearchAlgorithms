@@ -17,6 +17,9 @@ version              : $Id: driver.cpp,v 1.16.2.2 2008/12/31 03:53:53 berniw Exp
 *                                                                         *
 ***************************************************************************/
 
+//----------------------- CONTROL MODULE ----------------------------------
+
+
 #include "driver.h"
 
 
@@ -55,7 +58,6 @@ void Driver::initTrack(tTrack* t, void *carHandle, void **carParmHandle, tSituat
 
 	const int BUFSIZE = 256;
 	char buffer[BUFSIZE];
-	
 
 
 	*carParmHandle = GfParmReadFile(buffer, GFPARM_RMODE_STD);
@@ -273,6 +275,8 @@ float Driver::getClutch()
 	}
 }
 
+
+
 // Update my private data every timestep.
 void Driver::update(tSituation *s)
 {
@@ -284,15 +288,20 @@ void Driver::update(tSituation *s)
 
 
 		if (delay == 0){
-			SeqRRTStar RRTStar = SeqRRTStar(new State(), 50);
+			SeqRRTStar RRTStar = SeqRRTStar(new State(this->car), 20);
 			path = RRTStar.search();
 
 
+			std::cout << "escrever path: " << std::endl;
+
+			for (std::vector<State>::iterator i = path.begin(); i != path.end(); ++i)
+				std::cout << (*i).toString() << ' ' << std::endl;
+			
 		}
 		
 		if (delay == 100){
-			/*currState = cuda_search(State())[0];
-			std::cout << "B ou Smol? " << currState.getPedalPos() << " , " << currState.getSteerAngle() << std::endl;*/
+			//currState = cuda_search(State())[0];
+			//std::cout << "currState:" << currState.getPedalPos() << " , " << currState.getSteerAngle() << std::endl;
 
 
 			//std::cout << "bauauauauyeye...: \n" << std::endl;
@@ -301,12 +310,15 @@ void Driver::update(tSituation *s)
 			//for (std::vector<State>::iterator i = path.begin(); i != path.end(); ++i)
 			//	std::cout << i->toString() << ' ' << std::endl;
 
+			
+
+			currState = path[currPoint];
+
+			(currPoint < (path.size()-1)) ? currPoint++ : currPoint = 0;
 
 
+			std::cout << "curr...:" << currState.toString() << std::endl;
 
-			currState = path[(currPoint++)%path.size()];
-
-			//std::cout << "curr...:" << currState.toString() << std::endl;
 
 
 			delay = 1;
@@ -321,6 +333,8 @@ void Driver::update(tSituation *s)
 
 			////printf("------%d------\n", delay);
 			//this->seek(otherPos);
+
+
 
 			car->_steerCmd = currState.getSteerAngle();
 			car->_accelCmd = currState.getPedalPos() > 0 ? currState.getPedalPos() : 0;

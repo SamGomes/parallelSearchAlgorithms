@@ -10,7 +10,7 @@ __global__ void kernel(State* initialState, State* returnedPath, int PATHMAXSIZE
 		0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
 		&curandState);
 
-	returnedPath[0] = State((curand_uniform(&curandState) * 2) - 1, (curand_uniform(&curandState) * 4 * 3.14f)  - 1.57f, initialState);
+	//returnedPath[0] = State((curand_uniform(&curandState) * 2) - 1, (curand_uniform(&curandState) * 4 * 3.14f)  - 1.57f, initialState);
 	
 }
 

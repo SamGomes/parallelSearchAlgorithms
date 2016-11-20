@@ -37,6 +37,8 @@
 #include "Kernel.cuh"
 #include "SeqRRTStar.h"
 
+//#include "src/modules/simu/simuv2/sim.h"
+
 #include "opponent.h"
 #include "cardata.h"
 

@@ -1,6 +1,14 @@
 #include "SeqRRTStar.h"
 
-SeqRRTStar::SeqRRTStar(State* initialState,double nIterations){
+
+static bool compareStates(State* s1, State* s2) {
+	double s1D = s1->getDistance();
+	double s2D = s2->getDistance();
+	return (s1D > s2D);
+}
+
+
+SeqRRTStar::SeqRRTStar(State* initialState, double nIterations){
 	this->nIterations = nIterations;
 	graph.push_back(initialState);
 	std::srand(time(NULL));
@@ -8,35 +16,42 @@ SeqRRTStar::SeqRRTStar(State* initialState,double nIterations){
 
 
 SeqRRTStar::~SeqRRTStar(){
-	/*for (std::vector<State*>::iterator i = graph.begin(); i != graph.end(); ++i)
-		delete (*i);*/
+	//for (std::vector<State*>::iterator i = graph.begin(); i != graph.end(); ++i)
+		//delete (*i);
+	//delete[] &graph;
 }
 
 
 State* SeqRRTStar::randomState(){
 
-	double rand = 2 * ((double)std::rand() / (double)RAND_MAX) - 1;
-	return new State(
-		         rand,
-				 ((PI * std::rand()) / (double) RAND_MAX) - PI / 2
-				 );
+	double randPos = 1.1 * ((double)std::rand() / (double)RAND_MAX) - 0.1;
+	double randSteer = 0.2 * (((PI * std::rand()) / (double)RAND_MAX) - PI / 2);
+	return new State(randPos,randSteer); 
 
 }
 
+double MOCK = 0;
+
 double  SeqRRTStar::evaluateDistance(State* s1, State* s2){
-	//MOCK!
 	//Here is where the cost of a state (an action) is calculated
-	return std::abs(std::rand()%10);
+
+	//return (s2->getFinalPos() - s1->getInitialPos()) / (0.5*s1->getAcceleration()*s1->getAcceleration() + s1->get)
+
+
+	//MOCK!
+	return std::abs(std::rand() % 10);
 }
 
 State* SeqRRTStar::nearestNeighbor(State* state, std::vector<State*> graph){
-	//MOCK!
+	std::sort(graph.begin(), graph.end(), compareStates);
 
-	return graph[std::rand() % graph.size()];
+	return graph.back();
+
+	//MOCK IT!
+	//return graph[std::rand() % graph.size()];
 }
 
 std::vector<State*> SeqRRTStar::nearestNeighbors(State* state, std::vector<State*> graph){
-	//MOCK! tem de ser alterado
 	std::vector<State*> neighbors = std::vector<State*>();
 
 	std::vector<State*> auxGraph = graph;
@@ -47,11 +62,12 @@ std::vector<State*> SeqRRTStar::nearestNeighbors(State* state, std::vector<State
 
 		int index = std::rand() % auxGraph.size();
 		//remove initial node and testing node
-		while (auxGraph[index] == state || state->getParent()==NULL){
-			index = std::rand() % auxGraph.size();
+		if (auxGraph[index] == state || state->getParent()==NULL){
+			auxGraph.erase(std::remove(auxGraph.begin(), auxGraph.end(), state), auxGraph.end());
 		}
-		neighbors.push_back(auxGraph[index]);
-		auxGraph.erase(auxGraph.begin() + index);
+		State* currNearestNeighbor = nearestNeighbor(state, auxGraph);
+		neighbors.push_back(currNearestNeighbor);
+		auxGraph.erase(std::remove(auxGraph.begin(), auxGraph.end(), currNearestNeighbor), auxGraph.end());
 	}
 	return neighbors;
 }
@@ -62,7 +78,7 @@ bool SeqRRTStar::considerFinalState(State* finalState){
 }
 
 State* SeqRRTStar::generateRRT(){
-	double maxDistance = 0;
+	double maxDistance = -1; //force a change
 	State* bestState;
 
 	for (int k = 0; k < nIterations; k++){
@@ -93,40 +109,33 @@ State* SeqRRTStar::generateRRT(){
 			}
 		}
 
-		xRand->setParent(xMin);
-		xRand->setDistance(cMin);
-		
-		//reorder path to create a better path (it is not working now as it creates loops)
-		for (State* xCurr : nearNeighbors){
-			//except xMin
-			if (xCurr == xMin || xRand->getParent() == NULL || xRand->getParent() != xCurr) 
-				continue;
+		//xRand->setParent(xMin);
+		//xRand->setDistance(cMin);
+		//
+		////reorder path to create a better path (it is not working now as it creates loops)
+		//for (State* xCurr : nearNeighbors){
+		//	//except xMin
+		//	if (xCurr == xMin || xRand->getParent() == NULL || xRand->getParent() != xCurr) 
+		//		continue;
 
-			double cCurr = xRand->getDistance() + evaluateDistance(xCurr, xRand);
-			if (cCurr > xCurr->getDistance()){
-				xCurr->setParent(xRand);
-				xCurr->setDistance(cCurr);
-			}
+		//	double cCurr = xRand->getDistance() + evaluateDistance(xCurr, xRand);
+		//	if (cCurr > xCurr->getDistance()){
+		//		xCurr->setParent(xRand);
+		//		xCurr->setDistance(cCurr);
+		//	}
 
-			//missing costs update to the path!
+		//	//missing costs update to the path!
 
-		}
+		//}
 
 
 		if (xRand->getDistance() > maxDistance){
 			maxDistance = xRand->getDistance();
 			bestState = xRand;
 		}
-		
+
 
 	}
-
-
-	//std::cout << "escrever RRT: " << std::endl;
-
-	//for (std::vector<State*>::iterator i = graph.begin(); i != graph.end(); ++i)
-	//std::cout << (*i)->toString() << ' ' << std::endl;
-
 	return bestState;
 }
 
@@ -137,11 +146,9 @@ std::vector<State> SeqRRTStar::search(){
 	State* currState = bestState;
 
 	while (currState->getParent() != NULL){
-		//std::cout << currState->toString() << std::endl;
 		path.push_back(*currState);
 		currState = currState->getParent();
 	}
-	
 
 	return path;
 
