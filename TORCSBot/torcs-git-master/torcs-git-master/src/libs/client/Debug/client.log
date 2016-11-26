@@ -1,4 +1,4 @@
-﻿Build started 20/11/2016 01:08:54.
+﻿Build started 26/11/2016 17:28:40.
      1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\libs\client\client.vcxproj" on node 2 (Build target(s)).
      1>Link:
          client.vcxproj -> C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\libs\client\.\Debug\client.dll
@@ -15,4 +15,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.25
+Time Elapsed 00:00:00.57

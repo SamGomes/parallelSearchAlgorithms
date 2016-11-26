@@ -37,7 +37,7 @@
 #include "Kernel.cuh"
 #include "SeqRRTStar.h"
 
-//#include "src/modules/simu/simuv2/sim.h"
+//#include "carstruct.h"
 
 #include "opponent.h"
 #include "cardata.h"
@@ -66,10 +66,12 @@ class Driver {
 
 
 
-		int currPoint = 0;
 		State currState;
-		std::vector<State> path;
-		int delay = 0;
+		std::vector<State> path = std::vector<State>();
+		int PATHCALCTIME = 0; //time to recalc
+		bool LASTNODE = false; //flag to wait for last node to be executed before path recalc
+		int pathCalcDelay = PATHCALCTIME; //time left until recalc
+		int actionDelay = 0; //time left until change action
 
 
 		// Per robot global data.

@@ -104,6 +104,7 @@ extern t3Dd vectEnd[];
 extern tdble simDammageFactor[];
 extern tdble simSkidFactor[];
 
+
 /// return a number drawn uniformly from [0,1]
 inline float urandom() {
 	return ((((float)rand()-1)/((float)RAND_MAX)));

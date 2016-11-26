@@ -2,7 +2,7 @@
 <!DOCTYPE params SYSTEM "params.dtd">
 
 
-<params name="Human">
+<params name="preferences">
   <section name="joystick">
     <attstr name="up shift" val="BTN1-0"/>
     <attstr name="down shift" val="BTN2-0"/>

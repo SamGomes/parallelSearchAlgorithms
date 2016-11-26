@@ -1,6 +1,14 @@
-﻿Build started 18/11/2016 23:16:28.
-     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\lliaw\lliaw.vcxproj" on node 6 (Build target(s)).
-     1>Link:
+﻿Build started 25/11/2016 23:41:30.
+     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\lliaw\lliaw.vcxproj" on node 6 (Rebuild target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I../../../export/include /I../../windows/include /I../../.. /Zi /nologo /W2 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D BERNIW_2004_EXPORTS /D _VC80_UPGRADE=0x0600 /D _WINDLL /D _MBCS /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Debug/" /Fd".\Debug/vc120.pdb" /Gd /TP /analyze- /errorReport:prompt lliaw.cpp mycar.cpp pathfinder.cpp spline.cpp trackdesc.cpp
+         lliaw.cpp
+         mycar.cpp
+         pathfinder.cpp
+         spline.cpp
+         trackdesc.cpp
+         Generating Code...
+       Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\Debug/lliaw.dll" /INCREMENTAL:NO /NOLOGO /LIBPATH:../../../export/libd /LIBPATH:../../windows/lib tgf.lib robottools.lib sg_vs2008_32.lib ul_vs2008_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:LIBCMT /DEF:".\lliaw.def" /MANIFEST:NO /DEBUG /PDB:".\Debug/lliaw.pdb" /MAP:".\Debug/lliaw.map" /TLBID:1 /DYNAMICBASE:NO /IMPLIB:".\Debug/lliaw.lib" /MACHINE:X86 /SAFESEH:NO /DLL .\Debug/lliaw.obj
          .\Debug/mycar.obj
          .\Debug/pathfinder.obj
@@ -13,8 +21,8 @@
          :VCEnd
          C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\lliaw\Debug\lliaw.dll
                  1 file(s) copied.
-     1>Done Building Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\lliaw\lliaw.vcxproj" (Build target(s)).
+     1>Done Building Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\lliaw\lliaw.vcxproj" (Rebuild target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:01.17
+Time Elapsed 00:00:07.08

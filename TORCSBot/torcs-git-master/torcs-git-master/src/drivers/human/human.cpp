@@ -417,6 +417,7 @@ void newrace(int index, tCarElt* car, tSituation *s)
 static void
 updateKeys(void)
 {
+
 	int i;
 	int key;
 	int idx;
@@ -497,6 +498,8 @@ static void common_drive(int index, tCarElt* car, tSituation *s)
 	tControlCmd	*cmd = HCtx[idx]->CmdControl;
 	const int BUFSIZE = 1024;
 	char sstring[BUFSIZE];
+
+	std::cout << "(" << car->pub.DynGC.pos.x << "," << car->pub.DynGC.pos.y << ")" << std::endl;
 
 
 	static int firstTime = 1;
@@ -1002,6 +1005,7 @@ static tdble getAutoClutch(int idx, int gear, int newgear, tCarElt *car)
  */
 static void drive_mt(int index, tCarElt* car, tSituation *s)
 {
+
 	int i;
 	int idx = index - 1;
 	tControlCmd	*cmd = HCtx[idx]->CmdControl;

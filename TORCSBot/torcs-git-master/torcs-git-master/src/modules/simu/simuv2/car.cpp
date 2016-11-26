@@ -235,9 +235,6 @@ SimCarUpdateForces(tCar *car)
 	car->DynGCg.acc.ay = car->DynGC.acc.ay = F.M.y * car->Iinv.y;
 	car->DynGCg.acc.az = car->DynGC.acc.az = (F.M.z - Rm) * car->Iinv.z;
 
-	/*printf("pedalpos: (%f,%f) \n", car->preCtrl.accelCmd, car->preCtrl.brakeCmd);
-
-	printf("acc: (%f,%f) \n", car->DynGCg.acc.ax, car->DynGCg.acc.ay);*/
 
 }
 

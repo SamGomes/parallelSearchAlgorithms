@@ -1,4 +1,4 @@
-﻿Build started 14/11/2016 02:47:14.
+﻿Build started 25/11/2016 23:40:48.
      1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\modules\simu\simuv2\SOLID-2.0\solid.vcxproj" on node 3 (Rebuild target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I../../../../../export/include /I../../../../libs/torcs /Zi /nologo /W2 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _LIB /D DEBUG /D DEBUG_OUT /D _VC80_UPGRADE=0x0600 /D _MBCS /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Debug/" /Fd".\Debug/vc120.pdb" /FR".\Debug\\" /Gd /TP /analyze- /errorReport:prompt src\BBoxTree.cpp src\Box.cpp "src\C-api.cpp" src\Complex.cpp src\Cone.cpp src\Convex.cpp src\Cylinder.cpp src\Endpoint.cpp src\Object.cpp src\Polygon.cpp src\Polyhedron.cpp src\Response.cpp src\RespTable.cpp src\Simplex.cpp src\Sphere.cpp src\Transform.cpp
@@ -97,4 +97,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:09.00
+Time Elapsed 00:00:10.41

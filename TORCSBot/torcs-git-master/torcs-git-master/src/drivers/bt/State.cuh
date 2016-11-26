@@ -11,63 +11,140 @@
 #include "car.h"
 //This class is an general implementation of the State data model
 
+#include <carstruct.h>
+#include <robottools.h>
+
+
+typedef struct
+{
+	/* driver's interface */
+	tCarCtrl	*ctrl;
+	void	*params;
+	tCarElt	*carElt;
+
+	tCarCtrl	preCtrl;
+
+	/* components */
+	tAxle		axle[2];
+	tWheel		wheel[4];
+	tSteer		steer;
+	tBrakeSyst		brkSyst;
+	tAero		aero;
+	tWing		wing[2];
+	tTransmission	transmission;	/* includes clutch, gearbox and driveshaft */
+	tEngine		engine;
+
+	/* static */
+	t3Dd	dimension;	/* car's mesures */
+	tdble	mass;		/* mass with pilot (without fuel) */
+	tdble	Minv;		/* 1 / mass with pilot (without fuel) */
+	tdble	tank;		/* fuel tank capa */
+	t3Dd	statGC;		/* static pos of GC */
+	t3Dd	Iinv;		/* inverse of inertial moment along the car's 3 axis */
+
+	/* dynamic */
+	tdble	fuel;		/* current fuel load */
+	tDynPt	DynGC;		/* GC local data except position */
+	tDynPt	DynGCg;		/* GC global data */
+	tPosd	VelColl;	/* resulting velocity after collision */
+	tDynPt	preDynGC;	/* previous one */
+	tTrkLocPos	trkPos;		/* current track position */
+	tdble	airSpeed2;	/* current air speed (squared) for aerodynamic forces */
+
+	/* internals */
+	tdble	Cosz;
+	tdble	Sinz;
+	tDynPt	corner[4];	/* x,y,z for static relative pos, ax,ay,az for dyn. world coord */
+	int		collision;
+	t3Dd	normal;
+	t3Dd	collpos;
+	tdble	wheelbase;
+	tdble	wheeltrack;
+	sgMat4	posMat;
+	DtShapeRef	shape;		/* for collision */
+	int		blocked;		// Flag to show if the car has had already a collision in the same timestep.
+	int		dammage;
+
+	tDynPt	restPos;	/* target rest position after the car is broken */
+
+	int		collisionAware;
+} tMockedCar;
+
+
+
+
+
+
 
 class State
 {
-private:
 
-	tCarElt car; //copy of car state for which the state refers to
+	private:
 
-	double pedalPos; //negative means breaking
-	double steerAngle;
+		tCarElt car; //copy of car state for which the state refers to
 
-	tPosd initialPos;
-	tPosd finalPos;
+		double pedalPos; //negative means breaking
+		double steerAngle;
 
-	double initialSpeed;
-	double finalSpeed;
+		tPosd initialPos;
+		tPosd finalPos;
 
-	double acceleration;
+		double initialSpeed;
+		double finalSpeed;
 
-	State* parent;
-	double distance; //cost (the bigger the better in this case)
+		double acceleration;
 
-	double simDeltaTime = 0.02; //assigned for debug purposes
-
-	tdble aMax = 0.35f; //as defined in simuv2/car.cpp
-
-public:
-
-	CUDA_HOSTDEV State(); //for method initialization purposes only! IT LACKS THE FORWARD MODEL! DO NOT USE IT OTHERWISE!
-
-	CUDA_HOSTDEV State(tCarElt *car);
-	CUDA_HOSTDEV State(double pedalPos, double steerAngle, State* parent);
-	CUDA_HOSTDEV State(double pedalPos, double steerAngle);
+		State* parent;
+		double cost; //forward model cost (the bigger the better in this case)
+		double pathCost; //path cost (comulative)
 
 
-	//---------------- forward model ---------------------------
-	CUDA_HOSTDEV void initForwardModel();
-	CUDA_HOSTDEV void predictAcceleration();
-	CUDA_HOSTDEV void computeFinalSpeed();
-	CUDA_HOSTDEV void computeFinalPos();
-	CUDA_HOSTDEV void normalizeAngle(double angle);
-	CUDA_HOSTDEV double signOf(double number);
-	//----------------------------------------------------------
+		double simDeltaTime = 0.02*100; //assigned for debug purposes (100 game ticks action simulation)
 
-	CUDA_HOSTDEV double getAcceleration();
-	CUDA_HOSTDEV double getPedalPos();
-	CUDA_HOSTDEV double getSteerAngle();
-	CUDA_HOSTDEV double getDistance();
-	CUDA_HOSTDEV double getInitialSpeed();
-	CUDA_HOSTDEV double getFinalSpeed();
-	CUDA_HOSTDEV tPosd getInitialPos();
-	CUDA_HOSTDEV tPosd getFinalPos();
-	CUDA_HOSTDEV State* getParent();
+		tdble aMax = 0.35f; //as defined in simuv2/car.cpp
 
-	CUDA_HOSTDEV void setParent(State* parent);
-	CUDA_HOSTDEV void setDistance(double distance);
 
-	CUDA_HOST std::string toString();
+		//---------------- forward model ---------------------------
+		CUDA_HOSTDEV void initForwardModel();
+		CUDA_HOSTDEV void predictAcceleration();
+		CUDA_HOSTDEV void computeCost();
+		CUDA_HOSTDEV void computeFinalSpeed();
+		CUDA_HOSTDEV void computeFinalPos();
+		CUDA_HOSTDEV void normalizeAngle(double angle);
+		CUDA_HOSTDEV double signOf(double number);
+		//----------------------------------------------------------
+
+
+	public:
+
+		CUDA_HOSTDEV State(); //for method initialization purposes only! IT LACKS THE FORWARD MODEL! DO NOT USE IT OTHERWISE!
+
+		CUDA_HOSTDEV State(tCarElt *car);
+		CUDA_HOSTDEV State(double pedalPos, double steerAngle, State* parent);
+		CUDA_HOSTDEV State(double pedalPos, double steerAngle);
+
+
+
+		CUDA_HOSTDEV double getAcceleration();
+		CUDA_HOSTDEV double getPedalPos();
+		CUDA_HOSTDEV double getSteerAngle();
+		CUDA_HOSTDEV double getCost();
+		CUDA_HOSTDEV double getPathCost();
+		CUDA_HOSTDEV double getInitialSpeed();
+		CUDA_HOSTDEV double getFinalSpeed();
+		CUDA_HOSTDEV tPosd getInitialPos();
+		CUDA_HOSTDEV tPosd getFinalPos();
+		CUDA_HOSTDEV State* getParent();
+
+		CUDA_HOSTDEV void setParent(State* parent);
+		CUDA_HOSTDEV void setPathCost(double pathCost);
+
+		CUDA_HOSTDEV void setPedalPos(double pedalPos);
+		CUDA_HOSTDEV void setSteerAngle(double steerAngle);
+
+		CUDA_HOSTDEV void setCommands(double pedalPos,double steerAngle);
+
+		CUDA_HOST std::string toString();
 
 };
 

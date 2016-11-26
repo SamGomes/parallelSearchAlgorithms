@@ -36,13 +36,13 @@
 #define NBBOTS 10
 
 static const char* botname[NBBOTS] = {
-	"RRT* 1", "RRT* 2", "RRT* 3", "RRT* 4", "RRT* 5",
-	"RRT* 6", "RRT* 7", "RRT* 8", "RRT* 9", "RRT* 10"
+	"RRT-ish 1", "RRT-ish 2", "RRT-ish 3", "RRT-ish 4", "RRT-ish 5",
+	"RRT-ish 6", "RRT-ish 7", "RRT-ish 8", "RRT-ish 9", "RRT-ish 10"
 };
 
 static const char* botdesc[NBBOTS] = {
-	"RRT* 1", "RRT* 2", "RRT* 3", "RRT* 4", "RRT* 5",
-	"RRT* 6", "RRT* 7", "RRT* 8", "RRT* 9", "RRT* 10"
+	"RRT-ish 1", "RRT-ish 2", "RRT-ish 3", "RRT-ish 4", "RRT-ish 5",
+	"RRT-ish 6", "RRT-ish 7", "RRT-ish 8", "RRT-ish 9", "RRT-ish 10"
 };
 
 static Driver* driver[NBBOTS];

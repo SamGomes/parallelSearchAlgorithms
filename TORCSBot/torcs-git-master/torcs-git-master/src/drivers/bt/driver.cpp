@@ -19,8 +19,14 @@ version              : $Id: driver.cpp,v 1.16.2.2 2008/12/31 03:53:53 berniw Exp
 
 //----------------------- CONTROL MODULE ----------------------------------
 
+#include "sim.h"
 
 #include "driver.h"
+
+
+tCar *SimCarTable;
+
+extern tCar *SimCarTable;
 
 
 const float Driver::SHIFT = 0.9f;							// [-] (% of rpmredline) When do we like to shift gears.
@@ -98,30 +104,7 @@ void Driver::newRace(tCarElt* car, tSituation *s)
 
 }
 
-bool Driver::validPoint(tPosd target){
-	//point on oponent?
 
-	if (target.x <= (opponent->getCarPtr()->_pos_X + 20) &&
-		target.x >= (opponent->getCarPtr()->_pos_X - 20) &&
-		target.y <= (opponent->getCarPtr()->_pos_Y + 20) &&
-		target.y >= (opponent->getCarPtr()->_pos_Y - 20)){
-			return false;
-
-	}
-	//point outside track?
-	tTrkLocPos pos;
-	tTrackSeg* seg = track->seg;
-	tTrackSeg* currSeg = seg->next;
-	while (currSeg != seg){
-		RtTrackGlobal2Local(currSeg, target.x, target.y, &pos, TR_LPOS_MAIN);
-		if (pos.toRight > 0 && pos.toLeft > 0){
-			return true;
-		}
-
-		currSeg = currSeg->next;
-	}
-	return false;
-}
 
 
 void Driver::seek(tPosd target){
@@ -275,74 +258,92 @@ float Driver::getClutch()
 	}
 }
 
-
-
 // Update my private data every timestep.
 void Driver::update(tSituation *s)
 {
 	// Update global car data (shared by all instances) just once per timestep.
-
 	if (currentsimtime != s->currentTime) {
 		currentsimtime = s->currentTime;
 		cardata->update();
 
+		//------------ producer --------------
+		if (path.size() == 0 && !LASTNODE){
+			actionDelay = 100;
+			if (pathCalcDelay == PATHCALCTIME){
 
-		if (delay == 0){
-			SeqRRTStar RRTStar = SeqRRTStar(new State(this->car), 20);
-			path = RRTStar.search();
+				//tCar* car = &(SimCarTable[this->car->index]);
+				//SeqRRTStar RRTStar = SeqRRTStar(new State(car), 10, *track);
+				/*int i = car->index;*/
+				//tCar* t = SimCarTable;
 
+				SeqRRTStar RRTStar = SeqRRTStar(new State(this->car), 1000, *track);
+				path = RRTStar.search();
 
-			std::cout << "escrever path: " << std::endl;
+				printf( "escrever path: \n");
 
-			for (std::vector<State>::iterator i = path.begin(); i != path.end(); ++i)
-				std::cout << (*i).toString() << ' ' << std::endl;
-			
+				for (std::vector<State>::iterator i = path.begin(); i != path.end(); ++i)
+					std::cout << (*i).toString() << std::endl;
+
+				pathCalcDelay = 0;
+			}
+			else{
+				pathCalcDelay++;
+			}
 		}
+		//------------ consumer --------------
+		if (path.size() != 0 || LASTNODE){
+
+			PATHCALCTIME = 100 * (path.size());
+			pathCalcDelay = PATHCALCTIME;
+			
+			if (actionDelay == 100){
+
+				if (!LASTNODE){
+					currState = path.back();
+					path.pop_back();
+
+					if (path.size() == 0){
+						LASTNODE = true;
+					}
+				}
+				else{
+					LASTNODE = false;
+				}
+
+				//currState = cuda_search(State())[0];
+				//std::cout << "currState:" << currState.getPedalPos() << " , " << currState.getSteerAngle() << std::endl;
+
+				//std::cout << "(" << car->pub.DynGCg.pos.x << "," << car->pub.DynGCg.pos.y << ")" << std::endl;
+				
+
+
+				//std::cout << "curr...:" << currState.toString() << std::endl;
+
+				actionDelay = 0;
+
+			}
+			else{
+				actionDelay++;
+			}
+		}
+
+		//tPosd otherPos;
+
+		//otherPos.x = opponent->getCarPtr()->_pos_X;
+		//otherPos.y = opponent->getCarPtr()->_pos_Y;
+		//otherPos.z = opponent->getCarPtr()->_pos_Z;
+
+		////printf("------%d------\n", delay);
+		//this->seek(otherPos);
+
+			
+		car->_steerCmd = currState.getSteerAngle();
+			
+		car->_accelCmd = currState.getPedalPos() > 0 ? currState.getPedalPos() : 0;
+		car->_brakeCmd = currState.getPedalPos() < 0 ? -1.0*currState.getPedalPos() : 0;
+			
 		
-		if (delay == 100){
-			//currState = cuda_search(State())[0];
-			//std::cout << "currState:" << currState.getPedalPos() << " , " << currState.getSteerAngle() << std::endl;
-
-
-			//std::cout << "bauauauauyeye...: \n" << std::endl;
-
-
-			//for (std::vector<State>::iterator i = path.begin(); i != path.end(); ++i)
-			//	std::cout << i->toString() << ' ' << std::endl;
-
-			
-
-			currState = path[currPoint];
-
-			(currPoint < (path.size()-1)) ? currPoint++ : currPoint = 0;
-
-
-			std::cout << "curr...:" << currState.toString() << std::endl;
-
-
-
-			delay = 1;
-		}
-		else{
-
-			//tPosd otherPos;
-
-			//otherPos.x = opponent->getCarPtr()->_pos_X;
-			//otherPos.y = opponent->getCarPtr()->_pos_Y;
-			//otherPos.z = opponent->getCarPtr()->_pos_Z;
-
-			////printf("------%d------\n", delay);
-			//this->seek(otherPos);
-
-
-
-			car->_steerCmd = currState.getSteerAngle();
-			car->_accelCmd = currState.getPedalPos() > 0 ? currState.getPedalPos() : 0;
-			car->_brakeCmd = currState.getPedalPos() < 0 ? -1.0*currState.getPedalPos() : 0;
-			car->_gearCmd = getGear();
-
-			delay++;
-		}
+		car->_gearCmd = getGear();
 	}
 
 }
