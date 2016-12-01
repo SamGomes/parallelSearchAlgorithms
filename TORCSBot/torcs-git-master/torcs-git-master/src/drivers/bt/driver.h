@@ -39,6 +39,8 @@
 
 //#include "carstruct.h"
 
+#include "GL/glut.h"
+
 #include "opponent.h"
 #include "cardata.h"
 
@@ -68,10 +70,9 @@ class Driver {
 
 		State currState;
 		std::vector<State> path = std::vector<State>();
-		int PATHCALCTIME = 0; //time to recalc
-		bool LASTNODE = false; //flag to wait for last node to be executed before path recalc
-		int pathCalcDelay = PATHCALCTIME; //time left until recalc
-		int actionDelay = 0; //time left until change action
+
+		bool LASTNODE = true; //flag to wait for last node to be executed before path recalc
+		bool STUCKONAPOINT = false;
 
 
 		// Per robot global data.
@@ -102,13 +103,15 @@ class Driver {
 		// Track variable.
 		tTrack* track;
 
+		bool seek(tPosd target); //true if its in place
+
+		void drawFilledSphere(GLfloat x, GLfloat y, GLfloat z, GLfloat radius); //for debug purposes
 
 	public:
 
 		Driver(int index);
 		~Driver();
 
-		void seek(tPosd target); //for debugging purposes
 
 		// Callback functions called from TORCS.
 		void initTrack(tTrack* t, void *carHandle, void **carParmHandle, tSituation *s);

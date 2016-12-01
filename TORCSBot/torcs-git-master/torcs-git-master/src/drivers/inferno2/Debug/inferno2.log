@@ -1,24 +1,17 @@
-﻿Build started 25/11/2016 23:41:19.
-     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\inferno2\inferno2.vcxproj" on node 4 (Rebuild target(s)).
-     1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I../../../export/include /I../../windows/include /I../../.. /Zi /nologo /W2 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D INFERNO2_EXPORTS /D DEBUG /D DEBUG_OUT /D _VC80_UPGRADE=0x0600 /D _WINDLL /D _MBCS /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Debug/" /Fd".\Debug/vc120.pdb" /FR".\Debug\\" /Gd /TP /analyze- /errorReport:prompt common.cpp inferno2.cpp
-         common.cpp
-         inferno2.cpp
-         Generating Code...
-       Link:
+﻿Build started 30/11/2016 03:32:40.
+     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\inferno2\inferno2.vcxproj" on node 8 (Build target(s)).
+     1>Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\Debug/inferno2.dll" /INCREMENTAL:NO /NOLOGO /LIBPATH:../../../export/libd /LIBPATH:../../windows/lib robottools.lib tgf.lib sg_vs2008_32.lib ul_vs2008_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:LIBCMT /DEF:".\inferno2.def" /MANIFEST:NO /DEBUG /PDB:".\Debug/inferno2.pdb" /MAP:".\Debug/inferno2.map" /TLBID:1 /DYNAMICBASE:NO /IMPLIB:".\Debug/inferno2.lib" /MACHINE:X86 /SAFESEH:NO /DLL .\Debug/common.obj
          .\Debug/inferno2.obj
             Creating library .\Debug/inferno2.lib and object .\Debug/inferno2.exp
          inferno2.vcxproj -> C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\inferno2\.\Debug\inferno2.dll
-       BscMake:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\bscmake.exe /nologo /o".\Debug/inferno2.bsc" .\Debug\common.sbr .\Debug\inferno2.sbr
        PostBuildEvent:
          copy C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\inferno2\Debug\*.dll C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\runtimed\drivers\inferno2
          :VCEnd
          C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\inferno2\Debug\inferno2.dll
                  1 file(s) copied.
-     1>Done Building Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\inferno2\inferno2.vcxproj" (Rebuild target(s)).
+     1>Done Building Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\inferno2\inferno2.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:11.99
+Time Elapsed 00:00:01.66

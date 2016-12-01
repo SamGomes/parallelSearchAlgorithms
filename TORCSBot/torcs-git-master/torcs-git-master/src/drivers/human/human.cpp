@@ -499,7 +499,6 @@ static void common_drive(int index, tCarElt* car, tSituation *s)
 	const int BUFSIZE = 1024;
 	char sstring[BUFSIZE];
 
-	std::cout << "(" << car->pub.DynGC.pos.x << "," << car->pub.DynGC.pos.y << ")" << std::endl;
 
 
 	static int firstTime = 1;

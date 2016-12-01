@@ -19,14 +19,9 @@ version              : $Id: driver.cpp,v 1.16.2.2 2008/12/31 03:53:53 berniw Exp
 
 //----------------------- CONTROL MODULE ----------------------------------
 
-#include "sim.h"
 
 #include "driver.h"
 
-
-tCar *SimCarTable;
-
-extern tCar *SimCarTable;
 
 
 const float Driver::SHIFT = 0.9f;							// [-] (% of rpmredline) When do we like to shift gears.
@@ -105,36 +100,6 @@ void Driver::newRace(tCarElt* car, tSituation *s)
 }
 
 
-
-
-void Driver::seek(tPosd target){
-
-	tdble carX = car->_pos_X;
-	tdble carY = car->_pos_Y;
-	tdble carZ = car->_pos_Z;
-	tdble targetX = target.x;
-	tdble targetY = target.y;
-	tdble targetZ = target.z;
-
-	float targetAngle;
-
-
-	targetAngle = atan2(targetY - carY, targetX - carX);
-	targetAngle -= car->_yaw;
-	NORM_PI_PI(targetAngle);
-
-	if (abs(targetAngle) > car->_steerLock){
-		car->_accelCmd = 0.5;
-		car->_gearCmd = -1;
-		targetAngle = car->_steerLock * -(targetAngle / abs(targetAngle));
-	}
-
-	car->_steerCmd = targetAngle / car->_steerLock;
-	//car->_steerCmd = currState.getSteerAngle();
-	car->_accelCmd = currState.getPedalPos() > 0 ? currState.getPedalPos() : 0;
-	car->_brakeCmd = currState.getPedalPos() < 0 ? -1.0*currState.getPedalPos() : 0;
-	car->_gearCmd = getGear();
-}
 
 
 
@@ -258,6 +223,59 @@ float Driver::getClutch()
 	}
 }
 
+
+
+bool Driver::seek(tPosd target){
+
+	tdble carX = car->_pos_X;
+	tdble carY = car->_pos_Y;
+	tdble carZ = car->_pos_Z;
+	tdble targetX = target.x;
+	tdble targetY = target.y;
+	tdble targetZ = target.z;
+
+	float targetAngle;
+
+	if (abs(carX - targetX) < 5 && abs(carY - targetY) < 5){
+		STUCKONAPOINT = true;
+		return true;
+	}
+
+	STUCKONAPOINT = false;
+
+	targetAngle = atan2(targetY - carY, targetX - carX);
+	targetAngle -= car->_yaw;
+	NORM_PI_PI(targetAngle);
+
+	double diff = (currState.getSpeed().x*currState.getSpeed().y) - (car->pub.DynGCg.vel.x*car->pub.DynGCg.vel.y);
+
+	if (diff > 0){
+		car->_accelCmd = abs(diff)/ 500;
+		car->_brakeCmd = 0;
+	}
+	else{
+		car->_accelCmd = 0;
+		car->_brakeCmd = abs(diff) / 70;
+	}
+	car->_gearCmd = getGear();
+
+
+	/*if (abs(targetAngle) > car->_steerLock){
+	car->_accelCmd = 0.3f;
+	car->_gearCmd = -1;
+	targetAngle = car->_steerLock * -(targetAngle / abs(targetAngle));
+	}*/
+
+
+	car->_steerCmd = targetAngle / car->_steerLock;
+
+
+	return false;
+}
+
+
+int delay;
+
 // Update my private data every timestep.
 void Driver::update(tSituation *s)
 {
@@ -267,88 +285,82 @@ void Driver::update(tSituation *s)
 		cardata->update();
 
 		//------------ producer --------------
-		if (path.size() == 0 && !LASTNODE){
-			actionDelay = 100;
-			if (pathCalcDelay == PATHCALCTIME){
+		if (path.size() == 0 && LASTNODE && !STUCKONAPOINT){
+			LASTNODE = false;
 
-				//tCar* car = &(SimCarTable[this->car->index]);
-				//SeqRRTStar RRTStar = SeqRRTStar(new State(car), 10, *track);
-				/*int i = car->index;*/
-				//tCar* t = SimCarTable;
 
-				SeqRRTStar RRTStar = SeqRRTStar(new State(this->car), 1000, *track);
-				path = RRTStar.search();
+			State* initialState = new State(car->pub.DynGC.pos, car->pub.DynGC.vel, car->pub.DynGC.acc);
+			
+			SeqRRTStar RRTStar = SeqRRTStar(initialState, 100, *track);
+			path = RRTStar.search();
 
-				printf( "escrever path: \n");
 
-				for (std::vector<State>::iterator i = path.begin(); i != path.end(); ++i)
-					std::cout << (*i).toString() << std::endl;
+		 	printf( "escrever path: \n");
 
-				pathCalcDelay = 0;
-			}
-			else{
-				pathCalcDelay++;
-			}
+			for (std::vector<State>::iterator i = path.begin(); i != path.end(); ++i)
+				std::cout << (*i).toString() << std::endl;
+
+
+			currState = path.back();
+			path.pop_back();
+
+
 		}
 		//------------ consumer --------------
-		if (path.size() != 0 || LASTNODE){
+		
 
-			PATHCALCTIME = 100 * (path.size());
-			pathCalcDelay = PATHCALCTIME;
-			
-			if (actionDelay == 100){
-
-				if (!LASTNODE){
-					currState = path.back();
-					path.pop_back();
-
-					if (path.size() == 0){
-						LASTNODE = true;
-					}
-				}
-				else{
-					LASTNODE = false;
-				}
-
-				//currState = cuda_search(State())[0];
-				//std::cout << "currState:" << currState.getPedalPos() << " , " << currState.getSteerAngle() << std::endl;
-
-				//std::cout << "(" << car->pub.DynGCg.pos.x << "," << car->pub.DynGCg.pos.y << ")" << std::endl;
-				
-
-
-				//std::cout << "curr...:" << currState.toString() << std::endl;
-
-				actionDelay = 0;
-
-			}
+		if (this->seek(currState.getPos())){
+			if (path.size() == 0)
+				LASTNODE = true;
 			else{
-				actionDelay++;
+				currState = path.back();
+				path.pop_back();
 			}
 		}
-
-		//tPosd otherPos;
-
-		//otherPos.x = opponent->getCarPtr()->_pos_X;
-		//otherPos.y = opponent->getCarPtr()->_pos_Y;
-		//otherPos.z = opponent->getCarPtr()->_pos_Z;
-
-		////printf("------%d------\n", delay);
-		//this->seek(otherPos);
-
 			
-		car->_steerCmd = currState.getSteerAngle();
+		    /*tTrkLocPos otherLoc;
+
+			tPosd otherPos;
+
+			otherPos.x = opponent->getCarPtr()->pub.DynGCg.vel.x;
+			otherPos.y = opponent->getCarPtr()->pub.DynGCg.vel.y;
+			otherPos.z = opponent->getCarPtr()->pub.DynGCg.vel.z;*/
 			
-		car->_accelCmd = currState.getPedalPos() > 0 ? currState.getPedalPos() : 0;
-		car->_brakeCmd = currState.getPedalPos() < 0 ? -1.0*currState.getPedalPos() : 0;
-			
-		
-		car->_gearCmd = getGear();
+			////RtTrackGlobal2Local(opponent->getCarPtr()->pub.trkPos.seg, otherPos.x, otherPos.y, &otherLoc, TR_LPOS_MAIN);
+			////std::cout << "(" << opponent->getCarPtr()->pub.trkPos.seg->name << ")" << std::endl;
+			//std::cout << "(" << otherPos.x << "," << otherPos.y << ")" << std::endl;
+
+					
 	}
 
+}
+
+void  Driver::drawFilledSphere(GLfloat x, GLfloat y, GLfloat z, GLfloat radius){
+	double track_width = track->max.x - track->min.x;
+	double track_height = track->max.y - track->min.y;
+	glPushMatrix();
+	glColor3f(1.0, 0.0, 0.0);
+	glTranslatef(
+		(x - track->min.x) / track_width,
+		(y - track->min.y) / track_height,
+		z
+		);
+	glutSolidSphere(radius, 20.0, 20.0);
+	glPopMatrix();
 }
 
 
 
 
 
+
+
+
+
+//currState = cuda_search(State())[0];
+//std::cout << "currState:" << currState.getPedalPos() << " , " << currState.getSteerAngle() << std::endl;
+
+/*std::cout << "(" << car->pub.DynGCg.pos.x << "," << car->pub.DynGCg.pos.y << ")" << std::endl;
+std::cout << "(" << currState.getPos().x << "," << currState.getPos().y << ")" << std::endl;*/
+
+//std::cout << "curr...:" << currState.toString() << std::endl;*/

@@ -2,7 +2,7 @@
 <!DOCTYPE params SYSTEM "params.dtd">
 
 
-<params name="preferences">
+<params name="Human">
   <section name="joystick">
     <attstr name="up shift" val="BTN1-0"/>
     <attstr name="down shift" val="BTN2-0"/>
@@ -87,7 +87,7 @@
       <section name="1">
         <attstr name="transmission" in="auto,manual" val="manual"/>
         <attstr name="ABS on" in="yes,no" val="yes"/>
-        <attstr name="ASR on" in="yes,no" val="no"/>
+        <attstr name="ASR on" in="yes,no" val="yes"/>
         <attnum name="programmed pit stops" val="0"/>
         <attstr name="auto reverse" val="yes"/>
         <attstr name="clutch" val="c"/>

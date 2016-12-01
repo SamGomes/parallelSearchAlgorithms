@@ -68,7 +68,7 @@
 
     <section name="0">
       <attnum name="fovy-9-0" val="9"/>
-      <attstr name="current driver" val="Player"/>
+      <attstr name="current driver" val="Potato"/>
       <attnum name="camera" val="0"/>
       <attnum name="camera head list" val="0"/>
       <attnum name="fovy-0-0" val="40"/>
@@ -79,15 +79,17 @@
       <attnum name="fovy-2-0" val="30"/>
       <attnum name="fovy-1-0" val="40"/>
       <attnum name="fovy-1-1" val="40"/>
-      <attnum name="driver counter" val="1"/>
+      <attnum name="driver counter" val="0"/>
       <attnum name="fovy-0-2" val="67.5"/>
       <attnum name="fovy-2-1" val="30"/>
       <attnum name="fovy-0-1" val="40"/>
-      <attnum name="driver board" val="2"/>
+      <attnum name="driver board" val="1"/>
       <attnum name="enable mirror" val="1"/>
       <attnum name="fovy-0-3" val="67.5"/>
       <attnum name="arcade" val="0"/>
       <attnum name="map mode" val="64"/>
+      <attnum name="fovy-3-2" val="67.5"/>
+      <attnum name="fovy-3-0" val="67.5"/>
     </section>
 
     <section name="1">
@@ -102,6 +104,11 @@
 
     <section name="3">
       <attnum name="fovy-1-0" val="40"/>
+    </section>
+
+    <section name="Potato">
+      <attnum name="camera" val="0"/>
+      <attnum name="camera head list" val="0"/>
     </section>
 
   </section>
