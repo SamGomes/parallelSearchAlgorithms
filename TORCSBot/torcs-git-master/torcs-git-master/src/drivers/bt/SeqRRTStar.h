@@ -24,19 +24,22 @@ class SeqRRTStar{
 
 		// Track variable.
 		tTrack track;
+		
+		//current car segment
+		tTrackSeg currentSearchSeg;
+
 		//Opponent *opponent;		// The array of opponents.
 
-		double actionSimDeltaTime = 0.02 * 100; //assigned for debug purposes (100 game ticks action simulation)
+		double actionSimDeltaTime = 0.02 * 110; //assigned for debug purposes (100 game ticks action simulation)
 
 
 		bool validPoint(State* targetState);
 		State* generateRRT();
 		
+		double evaluateCost(State* state);
 		double evaluatePathCost(State* s1, State* s2);
-		double computeSmoothness(tPosd initialPos, tPosd finalPos, tPosd initialSpeed, tPosd finalSpeed, tPosd acceleration, double simDeltaTime);
-		double computeCost(tPosd initialPos, tPosd finalPos, tPosd initialSpeed, tPosd finalSpeed, tPosd acceleration, double simDeltaTime);
 		
-		State* randomState();
+		State* randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg);
 		State* nearestNeighbor(State* state, std::vector<State*> graph);
 		std::vector<State*> nearestNeighbors(State* state, std::vector<State*> graph);
 		bool considerFinalState(State* finalState);
@@ -44,10 +47,10 @@ class SeqRRTStar{
 		void normalizeState(State* state);
 		double normalizeDiff(State* state, double num1, double num2, double delta);
 
-		bool mostFar(tTrkLocPos l1, tTrkLocPos l2, int fwdLimit);
+		double localDistance(State* s1, State* s2, int fwdLimit);
 
 	public:
-		SeqRRTStar(State* initialState, double nIterations, tTrack track);
+		SeqRRTStar(State* initialState, double nIterations, tTrack track, tTrackSeg currentSearchSeg);
 		~SeqRRTStar();
 		std::vector<State> search();
 };

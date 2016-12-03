@@ -250,7 +250,7 @@ bool Driver::seek(tPosd target){
 	double diff = (currState.getSpeed().x*currState.getSpeed().y) - (car->pub.DynGCg.vel.x*car->pub.DynGCg.vel.y);
 
 	if (diff > 0){
-		car->_accelCmd = abs(diff)/ 500;
+		car->_accelCmd = abs(diff)/ 2000;
 		car->_brakeCmd = 0;
 	}
 	else{
@@ -258,13 +258,11 @@ bool Driver::seek(tPosd target){
 		car->_brakeCmd = abs(diff) / 70;
 	}
 	car->_gearCmd = getGear();
+/*
 
-
-	/*if (abs(targetAngle) > car->_steerLock){
 	car->_accelCmd = 0.3f;
-	car->_gearCmd = -1;
-	targetAngle = car->_steerLock * -(targetAngle / abs(targetAngle));
-	}*/
+	car->_gearCmd = getGear();*/
+	
 
 
 	car->_steerCmd = targetAngle / car->_steerLock;
@@ -289,9 +287,11 @@ void Driver::update(tSituation *s)
 			LASTNODE = false;
 
 
-			State* initialState = new State(car->pub.DynGC.pos, car->pub.DynGC.vel, car->pub.DynGC.acc);
-			
-			SeqRRTStar RRTStar = SeqRRTStar(initialState, 100, *track);
+			State* initialState = new State(car->pub.DynGCg.pos, car->pub.DynGCg.vel, car->pub.DynGCg.acc);
+			initialState->setPosSeg(*car->pub.trkPos.seg);
+
+
+			SeqRRTStar RRTStar = SeqRRTStar(initialState, 20, *track,*(car->pub.trkPos.seg));
 			path = RRTStar.search();
 
 
@@ -317,36 +317,56 @@ void Driver::update(tSituation *s)
 				path.pop_back();
 			}
 		}
-			
-		    /*tTrkLocPos otherLoc;
 
-			tPosd otherPos;
 
-			otherPos.x = opponent->getCarPtr()->pub.DynGCg.vel.x;
-			otherPos.y = opponent->getCarPtr()->pub.DynGCg.vel.y;
-			otherPos.z = opponent->getCarPtr()->pub.DynGCg.vel.z;*/
-			
+
+		 //   tTrkLocPos otherLoc;
+
+			//tPosd otherPos;
+
+			//otherPos.x = opponent->getCarPtr()->pub.trkPos.seg->vertex[0].x;
+			//otherPos.y = opponent->getCarPtr()->pub.trkPos.seg->vertex[0].y;
+			//otherPos.z = opponent->getCarPtr()->pub.DynGC.pos.z;
+			//
 			////RtTrackGlobal2Local(opponent->getCarPtr()->pub.trkPos.seg, otherPos.x, otherPos.y, &otherLoc, TR_LPOS_MAIN);
 			////std::cout << "(" << opponent->getCarPtr()->pub.trkPos.seg->name << ")" << std::endl;
-			//std::cout << "(" << otherPos.x << "," << otherPos.y << ")" << std::endl;
+			//std::cout << opponent->getCarPtr()->pub.trkPos.seg->id<<" : " << std::endl;
+			//std::cout << "0(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[0].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[0].y << ")" << std::endl;
+			//std::cout << "1(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[1].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[1].y << ")" << std::endl;
+			//std::cout << "2(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[2].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[2].y << ")" << std::endl;
+			//std::cout << "3(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[3].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[3].y << ")" << std::endl;
 
 					
 	}
 
 }
 
-void  Driver::drawFilledSphere(GLfloat x, GLfloat y, GLfloat z, GLfloat radius){
-	double track_width = track->max.x - track->min.x;
+void  Driver::drawFilledSphere(GLfloat cx, GLfloat cy, GLfloat cz, GLfloat r){
+	/*double track_width = track->max.x - track->min.x;
 	double track_height = track->max.y - track->min.y;
 	glPushMatrix();
 	glColor3f(1.0, 0.0, 0.0);
 	glTranslatef(
-		(x - track->min.x) / track_width,
-		(y - track->min.y) / track_height,
+		x,
+		y,
 		z
 		);
 	glutSolidSphere(radius, 20.0, 20.0);
-	glPopMatrix();
+	glPopMatrix();*/
+
+	glBegin(GL_TRIANGLES);
+		for (int ii = 0; ii < 20; ii++)
+		{
+			float theta = 2.0f * 3.1415926f * float(ii) / float(20);//get the current angle
+
+			float x = r * cosf(theta);//calculate the x component
+			float y = r * sinf(theta);//calculate the y component
+
+			glVertex2f(x + cx, y + cy);//output vertex
+
+		}
+	glEnd();
+	
 }
 
 

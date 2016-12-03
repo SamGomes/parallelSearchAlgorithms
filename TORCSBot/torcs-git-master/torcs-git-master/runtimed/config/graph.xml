@@ -79,7 +79,7 @@
       <attnum name="fovy-2-0" val="30"/>
       <attnum name="fovy-1-0" val="40"/>
       <attnum name="fovy-1-1" val="40"/>
-      <attnum name="driver counter" val="0"/>
+      <attnum name="driver counter" val="1"/>
       <attnum name="fovy-0-2" val="67.5"/>
       <attnum name="fovy-2-1" val="30"/>
       <attnum name="fovy-0-1" val="40"/>

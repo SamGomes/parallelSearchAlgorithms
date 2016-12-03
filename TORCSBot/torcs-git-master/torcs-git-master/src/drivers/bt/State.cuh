@@ -21,7 +21,7 @@ class State
 
 	private:
 
-		int posSegID;
+		tTrackSeg posSeg;
 
 		tPosd pos;
 		tPosd speed;
@@ -53,7 +53,7 @@ class State
 
 		CUDA_HOSTDEV State* getParent();
 
-		CUDA_HOSTDEV double getPosSegID();
+		CUDA_HOSTDEV tTrackSeg getPosSeg();
 
 
 		CUDA_HOSTDEV void setParent(State* parent);
@@ -61,7 +61,7 @@ class State
 		CUDA_HOSTDEV void setPathCost(double pathCost);
 		CUDA_HOSTDEV void setCost(double cost);
 
-		CUDA_HOSTDEV void setSegPosID(double posSegID);
+		CUDA_HOSTDEV void setPosSeg(tTrackSeg posSeg);
 
 		CUDA_HOSTDEV void setCommands(tPosd finalPos, tPosd finalSpeed, tPosd acceleration);
 

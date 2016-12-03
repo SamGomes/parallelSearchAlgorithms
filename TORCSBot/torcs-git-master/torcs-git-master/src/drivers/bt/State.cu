@@ -8,8 +8,9 @@ State::State(){
 	this->acceleration = tPosd();
 	this->parent = NULL;
 	this->pathCost = 0;
-	this->posSegID = 0;
-	this->cost = DBL_MAX; //infinite
+	this->posSeg = tTrackSeg();
+	//this->cost = DBL_MAX; //infinite
+	this->cost = 0;
 }
 
 CUDA_HOSTDEV
@@ -19,9 +20,9 @@ State::State(tPosd pos, tPosd speed, tPosd acceleration, State* parent){
 	this->acceleration = acceleration;
 	this->parent = parent;
 	this->pathCost = 0;
-	this->posSegID = 0;
-	this->cost = DBL_MAX; //infinite
-
+	this->posSeg = tTrackSeg();
+	//this->cost = DBL_MAX; //infinite
+	this->cost = 0;
 }
 
 
@@ -33,8 +34,9 @@ State::State(tPosd pos, tPosd speed, tPosd acceleration){
 	this->acceleration = acceleration;
 	this->parent = NULL;
 	this->pathCost = 0;
-	this->posSegID = 0;
-	this->cost = DBL_MAX; //infinite
+	this->posSeg = tTrackSeg();
+	//this->cost = DBL_MAX; //infinite
+	this->cost = 0;
 }
 
 
@@ -60,8 +62,8 @@ State* State::getParent(){
 }
 
 CUDA_HOSTDEV
-double State::getPosSegID(){
-	return this->posSegID;
+tTrackSeg State::getPosSeg(){
+	return this->posSeg;
 }
 
 CUDA_HOSTDEV
@@ -70,8 +72,8 @@ void State::setParent(State* parent){
 }
 
 CUDA_HOSTDEV
-void State::setSegPosID(double posSegID){
-	this->posSegID = posSegID;
+void State::setPosSeg(tTrackSeg posSeg){
+	this->posSeg = posSeg;
 }
 
 
