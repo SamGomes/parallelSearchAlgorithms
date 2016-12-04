@@ -110,7 +110,9 @@ void State::setCost(double cost){
 
 CUDA_HOST
 std::string State::toString(){
-	std::string res = std::string("----------StateInfo:----------- \n") +
+	std::string res = std::string();
+		res =
+		std::string("----------StateInfo:----------- \n") +
 		std::string("address: ") + std::to_string((int)this) + std::string("\n") +
 		std::string("parent: ") + std::to_string((int)this->parent) + std::string("\n") +
 		std::string("- - - - - - - - - -\n") +

@@ -159,7 +159,7 @@ int Driver::getGear()
 		return 1;
 	}
 	float gr_up = car->_gearRatio[car->_gear + car->_gearOffset];
-	float omega = (car->_enginerpmRedLine*0.5) / gr_up;
+	float omega = (car->_enginerpmRedLine*0.8) / gr_up;
 	float wr = car->_wheelRadius(2);
 
 	if (omega*wr*SHIFT < car->_speed_x) {
@@ -167,7 +167,7 @@ int Driver::getGear()
 	}
 	else {
 		float gr_down = car->_gearRatio[car->_gear + car->_gearOffset - 1];
-		omega = (car->_enginerpmRedLine*0.5) / gr_down;
+		omega = (car->_enginerpmRedLine*0.6) / gr_down;
 		if (car->_gear > 1 && omega*wr*SHIFT > car->_speed_x + SHIFT_MARGIN) {
 			return car->_gear - 1;
 		}
@@ -236,8 +236,12 @@ bool Driver::seek(tPosd target){
 
 	float targetAngle;
 
-	if (abs(carX - targetX) < 5 && abs(carY - targetY) < 5){
+	if (abs(carX - targetX) < 20 && abs(carY - targetY) < 20){
 		STUCKONAPOINT = true;
+
+		car->_accelCmd = 0.4f;
+		car->_gearCmd = getGear();
+
 		return true;
 	}
 
@@ -247,22 +251,22 @@ bool Driver::seek(tPosd target){
 	targetAngle -= car->_yaw;
 	NORM_PI_PI(targetAngle);
 
-	double diff = (currState.getSpeed().x*currState.getSpeed().y) - (car->pub.DynGCg.vel.x*car->pub.DynGCg.vel.y);
+	double diff = (currState.getSpeed().x+currState.getSpeed().y) - (car->pub.DynGCg.vel.x+car->pub.DynGCg.vel.y);
 
 	if (diff > 0){
-		car->_accelCmd = abs(diff)/ 2000;
+		car->_accelCmd = abs(diff)/ 140;
 		car->_brakeCmd = 0;
 	}
 	else{
 		car->_accelCmd = 0;
-		car->_brakeCmd = abs(diff) / 70;
+		car->_brakeCmd = abs(diff) / 140;
 	}
 	car->_gearCmd = getGear();
-/*
 
-	car->_accelCmd = 0.3f;
-	car->_gearCmd = getGear();*/
-	
+
+	//car->_accelCmd = 0.4f;
+	//car->_gearCmd = getGear();
+	//
 
 
 	car->_steerCmd = targetAngle / car->_steerLock;
@@ -288,10 +292,12 @@ void Driver::update(tSituation *s)
 
 
 			State* initialState = new State(car->pub.DynGCg.pos, car->pub.DynGCg.vel, car->pub.DynGCg.acc);
-			initialState->setPosSeg(*car->pub.trkPos.seg);
+			initialState->setPosSeg(*(car->pub.trkPos.seg));
 
 
-			SeqRRTStar RRTStar = SeqRRTStar(initialState, 20, *track,*(car->pub.trkPos.seg));
+			path.reserve(20);
+
+			SeqRRTStar RRTStar = SeqRRTStar(*initialState, 20, *track,*(car->pub.trkPos.seg),15);
 			path = RRTStar.search();
 
 
@@ -317,10 +323,9 @@ void Driver::update(tSituation *s)
 				path.pop_back();
 			}
 		}
-
-
-
-		 //   tTrkLocPos otherLoc;
+		
+		
+	 //   tTrkLocPos otherLoc;
 
 			//tPosd otherPos;
 
@@ -341,32 +346,23 @@ void Driver::update(tSituation *s)
 
 }
 
-void  Driver::drawFilledSphere(GLfloat cx, GLfloat cy, GLfloat cz, GLfloat r){
+void  Driver::drawFilledSphere(GLfloat x, GLfloat y, GLfloat z, GLfloat r){
 	/*double track_width = track->max.x - track->min.x;
-	double track_height = track->max.y - track->min.y;
-	glPushMatrix();
-	glColor3f(1.0, 0.0, 0.0);
-	glTranslatef(
-		x,
-		y,
-		z
-		);
-	glutSolidSphere(radius, 20.0, 20.0);
-	glPopMatrix();*/
+	double track_height = track->max.y - track->min.y;*/
+	//glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Set background color to black and opaque
 
-	glBegin(GL_TRIANGLES);
-		for (int ii = 0; ii < 20; ii++)
-		{
-			float theta = 2.0f * 3.1415926f * float(ii) / float(20);//get the current angle
+	//glPushMatrix();
+	//glColor3f(1.0, 0.0, 0.0);
+	//glLoadIdentity();
+	//glTranslatef(
+	//	x,
+	//	y,
+	//	z
+	//	);
 
-			float x = r * cosf(theta);//calculate the x component
-			float y = r * sinf(theta);//calculate the y component
-
-			glVertex2f(x + cx, y + cy);//output vertex
-
-		}
-	glEnd();
-	
+	//
+	//glutSolidCube(r);
+	//glPopMatrix();
 }
 
 

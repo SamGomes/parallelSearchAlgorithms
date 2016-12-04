@@ -68,8 +68,8 @@
 
     <section name="0">
       <attnum name="fovy-9-0" val="9"/>
-      <attstr name="current driver" val="Potato"/>
-      <attnum name="camera" val="0"/>
+      <attstr name="current driver" val="bt 3"/>
+      <attnum name="camera" val="2"/>
       <attnum name="camera head list" val="0"/>
       <attnum name="fovy-0-0" val="40"/>
       <attnum name="G graph" val="1"/>
@@ -90,6 +90,8 @@
       <attnum name="map mode" val="64"/>
       <attnum name="fovy-3-2" val="67.5"/>
       <attnum name="fovy-3-0" val="67.5"/>
+      <attnum name="fovy-3-3" val="67.5"/>
+      <attnum name="fovy-2-2" val="30"/>
     </section>
 
     <section name="1">
