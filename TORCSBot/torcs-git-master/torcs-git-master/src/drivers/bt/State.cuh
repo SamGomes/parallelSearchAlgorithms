@@ -11,8 +11,6 @@
 #include "car.h"
 //This class is an general implementation of the State data model
 
-#include <carstruct.h>
-#include <robottools.h>
 
 
 

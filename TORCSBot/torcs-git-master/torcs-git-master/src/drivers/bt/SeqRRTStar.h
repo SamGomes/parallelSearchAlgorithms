@@ -24,6 +24,8 @@ class SeqRRTStar{
 		State dynamicFinalState;
 		double nIterations;
 
+		int forwardSegments;
+
 		// Track variable.
 		tTrack track;
 		
@@ -52,7 +54,7 @@ class SeqRRTStar{
 		double localDistance(State* s1, State* s2, int fwdLimit);
 
 	public:
-		SeqRRTStar(State initialState, double nIterations, tTrack track, tTrackSeg currentSearchSeg, double forwardSegments);
+		SeqRRTStar(State initialState, double nIterations, tTrack track, tTrackSeg currentSearchSeg, int forwardSegments);
 		~SeqRRTStar();
 		std::vector<State> search();
 };

@@ -9,15 +9,16 @@ static bool compareStates(State* s1, State* s2) {
 }
 
 
-SeqRRTStar::SeqRRTStar(State initialState, double nIterations, tTrack track, tTrackSeg currentSearchSeg, double forwardSegments){
+SeqRRTStar::SeqRRTStar(State initialState, double nIterations, tTrack track, tTrackSeg currentSearchSeg, int forwardSegments){
 	this->currentSearchSeg = currentSearchSeg;
+
+	this->forwardSegments = forwardSegments;
 
 	while (forwardSegments > 0){
 		currentSearchSeg = *currentSearchSeg.next;
 		forwardSegments--;
 	}
 	this->forwardSearchSeg = currentSearchSeg;
-
 	graph.reserve((unsigned int) nIterations+1);
 	this->nIterations = nIterations;
 	this->initialState = initialState;
@@ -31,26 +32,6 @@ SeqRRTStar::~SeqRRTStar(){
 	
 		
 }
-
-//OOOOOOOOOOOOOOOOOOOOOLLLLLLLLLLLLLLLDDDDDDDDDDDDDDDDDD
-//// random state is biased, aiming for the state (0,0)
-//State* SeqRRTStar::randomState(){
-//
-//	double biasPos = 1.0f;
-//	double biasSteer = 0.0f;
-//
-//	double influence = 1.0f;
-//	double mix = ((double) std::rand() / (double)RAND_MAX)*influence;
-//
-//
-//	double randPos = 2 * ((double)std::rand() / (double)RAND_MAX) - 1;
-//	double randSteer = 0.2 * (((PI * std::rand()) / (double)RAND_MAX) - PI / 2);
-//	
-//	double biasedRandPos = randPos*(1 - mix) + biasPos*mix;
-//	double biasedRandSteer = randPos*(1 - mix) + biasSteer*mix;
-//
-//	return new State(biasedRandPos, biasedRandSteer);
-//}
 
 
 State* SeqRRTStar::randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
@@ -98,9 +79,18 @@ State* SeqRRTStar::randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
 
 	double trackMapZDelta = trackMapZMax - trackMapZMin;
 
+	double minSpeed;
+	double maxSpeed;
+	if (initialSeg->type == TR_STR){
 
-	double minSpeed = 30;
-	double maxSpeed = 70;
+		minSpeed = 40;
+		maxSpeed = 70;
+	}
+	else{
+
+		minSpeed = 20;
+		maxSpeed = 40;
+	}
 
 	double speedDelta = maxSpeed - minSpeed;
 
@@ -145,10 +135,23 @@ void SeqRRTStar::normalizeState(State* state, State* parent){
 
 	double diffPathCost = state->getPathCost() - parent->getPathCost();
 
-	if (diffPathCost<0 && parent->getParent()!=NULL){
+	if (diffPathCost < 0 && parent->getParent()!=NULL){
 		state->setParent(parent->getParent());
 		parent->setParent(state);
+	
+		//update path costs of both nodes
+
+		double cMin = state->getParent()->getPathCost() + evaluatePathCost(state->getParent(), state);
+		state->setPathCost(cMin);
+
+		cMin = state->getPathCost() + evaluatePathCost(state, parent);
+		parent->setPathCost(cMin);
 	}
+	//diffPathCost = parent->getPathCost() - state->getPathCost();
+	//if (diffPathCost < 0){
+	//	diffPathCost = parent->getPathCost() - state->getPathCost();
+	//	return;
+	//}
 }
 
 
@@ -166,7 +169,7 @@ double  SeqRRTStar::evaluateCost(State* state){
 }
 
 double  SeqRRTStar::evaluatePathCost(State* s1,State* s2){
-	return localDistance(s1,s2,20);
+	return localDistance(s1,s2,this->forwardSegments);
 }
 
 
@@ -232,7 +235,8 @@ State* SeqRRTStar::generateRRT(){
 
 		State* xRand = randomState(&currentSearchSeg, &forwardSearchSeg);
 
-		while (!validPoint(xRand))	{
+		//the first generated point has to be ahead 
+		while (!validPoint(xRand) || (k == 0 && evaluatePathCost(&this->initialState,xRand) < 0))	{
 			xRand = randomState(&currentSearchSeg, &forwardSearchSeg);
 		}
 
@@ -246,9 +250,6 @@ State* SeqRRTStar::generateRRT(){
 		xRand->setPathCost(cMin);
 
 		normalizeState(xRand,xNearest);
-
-		cMin = xRand->getParent()->getPathCost() + evaluatePathCost(xNearest, xRand);
-		xRand->setPathCost(cMin);
 
 		/*std::vector<State*> nearNeighbors = nearestNeighbors(xRand, graph);
 		State* xMin = xNearest;
@@ -367,7 +368,17 @@ double SeqRRTStar::localDistance(State* s1, State* s2, int fwdLimit){
 
 
 	if (l1Seg->id == l2Seg->id){
-		double distance = l2.toStart - l1.toStart;
+		double distance = 0;
+
+		switch (l2Seg->type) {
+		case TR_STR:
+			distance = l2.toStart - l1.toStart;
+			break;
+		default:
+			distance = l2.toStart*l2Seg->radius - l1.toStart*l2Seg->radius;
+			break;
+		}
+
 		return distance;
 	}
 	else{
@@ -376,18 +387,53 @@ double SeqRRTStar::localDistance(State* s1, State* s2, int fwdLimit){
 		double bwdDist = 0;
 		double fwdDist = 0;
 		while (currSegFwd != currSegBwd && fwdLimit>0){
+
 			if (currSegFwd->id == l2Seg->id){
-				return fwdDist+(l1Seg->length - l1.toStart);
+				
+
+				switch (currSegBwd->type) {
+					case TR_STR:
+						return fwdDist + (l1Seg->length - l1.toStart);
+					default:
+						return fwdDist + (l1Seg->length*currSegBwd->radius - l1.toStart*currSegBwd->radius);
+				}
+
 			}
+
 			if (currSegBwd->id == l2Seg->id){
-				return -1*(bwdDist + l1.toStart);
+
+				switch (currSegBwd->type) {
+					case TR_STR:
+						return -1 * (bwdDist + l1.toStart);
+					default:
+						return -1 * (bwdDist + l1.toStart*currSegBwd->radius);
+				}
+
+				
 			}
-			bwdDist += currSegBwd->length;
-			fwdDist += currSegFwd->length;
+
+			switch (currSegBwd->type) {
+				case TR_STR:
+					bwdDist += currSegBwd->length;
+					break;
+				default:
+					bwdDist += currSegBwd->length * currSegBwd->radius;
+					break;
+			}
+
+			switch (currSegFwd->type) {
+				case TR_STR:
+					fwdDist += currSegFwd->length;
+					break;
+				default:
+					fwdDist += currSegFwd->length *currSegFwd->radius;
+					break;
+			}
+
 			currSegFwd = currSegFwd->next;
 			currSegBwd = currSegBwd->prev;
 			fwdLimit--;
 		}
-		return -1 * DBL_MAX; //when they exceed forward segs limit (or equidistant if limit exceeds half the segments)
+		return -1 * (bwdDist); //when they exceed forward segs limit (or equidistant if limit exceeds half the segments)
 	}
 }

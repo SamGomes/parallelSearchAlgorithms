@@ -37,7 +37,7 @@
 #include "Kernel.cuh"
 #include "SeqRRTStar.h"
 
-//#include "carstruct.h"
+//#include "grtrackmap.h"
 
 #include "GL/glut.h"
 
@@ -105,7 +105,6 @@ class Driver {
 
 		bool seek(tPosd target); //true if its in place
 
-		void drawFilledSphere(GLfloat x, GLfloat y, GLfloat z, GLfloat radius); //for debug purposes
 
 	public:
 
@@ -119,12 +118,21 @@ class Driver {
 		bool validPoint(tPosd target);
 		void drive(tSituation *s);
 
+		void initGLUTWindow();
+		void GLUTWindowRedisplay();
+
+
 		tCarElt *getCarPtr() { return car; }
 		tTrack *getTrackPtr() { return track; }
 		float getSpeed() { return mycardata->getSpeedInTrackDirection(); /*speed;*/ }
 
 	
 };
+
+void drawSearchPoints();
+void drawMap(GLfloat x, GLfloat y, int width, int height);
+void drawCircle(GLfloat x, GLfloat y, GLfloat radius);
+GLuint loadTexture(const char * filename);
 
 #endif
 

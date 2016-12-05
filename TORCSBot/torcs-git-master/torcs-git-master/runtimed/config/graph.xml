@@ -68,7 +68,7 @@
 
     <section name="0">
       <attnum name="fovy-9-0" val="9"/>
-      <attstr name="current driver" val="bt 3"/>
+      <attstr name="current driver" val="bt 6"/>
       <attnum name="camera" val="2"/>
       <attnum name="camera head list" val="0"/>
       <attnum name="fovy-0-0" val="40"/>
@@ -92,6 +92,7 @@
       <attnum name="fovy-3-0" val="67.5"/>
       <attnum name="fovy-3-3" val="67.5"/>
       <attnum name="fovy-2-2" val="30"/>
+      <attnum name="fovy-2-6" val="30"/>
     </section>
 
     <section name="1">

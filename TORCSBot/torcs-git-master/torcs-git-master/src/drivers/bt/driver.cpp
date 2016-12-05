@@ -38,6 +38,7 @@ double Driver::currentsimtime;
 Driver::Driver(int index)
 {
 	INDEX = index;
+
 }
 
 
@@ -70,6 +71,8 @@ void Driver::initTrack(tTrack* t, void *carHandle, void **carParmHandle, tSituat
 
 	// Load and set parameters.
 	MU_FACTOR = GfParmGetNum(*carParmHandle, BT_SECT_PRIV, BT_ATT_MUFACTOR, (char*)NULL, 0.69f);
+
+
 }
 
 
@@ -159,7 +162,7 @@ int Driver::getGear()
 		return 1;
 	}
 	float gr_up = car->_gearRatio[car->_gear + car->_gearOffset];
-	float omega = (car->_enginerpmRedLine*0.8) / gr_up;
+	float omega = (car->_enginerpmRedLine) / gr_up;
 	float wr = car->_wheelRadius(2);
 
 	if (omega*wr*SHIFT < car->_speed_x) {
@@ -167,7 +170,7 @@ int Driver::getGear()
 	}
 	else {
 		float gr_down = car->_gearRatio[car->_gear + car->_gearOffset - 1];
-		omega = (car->_enginerpmRedLine*0.6) / gr_down;
+		omega = (car->_enginerpmRedLine) / gr_down;
 		if (car->_gear > 1 && omega*wr*SHIFT > car->_speed_x + SHIFT_MARGIN) {
 			return car->_gear - 1;
 		}
@@ -236,10 +239,9 @@ bool Driver::seek(tPosd target){
 
 	float targetAngle;
 
-	if (abs(carX - targetX) < 20 && abs(carY - targetY) < 20){
+	if (abs(carX - targetX) < 15 && abs(carY - targetY) < 15){
 		STUCKONAPOINT = true;
-
-		car->_accelCmd = 0.4f;
+		car->_accelCmd = 0.3;
 		car->_gearCmd = getGear();
 
 		return true;
@@ -251,15 +253,15 @@ bool Driver::seek(tPosd target){
 	targetAngle -= car->_yaw;
 	NORM_PI_PI(targetAngle);
 
-	double diff = (currState.getSpeed().x+currState.getSpeed().y) - (car->pub.DynGCg.vel.x+car->pub.DynGCg.vel.y);
+	double diff = (currState.getSpeed().x + currState.getSpeed().y) - (car->pub.DynGCg.vel.x + car->pub.DynGCg.vel.y);
 
 	if (diff > 0){
-		car->_accelCmd = abs(diff)/ 140;
+		car->_accelCmd = abs(diff)/ 120;
 		car->_brakeCmd = 0;
 	}
 	else{
 		car->_accelCmd = 0;
-		car->_brakeCmd = abs(diff) / 140;
+		car->_brakeCmd = abs(diff) / 100;
 	}
 	car->_gearCmd = getGear();
 
@@ -275,16 +277,26 @@ bool Driver::seek(tPosd target){
 	return false;
 }
 
-
-int delay;
-
+double xG;
+double yG;
+double trkMinX;
+double trkMinY;
+double trkMaxX;
+double trkMaxY;
+int auxWindow;
+std::vector<State> pathG = std::vector<State>();
+bool CREATEDWINDOW = false;
 // Update my private data every timestep.
 void Driver::update(tSituation *s)
 {
+
+
 	// Update global car data (shared by all instances) just once per timestep.
 	if (currentsimtime != s->currentTime) {
 		currentsimtime = s->currentTime;
 		cardata->update();
+
+		
 
 		//------------ producer --------------
 		if (path.size() == 0 && LASTNODE && !STUCKONAPOINT){
@@ -294,10 +306,11 @@ void Driver::update(tSituation *s)
 			State* initialState = new State(car->pub.DynGCg.pos, car->pub.DynGCg.vel, car->pub.DynGCg.acc);
 			initialState->setPosSeg(*(car->pub.trkPos.seg));
 
+			int numberOfIterations = 30;
 
-			path.reserve(20);
+			path.reserve(numberOfIterations);
 
-			SeqRRTStar RRTStar = SeqRRTStar(*initialState, 20, *track,*(car->pub.trkPos.seg),15);
+			SeqRRTStar RRTStar = SeqRRTStar(*initialState, numberOfIterations, *track, *(car->pub.trkPos.seg), 20);
 			path = RRTStar.search();
 
 
@@ -324,6 +337,8 @@ void Driver::update(tSituation *s)
 			}
 		}
 		
+
+		
 		
 	 //   tTrkLocPos otherLoc;
 
@@ -340,35 +355,151 @@ void Driver::update(tSituation *s)
 			//std::cout << "1(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[1].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[1].y << ")" << std::endl;
 			//std::cout << "2(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[2].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[2].y << ")" << std::endl;
 			//std::cout << "3(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[3].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[3].y << ")" << std::endl;
+	
+		xG = car->pub.DynGCg.pos.x;
+		yG = car->pub.DynGCg.pos.y;
+		trkMinX = track->min.x;
+		trkMinY = track->min.y;
+		trkMaxX = track->max.x;
+		trkMaxY = track->max.y;
+		pathG = path;
 
-					
+		if (!CREATEDWINDOW){
+			initGLUTWindow();
+			CREATEDWINDOW = true;
+		}
+		GLUTWindowRedisplay();
 	}
 
 }
 
-void  Driver::drawFilledSphere(GLfloat x, GLfloat y, GLfloat z, GLfloat r){
-	/*double track_width = track->max.x - track->min.x;
-	double track_height = track->max.y - track->min.y;*/
-	//glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Set background color to black and opaque
 
-	//glPushMatrix();
-	//glColor3f(1.0, 0.0, 0.0);
-	//glLoadIdentity();
-	//glTranslatef(
-	//	x,
-	//	y,
-	//	z
-	//	);
-
-	//
-	//glutSolidCube(r);
-	//glPopMatrix();
+void Driver::initGLUTWindow(){
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+	glutInitWindowSize(trkMaxX - trkMinX, trkMaxY - trkMinY);
+	glutCreateWindow("im a potato window bananana boyyyyyy");
+	auxWindow = glutGetWindow();
+	glutDisplayFunc(drawSearchPoints);
 }
 
+void Driver::GLUTWindowRedisplay(){
+	int gameplayWindow = glutGetWindow();
+	glutSetWindow(auxWindow);
+	glutPostRedisplay();
+	glutSetWindow(gameplayWindow);
+}
+
+void drawSearchPoints(){
+
+	int w = glutGet(GLUT_WINDOW_WIDTH);
+	int h = glutGet(GLUT_WINDOW_HEIGHT);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0.0f, w, h, 0.0f, 0.0f, 1.0f);
+
+	glMatrixMode(GL_MODELVIEW);	
+	glLoadIdentity();
+	glPushMatrix();
+
+		drawMap(0, 0, w, h);
+
+		glColor3f(0, 0, 1);
+		for (int i = 0; i < pathG.size(); i++){
+			drawCircle(pathG[i].getPos().x, pathG[i].getPos().y, 2);
+		}
+
+		glColor3f(1, 0, 0);
+		drawCircle(xG,yG, 2);
+
+	glPopMatrix();
+	glutSwapBuffers();
+}
+
+void drawCircle(GLfloat x, GLfloat y, GLfloat radius)
+{
+
+	int w = glutGet(GLUT_WINDOW_WIDTH);
+	int h = glutGet(GLUT_WINDOW_HEIGHT);
+
+	int i;
+	int triangleAmount = 30;
+	GLfloat twicePi = 2.0f * PI;
+
+	glEnable(GL_LINE_SMOOTH);
+	glLineWidth(5.0);
+
+	glBegin(GL_LINES);
+		for (i = 0; i <= triangleAmount; i++)
+		{
+			glVertex2f(x, y);
+			glVertex2f(x + (radius * cos(i * twicePi / triangleAmount)), y + (radius * sin(i * twicePi / triangleAmount)));
+		}
+	glEnd();
+}
+
+void drawMap(GLfloat x, GLfloat y, int width, int height)
+{
+	glEnable(GL_TEXTURE_2D);
+	glPushMatrix();	
+	glLoadIdentity();
+	glBindTexture(GL_TEXTURE_2D, loadTexture("tracks/g-track-1.bmp"));
+	glBegin(GL_QUADS);
+		glTexCoord2d(0.0, 0.0); glVertex2f(x, y);
+		glTexCoord2d(1.0, 0.0); glVertex2f(x + width, y);
+		glTexCoord2d(1.0, 1.0); glVertex2f(x + width, y + height);
+		glTexCoord2d(0.0, 1.0); glVertex2f(x, y + width);
+	glEnd();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+
+}
+
+GLuint loadTexture(const char * filename)
+{
+
+	GLuint texture;
+
+	int width, height;
 
 
 
+	FILE * file;
 
+	file = fopen(filename, "rb");
+
+	if (file == NULL) { 
+		std::cout << "wrong path!" << std::endl;
+		return 0; 
+	}
+	width = 512;
+	height = 512;
+
+	unsigned char data[512*512 * 3];
+	//int size = fseek(file,);
+	fread(data, width * height * 3, 1, file);
+	fclose(file);
+
+	std::vector<unsigned char> dataVector = std::vector<unsigned char>(width * height * 3);
+
+	dataVector.assign(data, data + sizeof(data)); //transform array in vector
+	dataVector.erase(dataVector.begin(), dataVector.begin() + 54);//removes windows bmp header
+
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE, dataVector.data());
+
+	return texture;
+}
 
 
 
