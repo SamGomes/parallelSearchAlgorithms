@@ -15,12 +15,13 @@ class SeqRRTStar{
 	private:
 
 		int NEIGHBOR_SAMPLE_BOUNDARY = 4;
-		double NEIGHBOR_DELTA_POS = 100;
+		double NEIGHBOR_DELTA_POS = 20;
 		double NEIGHBOR_DELTA_SPEED = 10;
 
-		State initialState;
+		State* initialState;
 
 		std::vector<State*> graph;
+
 		State dynamicFinalState;
 		double nIterations;
 
@@ -38,7 +39,7 @@ class SeqRRTStar{
 		double actionSimDeltaTime = 0.02 * 100; //assigned for debug purposes (100 game ticks action simulation)
 
 
-		bool validPoint(State* targetState);
+		bool validPoint(State* targetState, double distFromSides);
 		State* generateRRT();
 		
 		double evaluateCost(State* state);
@@ -56,7 +57,10 @@ class SeqRRTStar{
 	public:
 		SeqRRTStar(State initialState, double nIterations, tTrack track, tTrackSeg currentSearchSeg, int forwardSegments);
 		~SeqRRTStar();
-		std::vector<State> search();
+		std::vector<State*> search();
+
+		std::vector<State> getGraph(); //for debug purposes
+
 };
 
 #endif

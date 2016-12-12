@@ -67,9 +67,9 @@ class Driver {
 		float getOffset();
 
 
-
-		State currState;
-		std::vector<State> path = std::vector<State>();
+		std::vector<State*> path; 
+		int pathIterator = -1; //to go trough the path!
+		State* currState;
 
 		bool LASTNODE = true; //flag to wait for last node to be executed before path recalc
 		bool STUCKONAPOINT = false;
@@ -130,9 +130,11 @@ class Driver {
 };
 
 void drawSearchPoints();
+void drawCurrStats();
 void drawMap(GLfloat x, GLfloat y, int width, int height);
-void drawCircle(GLfloat x, GLfloat y, GLfloat radius);
+void drawCircle(State point, GLfloat radius);
+void drawLine(double initialPointX, double initialPointY, double finalPointX, double finalPointY);
 GLuint loadTexture(const char * filename);
-
+void printTextInWindow(int x, int y, char *st);
 #endif
 

@@ -1,5 +1,5 @@
-﻿Build started 03/12/2016 21:23:14.
-     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\tools\trackgen\trackgen.vcxproj" on node 3 (Build target(s)).
+﻿Build started 07/12/2016 21:45:14.
+     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\tools\trackgen\trackgen.vcxproj" on node 8 (Build target(s)).
      1>Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\Debug/trackgen.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:../../../export/libd /LIBPATH:../../windows/lib sl_vs2008_32.lib client.lib robottools.lib sg_vs2008_32.lib ssg_vs2008_32.lib ssggraphlib.lib txml.lib ul_vs2008_32.lib libpng15_vs2008_32.lib tgf.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:LIBCMT /MANIFEST:NO /DEBUG /PDB:".\Debug/trackgen.pdb" /MAP:".\Debug/trackgen.map" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE:NO /IMPLIB:".\Debug\trackgen.lib" /MACHINE:X86 /SAFESEH:NO .\Debug/windowsspec.obj
          .\Debug/ac3d.obj
@@ -19,4 +19,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.87
+Time Elapsed 00:00:05.01

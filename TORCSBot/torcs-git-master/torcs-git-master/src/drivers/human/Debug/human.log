@@ -1,5 +1,5 @@
-﻿Build started 03/12/2016 21:23:14.
-     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\human\human.vcxproj" on node 9 (Build target(s)).
+﻿Build started 07/12/2016 21:45:14.
+     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\human\human.vcxproj" on node 4 (Build target(s)).
      1>Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\Debug/human.dll" /INCREMENTAL:NO /NOLOGO /LIBPATH:../../../export/libd /LIBPATH:../../windows/lib client.lib tgf.lib robottools.lib sg_vs2008_32.lib ul_vs2008_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:LIBCMT /DEF:".\human.def" /MANIFEST:NO /DEBUG /PDB:".\Debug/human.pdb" /MAP:".\Debug/human.map" /TLBID:1 /DYNAMICBASE:NO /IMPLIB:".\Debug/human.lib" /MACHINE:X86 /SAFESEH:NO /DLL .\Debug/human.obj
          .\Debug/pref.obj
@@ -14,4 +14,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.05
+Time Elapsed 00:00:05.88

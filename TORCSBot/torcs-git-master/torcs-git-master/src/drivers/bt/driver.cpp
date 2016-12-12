@@ -39,6 +39,9 @@ Driver::Driver(int index)
 {
 	INDEX = index;
 
+	currState = new State();
+	currState->setInitialState(true); //for the first call
+
 }
 
 
@@ -110,6 +113,7 @@ void Driver::newRace(tCarElt* car, tSituation *s)
 void Driver::drive(tSituation *s)
 {
 	memset(&car->ctrl, 0, sizeof(tCarCtrl));
+
 	update(s);
 }
 
@@ -239,7 +243,7 @@ bool Driver::seek(tPosd target){
 
 	float targetAngle;
 
-	if (abs(carX - targetX) < 15 && abs(carY - targetY) < 15){
+	if (abs(carX - targetX) < 18 && abs(carY - targetY) < 18){
 		STUCKONAPOINT = true;
 		car->_accelCmd = 0.3;
 		car->_gearCmd = getGear();
@@ -253,10 +257,10 @@ bool Driver::seek(tPosd target){
 	targetAngle -= car->_yaw;
 	NORM_PI_PI(targetAngle);
 
-	double diff = (currState.getSpeed().x + currState.getSpeed().y) - (car->pub.DynGCg.vel.x + car->pub.DynGCg.vel.y);
+	double diff = (currState->getSpeed().x + currState->getSpeed().y) - (car->pub.DynGCg.vel.x + car->pub.DynGCg.vel.y+10);
 
 	if (diff > 0){
-		car->_accelCmd = abs(diff)/ 120;
+		car->_accelCmd = abs(diff)/ 140;
 		car->_brakeCmd = 0;
 	}
 	else{
@@ -277,14 +281,15 @@ bool Driver::seek(tPosd target){
 	return false;
 }
 
-double xG;
-double yG;
+tDynPt carDynCg;
 double trkMinX;
 double trkMinY;
 double trkMaxX;
 double trkMaxY;
-int auxWindow;
-std::vector<State> pathG = std::vector<State>();
+State currStateG;
+int pathsauxWindow, currStatsWindow;
+std::vector<State*> pathG;
+std::vector<State> graphG;
 bool CREATEDWINDOW = false;
 // Update my private data every timestep.
 void Driver::update(tSituation *s)
@@ -299,45 +304,66 @@ void Driver::update(tSituation *s)
 		
 
 		//------------ producer --------------
-		if (path.size() == 0 && LASTNODE && !STUCKONAPOINT){
+		if (pathIterator<0 && LASTNODE){
 			LASTNODE = false;
 
 
-			State* initialState = new State(car->pub.DynGCg.pos, car->pub.DynGCg.vel, car->pub.DynGCg.acc);
-			initialState->setPosSeg(*(car->pub.trkPos.seg));
+			State initialState = State(car->pub.DynGCg.pos, car->pub.DynGCg.vel, car->pub.DynGCg.acc);
+			initialState.setPosSeg(*(car->pub.trkPos.seg));
+			initialState.setInitialState(true); //it is indeed the initial state!
 
-			int numberOfIterations = 30;
+			int numberOfIterations = 20;
 
-			path.reserve(numberOfIterations);
+			
+			SeqRRTStar RRTStar = SeqRRTStar(initialState, numberOfIterations, *track, *(car->pub.trkPos.seg), 20);
 
-			SeqRRTStar RRTStar = SeqRRTStar(*initialState, numberOfIterations, *track, *(car->pub.trkPos.seg), 20);
+			//dealocate current path before path recalc
+			for (int i = 0; i < path.size(); i++){
+				delete path[i];
+			}
+
 			path = RRTStar.search();
+			pathIterator = path.size()-1;
 
 
-		 	printf( "escrever path: \n");
+			pathG = path;
+			//graphG = RRTStar.getGraph(); //update aux window var
 
-			for (std::vector<State>::iterator i = path.begin(); i != path.end(); ++i)
-				std::cout << (*i).toString() << std::endl;
-
-
-			currState = path.back();
-			path.pop_back();
-
+			currState = path[pathIterator--];
 
 		}
+
+
+		carDynCg = car->pub.DynGCg; //update aux window var
+		trkMinX = track->min.x; //update aux window var
+		trkMinY = track->min.y; //update aux window var
+		trkMaxX = track->max.x; //update aux window var
+		trkMaxY = track->max.y; //update aux window var
+		currStateG = State(*this->currState);
+
+		//init aux windows
+		if (!CREATEDWINDOW){
+			initGLUTWindow(); 
+			CREATEDWINDOW = true;
+		}
+		GLUTWindowRedisplay(); //update aux windows
+
+		
 		//------------ consumer --------------
 		
 
-		if (this->seek(currState.getPos())){
-			if (path.size() == 0)
+		if (this->seek(currState->getPos())){
+			
+			if (pathIterator<0){
 				LASTNODE = true;
+			}
+				
 			else{
-				currState = path.back();
-				path.pop_back();
+				currState = path[pathIterator--];
 			}
 		}
 		
-
+	
 		
 		
 	 //   tTrkLocPos otherLoc;
@@ -356,46 +382,56 @@ void Driver::update(tSituation *s)
 			//std::cout << "2(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[2].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[2].y << ")" << std::endl;
 			//std::cout << "3(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[3].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[3].y << ")" << std::endl;
 	
-		xG = car->pub.DynGCg.pos.x;
-		yG = car->pub.DynGCg.pos.y;
-		trkMinX = track->min.x;
-		trkMinY = track->min.y;
-		trkMaxX = track->max.x;
-		trkMaxY = track->max.y;
-		pathG = path;
-
-		if (!CREATEDWINDOW){
-			initGLUTWindow();
-			CREATEDWINDOW = true;
-		}
-		GLUTWindowRedisplay();
 	}
 
 }
 
 
 void Driver::initGLUTWindow(){
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+	/*glutInitWindowSize(200, 200);
+	currStatsWindow = glutCreateWindow("current stats...");
+	glutDisplayFunc(drawCurrStats);*/
+
 	glutInitWindowSize(trkMaxX - trkMinX, trkMaxY - trkMinY);
-	glutCreateWindow("im a potato window bananana boyyyyyy");
-	auxWindow = glutGetWindow();
+	pathsauxWindow = glutCreateWindow("drawing paths...");
 	glutDisplayFunc(drawSearchPoints);
+
 }
 
 void Driver::GLUTWindowRedisplay(){
 	int gameplayWindow = glutGetWindow();
-	glutSetWindow(auxWindow);
+	/*glutSetWindow(currStatsWindow);
+	glutPostRedisplay();*/
+	glutSetWindow(pathsauxWindow);
 	glutPostRedisplay();
 	glutSetWindow(gameplayWindow);
+
+}
+
+
+void drawCurrStats(){
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(1, 1, 1,1);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glPushMatrix();
+		glColor3f(0, 0, 0);
+		std::string currStateGVelInfo = std::string("speed: (") + std::to_string((double)currStateG.getSpeed().x) + std::string(" , ") + std::to_string((double)currStateG.getSpeed().y) + std::string(" ) \n");
+		std::string currStateGAccelInfo = std::string("acceleration: (") + std::to_string((double)currStateG.getAcceleration().x) + std::string(" , ") + std::to_string((double)currStateG.getAcceleration().y) + std::string(" ) \n");;
+		printTextInWindow(200 - 10, 200 - 10, (char*)currStateGVelInfo.c_str());
+		printTextInWindow(200 - 10, 200 - 40, (char*)currStateGAccelInfo.c_str());
+	glPopMatrix();
+	glutSwapBuffers();
 }
 
 void drawSearchPoints(){
 
+
+	glClearColor(1, 1, 1, 1);
+
 	int w = glutGet(GLUT_WINDOW_WIDTH);
 	int h = glutGet(GLUT_WINDOW_HEIGHT);
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -407,20 +443,52 @@ void drawSearchPoints(){
 
 		drawMap(0, 0, w, h);
 
-		glColor3f(0, 0, 1);
-		for (int i = 0; i < pathG.size(); i++){
-			drawCircle(pathG[i].getPos().x, pathG[i].getPos().y, 2);
+		for (int i = 0; i < (graphG).size(); i++){
+			glColor3f(0, 0, 0);
+			drawCircle((graphG)[i], 2);
+			
 		}
 
+		/*glColor3f(1, 0, 0);
+		drawLine(currStateG.getPosSeg().vertex[0].x, currStateG.getPosSeg().vertex[0].y, currStateG.getPosSeg().vertex[1].x, currStateG.getPosSeg().vertex[1].y);
+		drawLine(currStateG.getPosSeg().vertex[1].x, currStateG.getPosSeg().vertex[1].y, currStateG.getPosSeg().vertex[3].x, currStateG.getPosSeg().vertex[3].y);
+		drawLine(currStateG.getPosSeg().vertex[2].x, currStateG.getPosSeg().vertex[2].y, currStateG.getPosSeg().vertex[2].x, currStateG.getPosSeg().vertex[2].y);
+		drawLine(currStateG.getPosSeg().vertex[3].x, currStateG.getPosSeg().vertex[3].y, currStateG.getPosSeg().vertex[4].x, currStateG.getPosSeg().vertex[4].y);
+*/
+
+		glColor3f(0, 0, 0.5);
+		glColor3f(0, 0, 1);
+		for (int i = 1; i < pathG.size(); i++){
+			drawLine(pathG[i]->getPos().x, pathG[i]->getPos().y, pathG[i-1]->getPos().x, pathG[i-1]->getPos().y);
+		}
+
+		for (int i = 0; i < pathG.size(); i++){
+			if (pathG[i]->getPathCost() < currStateG.getPathCost()){
+				glColor3f(0, 1, 1);
+				drawCircle(*pathG[i], 2);
+			}else{
+
+				glColor3f(0, 0, 1);
+				drawCircle(*pathG[i], 2);
+			}
+		}
+		
+		glColor3f(1, 0, 1);
+		drawCircle(currStateG, 3);
+		
 		glColor3f(1, 0, 0);
-		drawCircle(xG,yG, 2);
+		drawCircle(State(carDynCg.pos, carDynCg.vel, carDynCg.acc), 2);
 
 	glPopMatrix();
 	glutSwapBuffers();
 }
 
-void drawCircle(GLfloat x, GLfloat y, GLfloat radius)
+void drawCircle(State point, GLfloat radius)
 {
+	
+
+	int x = point.getPos().x;
+	int y = point.getPos().y;
 
 	int w = glutGet(GLUT_WINDOW_WIDTH);
 	int h = glutGet(GLUT_WINDOW_HEIGHT);
@@ -439,6 +507,19 @@ void drawCircle(GLfloat x, GLfloat y, GLfloat radius)
 			glVertex2f(x + (radius * cos(i * twicePi / triangleAmount)), y + (radius * sin(i * twicePi / triangleAmount)));
 		}
 	glEnd();
+
+	
+}
+
+void drawLine(double initialPointX, double initialPointY, double finalPointX, double finalPointY)
+{
+	glLineWidth(1.0);
+
+	glBegin(GL_LINES);
+		glVertex2f(initialPointX, initialPointY);
+		glVertex2f(finalPointX, finalPointY);
+	glEnd();
+
 }
 
 void drawMap(GLfloat x, GLfloat y, int width, int height)
@@ -446,7 +527,7 @@ void drawMap(GLfloat x, GLfloat y, int width, int height)
 	glEnable(GL_TEXTURE_2D);
 	glPushMatrix();	
 	glLoadIdentity();
-	glBindTexture(GL_TEXTURE_2D, loadTexture("tracks/g-track-1.bmp"));
+	glBindTexture(GL_TEXTURE_2D, loadTexture("auxWindow/g-track-1.bmp"));
 	glBegin(GL_QUADS);
 		glTexCoord2d(0.0, 0.0); glVertex2f(x, y);
 		glTexCoord2d(1.0, 0.0); glVertex2f(x + width, y);
@@ -472,7 +553,7 @@ GLuint loadTexture(const char * filename)
 	file = fopen(filename, "rb");
 
 	if (file == NULL) { 
-		std::cout << "wrong path!" << std::endl;
+		//std::cout << "wrong path!" << std::endl;
 		return 0; 
 	}
 	width = 512;
@@ -501,6 +582,18 @@ GLuint loadTexture(const char * filename)
 	return texture;
 }
 
+void printTextInWindow(int x, int y, char *st)
+{
+	int l, i;
+
+	l = strlen(st); // see how many characters are in text string.
+	glRasterPos2i(x, y); // location to start printing text
+	for (i = 0; i < l; i++) // loop until i is greater then l
+	{
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_10, st[i]); // Print a character on the screen
+	}
+
+}
 
 
 

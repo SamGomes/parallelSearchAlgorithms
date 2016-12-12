@@ -19,18 +19,20 @@ SeqRRTStar::SeqRRTStar(State initialState, double nIterations, tTrack track, tTr
 		forwardSegments--;
 	}
 	this->forwardSearchSeg = currentSearchSeg;
-	graph.reserve((unsigned int) nIterations+1);
 	this->nIterations = nIterations;
-	this->initialState = initialState;
-	graph.push_back(&this->initialState);
+	this->initialState = new State(initialState);
+	graph.reserve(nIterations + 1); //to increase performance (pushes can now have constant time)
+	graph.push_back(this->initialState);
 	std::srand(time(NULL));
 	this->track = track;
 }
 
 
 SeqRRTStar::~SeqRRTStar(){
-	
-		
+	//as we do not need the graph anymore we just delete it!
+	for (int i = 0; i < graph.size(); i++){
+		delete graph[i];
+	}
 }
 
 
@@ -47,6 +49,7 @@ State* SeqRRTStar::randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
 		if (initialSeg->vertex[i].x < minXVertex){
 			minXVertex = initialSeg->vertex[i].x;
 		}
+
 		if (initialSeg->vertex[i].y < minYVertex){
 			minYVertex = initialSeg->vertex[i].y;
 		}
@@ -132,28 +135,59 @@ State* SeqRRTStar::randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
 }
 
 void SeqRRTStar::normalizeState(State* state, State* parent){
-
-	double diffPathCost = state->getPathCost() - parent->getPathCost();
-
-	if (diffPathCost < 0 && parent->getParent()!=NULL){
-		state->setParent(parent->getParent());
-		parent->setParent(state);
 	
-		//update path costs of both nodes
+	double diffX = (state->getPos().x - parent->getPos().x);
+	double diffY = (state->getPos().y - parent->getPos().y) + 0.00001; //to avoid division by 0
 
-		double cMin = state->getParent()->getPathCost() + evaluatePathCost(state->getParent(), state);
-		state->setPathCost(cMin);
+	double m = diffX / diffY;
 
-		cMin = state->getPathCost() + evaluatePathCost(state, parent);
-		parent->setPathCost(cMin);
+	double r = 0;
+	
+	r = this->NEIGHBOR_DELTA_POS;
+
+	tPosd newPos = tPosd();
+
+	newPos = { parent->getPos().x + (r*diffX) / (sqrt(diffX*diffX + diffY*diffY)), parent->getPos().y + (r*diffY) / (sqrt(diffX*diffX + diffY*diffY)), state->getPos().z };
+	
+	state->setCommands(newPos, state->getSpeed(), state->getAcceleration());
+
+	double diffPathCost = evaluatePathCost(parent,state);
+	
+	if (diffPathCost < 0){
+		newPos = { parent->getPos().x - (r*diffX) / (sqrt(diffX*diffX + diffY*diffY)), parent->getPos().y - (r*diffY) / (sqrt(diffX*diffX + diffY*diffY)), state->getPos().z };
+
+		state->setCommands(newPos, state->getSpeed(), state->getAcceleration());
+
 	}
-	//diffPathCost = parent->getPathCost() - state->getPathCost();
-	//if (diffPathCost < 0){
-	//	diffPathCost = parent->getPathCost() - state->getPathCost();
-	//	return;
-	//}
+	
 }
 
+
+//if (diffPathCost < 0){
+
+//	State* previousCheck = parent;
+//	while (diffPathCost < 0 && parent->getParent() != NULL){
+//		previousCheck = parent;
+//		diffPathCost = state->getPathCost() - previousCheck->getPathCost();
+//		parent = parent->getParent();
+//	}
+//	parent = previousCheck;
+
+//	if (parent->getParent() != NULL){
+//		state->setParent(parent->getParent());
+//		parent->setParent(state);
+
+//		//update path costs of both nodes
+
+//		double cMin = state->getParent()->getPathCost() + evaluatePathCost(state->getParent(), state);
+//		state->setPathCost(cMin);
+
+//		cMin = state->getPathCost() + evaluatePathCost(state, parent);
+//		parent->setPathCost(cMin);
+//	}
+//	else{
+//		printf("aaaaaaaaaaaaaaaa\n\n");
+//	}
 
 double  SeqRRTStar::evaluateCost(State* state){
 	tPosd finalPos = state->getPos();
@@ -203,6 +237,7 @@ State* SeqRRTStar::nearestNeighbor(State* state, std::vector<State*> graph){
 
 }
 
+
 std::vector<State*> SeqRRTStar::nearestNeighbors(State* state, std::vector<State*> graph){
 	std::vector<State*> neighbors = std::vector<State*>();
 
@@ -213,7 +248,7 @@ std::vector<State*> SeqRRTStar::nearestNeighbors(State* state, std::vector<State
 	for (int i = 0; i < effectiveIterations; i++){
 		int index = std::rand() % auxGraph.size();
 		//remove initial node
-		if (state->getParent()==NULL){
+		if (state->getInitialState()){
 			auxGraph.erase(std::remove(auxGraph.begin(), auxGraph.end(), state), auxGraph.end());
 		}
 		State* currNearestNeighbor = nearestNeighbor(state, auxGraph);
@@ -229,15 +264,20 @@ std::vector<State*> SeqRRTStar::nearestNeighbors(State* state, std::vector<State
 
 State* SeqRRTStar::generateRRT(){
 	double maxPathCost = -1*DBL_MAX; //force a change
-	State* bestState = NULL;
+	State* bestState = nullptr;
+
+	double trueNIter = 0;
 
 	for (int k = 0; k < nIterations; k++){
+		
+		State* xRand = nullptr;
+	
+		delete xRand;
+		xRand = randomState(&currentSearchSeg, &forwardSearchSeg);
 
-		State* xRand = randomState(&currentSearchSeg, &forwardSearchSeg);
-
-		//the first generated point has to be ahead 
-		while (!validPoint(xRand) || (k == 0 && evaluatePathCost(&this->initialState,xRand) < 0))	{
-			xRand = randomState(&currentSearchSeg, &forwardSearchSeg);
+		//the generation didnt work
+		if (!validPoint(xRand, 0)){
+			continue;
 		}
 
 		double xRandNearCost = evaluateCost(xRand);
@@ -246,10 +286,21 @@ State* SeqRRTStar::generateRRT(){
 		State* xNearest = nearestNeighbor(xRand, graph); //after cost evaluation
 		xRand->setParent(xNearest);
 
-		double cMin = xNearest->getPathCost() + evaluatePathCost(xNearest, xRand);
+		//--------------------------------------------------------------------------------------------------------------------------------
+
+		normalizeState(xRand, xNearest);
+
+		xRandNearCost = evaluateCost(xRand); //redifine cost for new coords
+		xRand->setCost(xRandNearCost);
+
+		double cMin = xNearest->getPathCost() + evaluatePathCost(xNearest, xRand); //redifine path cost for new coords
 		xRand->setPathCost(cMin);
 
-		normalizeState(xRand,xNearest);
+
+		//the normalization didnt work
+		if (!validPoint(xRand, 0)){
+			continue;
+		}
 
 		/*std::vector<State*> nearNeighbors = nearestNeighbors(xRand, graph);
 		State* xMin = xNearest;
@@ -294,36 +345,44 @@ State* SeqRRTStar::generateRRT(){
 		graph.push_back(xRand);
 
 	}
-	if (bestState == NULL){
+	if (bestState == nullptr){
 		return generateRRT();
 	}
+	printf("trueNIter: %f\n", trueNIter);
 	return bestState;
 }
 
 
-std::vector<State> SeqRRTStar::search(){
-	std::vector<State> path;
-	State* bestState = this->generateRRT();
-	State currState = *bestState;
-
-	path.reserve((unsigned int) nIterations + 1); //upper bound on path size (if not reserved creates bottleneck bellow)
+std::vector<State*> SeqRRTStar::search(){
 	
-	while (currState.getParent() != NULL){
-		path.push_back(currState);
-		currState = *(currState.getParent());
+	std::vector<State*> path;
+
+	State* bestState = this->generateRRT(); //local pointer
+
+
+	//lets put bestState in the Heap (calling new), separating the path from the graph eliminated in the destructor!
+	while (!bestState->getInitialState()){
+		path.push_back(new State(*bestState));
+		bestState = bestState->getParent();
 	}
 
-	for (int i = 1; i <= nIterations; i++){
-		delete graph[i];
-	}
 
-	//path.push_back(currState); // pushes initial node
 	return path;
+}
 
+std::vector<State> SeqRRTStar::getGraph(){
+	std::vector<State> graphAux;
+
+	for (int i = 0; i < graph.size(); i++){
+		graphAux.push_back(*(graph[i]));
+	}
+
+	return graphAux;
 }
 
 
-bool SeqRRTStar::validPoint(State* targetState){
+
+bool SeqRRTStar::validPoint(State* targetState, double distFromSides){
 	////point on oponent?
 
 	//if (target.x <= (opponent->getCarPtr()->_pos_X + 20) &&
@@ -333,7 +392,6 @@ bool SeqRRTStar::validPoint(State* targetState){
 	//	return false;
 
 	//}
-
 
 
 	tPosd target = targetState->getPos();
@@ -347,7 +405,7 @@ bool SeqRRTStar::validPoint(State* targetState){
 	
 	while (currSeg != seg ){
 		RtTrackGlobal2Local(currSeg, target.x, target.y, &targetLocalPos, TR_LPOS_MAIN);
-		if (targetLocalPos.toRight > 0 && targetLocalPos.toLeft > 0){
+		if (targetLocalPos.toRight >  distFromSides && targetLocalPos.toLeft >  distFromSides){
 			targetState->setPosSeg(*currSeg);
 			return true;
 		}
@@ -361,7 +419,10 @@ double SeqRRTStar::localDistance(State* s1, State* s2, int fwdLimit){
 	tTrkLocPos l1,l2;
 
 	RtTrackGlobal2Local(&(s1->getPosSeg()), s1->getPos().x, s1->getPos().y, &l1, TR_LPOS_MAIN);
+	
 	RtTrackGlobal2Local(&(s2->getPosSeg()), s2->getPos().x, s2->getPos().y, &l2, TR_LPOS_MAIN);
+	
+	
 
 	tTrackSeg	*l1Seg = l1.seg;
 	tTrackSeg	*l2Seg = l2.seg;
