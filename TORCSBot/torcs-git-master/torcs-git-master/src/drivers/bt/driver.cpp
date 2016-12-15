@@ -38,10 +38,7 @@ double Driver::currentsimtime;
 Driver::Driver(int index)
 {
 	INDEX = index;
-
-	currState = new State();
-	currState->setInitialState(true); //for the first call
-
+	pidController = PIDController(0.1, 0, 0);
 }
 
 
@@ -231,15 +228,21 @@ float Driver::getClutch()
 }
 
 
+bool Driver::pidControl(State*  target){
 
-bool Driver::seek(tPosd target){
+	
+
+	return false;
+}
+
+bool Driver::seek(State* target){
 
 	tdble carX = car->_pos_X;
 	tdble carY = car->_pos_Y;
 	tdble carZ = car->_pos_Z;
-	tdble targetX = target.x;
-	tdble targetY = target.y;
-	tdble targetZ = target.z;
+	tdble targetX = target->getPos().x;
+	tdble targetY = target->getPos().y;
+	tdble targetZ = target->getPos().z;
 
 	float targetAngle;
 
@@ -257,7 +260,7 @@ bool Driver::seek(tPosd target){
 	targetAngle -= car->_yaw;
 	NORM_PI_PI(targetAngle);
 
-	double diff = (currState->getSpeed().x + currState->getSpeed().y) - (car->pub.DynGCg.vel.x + car->pub.DynGCg.vel.y+10);
+	double diff = (target->getSpeed().x + target->getSpeed().y) - (car->pub.DynGCg.vel.x + car->pub.DynGCg.vel.y + 10);
 
 	if (diff > 0){
 		car->_accelCmd = abs(diff)/ 140;
@@ -268,12 +271,6 @@ bool Driver::seek(tPosd target){
 		car->_brakeCmd = abs(diff) / 100;
 	}
 	car->_gearCmd = getGear();
-
-
-	//car->_accelCmd = 0.4f;
-	//car->_gearCmd = getGear();
-	//
-
 
 	car->_steerCmd = targetAngle / car->_steerLock;
 
@@ -289,11 +286,21 @@ double trkMaxY;
 State currStateG;
 int pathsauxWindow, currStatsWindow;
 std::vector<State*> pathG;
-std::vector<State> graphG;
+std::vector<State*> graphG;
 bool CREATEDWINDOW = false;
+
+int delay = 0;
+
 // Update my private data every timestep.
 void Driver::update(tSituation *s)
 {
+
+	/*if (delay == 10000){
+		getchar();
+	}
+	delay++;
+
+	printf("delay: %d", delay);*/
 
 
 	// Update global car data (shared by all instances) just once per timestep.
@@ -312,10 +319,10 @@ void Driver::update(tSituation *s)
 			initialState.setPosSeg(*(car->pub.trkPos.seg));
 			initialState.setInitialState(true); //it is indeed the initial state!
 
-			int numberOfIterations = 20;
+			int numberOfIterations = 100;
 
 			
-			SeqRRTStar RRTStar = SeqRRTStar(initialState, numberOfIterations, *track, *(car->pub.trkPos.seg), 20);
+			SeqRRTStar RRTStar = SeqRRTStar(initialState, numberOfIterations,*car, *track, *(car->pub.trkPos.seg), 30);
 
 			//dealocate current path before path recalc
 			for (int i = 0; i < path.size(); i++){
@@ -326,8 +333,9 @@ void Driver::update(tSituation *s)
 			pathIterator = path.size()-1;
 
 
+
 			pathG = path;
-			//graphG = RRTStar.getGraph(); //update aux window var
+			graphG = RRTStar.getGraph(); //update aux window var
 
 			currState = path[pathIterator--];
 
@@ -352,7 +360,7 @@ void Driver::update(tSituation *s)
 		//------------ consumer --------------
 		
 
-		if (this->seek(currState->getPos())){
+		if (this->seek(currState)){
 			
 			if (pathIterator<0){
 				LASTNODE = true;
@@ -363,25 +371,17 @@ void Driver::update(tSituation *s)
 			}
 		}
 		
+		
+		/*double output = pidController.getOutput(300, car->_enginerpm, 0.02);
+
+		std::cout << "output: " << output << std::endl;
+
+		car->ctrl.accelCmd = output;*/
+
 	
 		
 		
-	 //   tTrkLocPos otherLoc;
-
-			//tPosd otherPos;
-
-			//otherPos.x = opponent->getCarPtr()->pub.trkPos.seg->vertex[0].x;
-			//otherPos.y = opponent->getCarPtr()->pub.trkPos.seg->vertex[0].y;
-			//otherPos.z = opponent->getCarPtr()->pub.DynGC.pos.z;
-			//
-			////RtTrackGlobal2Local(opponent->getCarPtr()->pub.trkPos.seg, otherPos.x, otherPos.y, &otherLoc, TR_LPOS_MAIN);
-			////std::cout << "(" << opponent->getCarPtr()->pub.trkPos.seg->name << ")" << std::endl;
-			//std::cout << opponent->getCarPtr()->pub.trkPos.seg->id<<" : " << std::endl;
-			//std::cout << "0(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[0].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[0].y << ")" << std::endl;
-			//std::cout << "1(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[1].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[1].y << ")" << std::endl;
-			//std::cout << "2(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[2].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[2].y << ")" << std::endl;
-			//std::cout << "3(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[3].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[3].y << ")" << std::endl;
-	
+	 
 	}
 
 }
@@ -445,7 +445,7 @@ void drawSearchPoints(){
 
 		for (int i = 0; i < (graphG).size(); i++){
 			glColor3f(0, 0, 0);
-			drawCircle((graphG)[i], 2);
+			drawCircle(*(graphG[i]), 2);
 			
 		}
 
@@ -597,6 +597,18 @@ void printTextInWindow(int x, int y, char *st)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 //currState = cuda_search(State())[0];
 //std::cout << "currState:" << currState.getPedalPos() << " , " << currState.getSteerAngle() << std::endl;
 
@@ -604,3 +616,31 @@ void printTextInWindow(int x, int y, char *st)
 std::cout << "(" << currState.getPos().x << "," << currState.getPos().y << ")" << std::endl;*/
 
 //std::cout << "curr...:" << currState.toString() << std::endl;*/
+
+
+
+
+
+
+
+
+
+
+
+
+//   tTrkLocPos otherLoc;
+
+//tPosd otherPos;
+
+//otherPos.x = opponent->getCarPtr()->pub.trkPos.seg->vertex[0].x;
+//otherPos.y = opponent->getCarPtr()->pub.trkPos.seg->vertex[0].y;
+//otherPos.z = opponent->getCarPtr()->pub.DynGC.pos.z;
+//
+////RtTrackGlobal2Local(opponent->getCarPtr()->pub.trkPos.seg, otherPos.x, otherPos.y, &otherLoc, TR_LPOS_MAIN);
+////std::cout << "(" << opponent->getCarPtr()->pub.trkPos.seg->name << ")" << std::endl;
+//std::cout << opponent->getCarPtr()->pub.trkPos.seg->id<<" : " << std::endl;
+//std::cout << "0(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[0].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[0].y << ")" << std::endl;
+//std::cout << "1(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[1].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[1].y << ")" << std::endl;
+//std::cout << "2(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[2].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[2].y << ")" << std::endl;
+//std::cout << "3(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[3].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[3].y << ")" << std::endl;
+

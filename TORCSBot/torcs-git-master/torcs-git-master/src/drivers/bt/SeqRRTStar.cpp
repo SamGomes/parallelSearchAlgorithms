@@ -9,7 +9,10 @@ static bool compareStates(State* s1, State* s2) {
 }
 
 
-SeqRRTStar::SeqRRTStar(State initialState, double nIterations, tTrack track, tTrackSeg currentSearchSeg, int forwardSegments){
+SeqRRTStar::SeqRRTStar(State initialState, double nIterations, tCarElt car, tTrack track, tTrackSeg currentSearchSeg, int forwardSegments){
+
+	this->deleteBestState = false;
+
 	this->currentSearchSeg = currentSearchSeg;
 
 	this->forwardSegments = forwardSegments;
@@ -21,14 +24,19 @@ SeqRRTStar::SeqRRTStar(State initialState, double nIterations, tTrack track, tTr
 	this->forwardSearchSeg = currentSearchSeg;
 	this->nIterations = nIterations;
 	this->initialState = new State(initialState);
-	graph.reserve(nIterations + 1); //to increase performance (pushes can now have constant time)
+	graph.reserve((unsigned int) nIterations + 1); //to increase performance (pushes can now have constant time)
 	graph.push_back(this->initialState);
 	std::srand(time(NULL));
 	this->track = track;
+	this->car = car;
 }
 
 
 SeqRRTStar::~SeqRRTStar(){
+	if (deleteBestState){
+		delete bestState;
+	}
+
 	//as we do not need the graph anymore we just delete it!
 	for (int i = 0; i < graph.size(); i++){
 		delete graph[i];
@@ -86,13 +94,13 @@ State* SeqRRTStar::randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
 	double maxSpeed;
 	if (initialSeg->type == TR_STR){
 
-		minSpeed = 40;
+		minSpeed = 50;
 		maxSpeed = 70;
 	}
 	else{
 
-		minSpeed = 20;
-		maxSpeed = 40;
+		minSpeed = 40;
+		maxSpeed = 50;
 	}
 
 	double speedDelta = maxSpeed - minSpeed;
@@ -137,57 +145,25 @@ State* SeqRRTStar::randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
 void SeqRRTStar::normalizeState(State* state, State* parent){
 	
 	double diffX = (state->getPos().x - parent->getPos().x);
-	double diffY = (state->getPos().y - parent->getPos().y) + 0.00001; //to avoid division by 0
-
-	double m = diffX / diffY;
-
-	double r = 0;
+	double diffY = (state->getPos().y - parent->getPos().y); 
 	
-	r = this->NEIGHBOR_DELTA_POS;
+
+	double r = this->NEIGHBOR_DELTA_POS;
 
 	tPosd newPos = tPosd();
-
 	newPos = { parent->getPos().x + (r*diffX) / (sqrt(diffX*diffX + diffY*diffY)), parent->getPos().y + (r*diffY) / (sqrt(diffX*diffX + diffY*diffY)), state->getPos().z };
-	
 	state->setCommands(newPos, state->getSpeed(), state->getAcceleration());
 
 	double diffPathCost = evaluatePathCost(parent,state);
 	
+	//try the opposite point
 	if (diffPathCost < 0){
 		newPos = { parent->getPos().x - (r*diffX) / (sqrt(diffX*diffX + diffY*diffY)), parent->getPos().y - (r*diffY) / (sqrt(diffX*diffX + diffY*diffY)), state->getPos().z };
-
 		state->setCommands(newPos, state->getSpeed(), state->getAcceleration());
-
 	}
 	
 }
 
-
-//if (diffPathCost < 0){
-
-//	State* previousCheck = parent;
-//	while (diffPathCost < 0 && parent->getParent() != NULL){
-//		previousCheck = parent;
-//		diffPathCost = state->getPathCost() - previousCheck->getPathCost();
-//		parent = parent->getParent();
-//	}
-//	parent = previousCheck;
-
-//	if (parent->getParent() != NULL){
-//		state->setParent(parent->getParent());
-//		parent->setParent(state);
-
-//		//update path costs of both nodes
-
-//		double cMin = state->getParent()->getPathCost() + evaluatePathCost(state->getParent(), state);
-//		state->setPathCost(cMin);
-
-//		cMin = state->getPathCost() + evaluatePathCost(state, parent);
-//		parent->setPathCost(cMin);
-//	}
-//	else{
-//		printf("aaaaaaaaaaaaaaaa\n\n");
-//	}
 
 double  SeqRRTStar::evaluateCost(State* state){
 	tPosd finalPos = state->getPos();
@@ -264,9 +240,9 @@ std::vector<State*> SeqRRTStar::nearestNeighbors(State* state, std::vector<State
 
 State* SeqRRTStar::generateRRT(){
 	double maxPathCost = -1*DBL_MAX; //force a change
-	State* bestState = nullptr;
+	bestState = nullptr;
 
-	double trueNIter = 0;
+	
 
 	for (int k = 0; k < nIterations; k++){
 		
@@ -345,10 +321,28 @@ State* SeqRRTStar::generateRRT(){
 		graph.push_back(xRand);
 
 	}
+
+	nCalls++;
+
+	//if no path can be found just return a forward point! ;)
 	if (bestState == nullptr){
-		return generateRRT();
+
+		this->deleteBestState = true;
+
+		tPosd newPos = initialState->getPos();
+		newPos.x += cos(car._yaw)*this->NEIGHBOR_DELTA_POS;
+		newPos.y += sin(car._yaw)*this->NEIGHBOR_DELTA_POS;
+
+		tPosd speed = { 30, 30, 0 };
+		tPosd accel = { 0, 0, 0 };
+
+		bestState = new State();
+		bestState->setCommands(newPos, speed, accel);
+		bestState->setParent(initialState);
+
+		return bestState;
 	}
-	printf("trueNIter: %f\n", trueNIter);
+
 	return bestState;
 }
 
@@ -359,8 +353,10 @@ std::vector<State*> SeqRRTStar::search(){
 
 	State* bestState = this->generateRRT(); //local pointer
 
+	printf("nCalls: %f\n", nCalls);
 
-	//lets put bestState in the Heap (calling new), separating the path from the graph eliminated in the destructor!
+
+	//lets put the path in the Heap (calling new), separating the path from the graph eliminated in the destructor!
 	while (!bestState->getInitialState()){
 		path.push_back(new State(*bestState));
 		bestState = bestState->getParent();
@@ -370,11 +366,11 @@ std::vector<State*> SeqRRTStar::search(){
 	return path;
 }
 
-std::vector<State> SeqRRTStar::getGraph(){
-	std::vector<State> graphAux;
+std::vector<State*> SeqRRTStar::getGraph(){
+	std::vector<State*> graphAux;
 
 	for (int i = 0; i < graph.size(); i++){
-		graphAux.push_back(*(graph[i]));
+		graphAux.push_back(graph[i]);
 	}
 
 	return graphAux;

@@ -15,10 +15,15 @@ class SeqRRTStar{
 	private:
 
 		int NEIGHBOR_SAMPLE_BOUNDARY = 4;
-		double NEIGHBOR_DELTA_POS = 20;
+		double NEIGHBOR_DELTA_POS = 30;
 		double NEIGHBOR_DELTA_SPEED = 10;
 
+		double nCalls = 0;
+
 		State* initialState;
+
+		bool deleteBestState;
+		State* bestState;
 
 		std::vector<State*> graph;
 
@@ -27,9 +32,8 @@ class SeqRRTStar{
 
 		int forwardSegments;
 
-		// Track variable.
-		tTrack track;
-		
+		tTrack track; // Track variable.
+		tCarElt car; //car variable
 		
 		tTrackSeg currentSearchSeg; //current car segment
 		tTrackSeg forwardSearchSeg;
@@ -55,11 +59,11 @@ class SeqRRTStar{
 		double localDistance(State* s1, State* s2, int fwdLimit);
 
 	public:
-		SeqRRTStar(State initialState, double nIterations, tTrack track, tTrackSeg currentSearchSeg, int forwardSegments);
+		SeqRRTStar(State initialState, double nIterations, tCarElt car, tTrack track, tTrackSeg currentSearchSeg, int forwardSegments);
 		~SeqRRTStar();
 		std::vector<State*> search();
 
-		std::vector<State> getGraph(); //for debug purposes
+		std::vector<State*> getGraph(); //for debug purposes
 
 };
 

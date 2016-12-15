@@ -34,10 +34,11 @@
 #include <portability.h>
 
 
+#include "PIDController.h"
+
 #include "Kernel.cuh"
 #include "SeqRRTStar.h"
 
-//#include "grtrackmap.h"
 
 #include "GL/glut.h"
 
@@ -55,17 +56,7 @@ class Opponent;
 class Driver {
 
 	private:
-		// Utility functions.
-		void computeRadius(float *radius);
-		void update(tSituation *s);
-
-		float getAccel();
-		float getBrake();
-		int getGear();
-		float getSteer(tPosd target);
-		float getClutch();
-		float getOffset();
-
+		PIDController pidController;
 
 		std::vector<State*> path; 
 		int pathIterator = -1; //to go trough the path!
@@ -103,7 +94,22 @@ class Driver {
 		// Track variable.
 		tTrack* track;
 
-		bool seek(tPosd target); //true if its in place
+		bool seek(State* target); //true if its reached target
+
+		bool pidControl(State* target); //true if delay passed
+
+
+		// Utility functions.
+		void computeRadius(float *radius);
+		void update(tSituation *s);
+
+		float getAccel();
+		float getBrake();
+		int getGear();
+		float getSteer(tPosd target);
+		float getClutch();
+		float getOffset();
+
 
 
 	public:
@@ -129,6 +135,8 @@ class Driver {
 	
 };
 
+
+//display related global procedures
 void drawSearchPoints();
 void drawCurrStats();
 void drawMap(GLfloat x, GLfloat y, int width, int height);

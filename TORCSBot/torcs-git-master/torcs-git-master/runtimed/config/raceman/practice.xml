@@ -48,10 +48,10 @@
 
   <section name="Drivers">
     <attnum name="maximum number" val="1"/>
-    <attnum name="focused idx" val="8"/>
+    <attnum name="focused idx" val="2"/>
     <attstr name="focused module" val="bt"/>
     <section name="1">
-      <attnum name="idx" val="8"/>
+      <attnum name="idx" val="2"/>
       <attstr name="module" val="bt"/>
     </section>
 
@@ -88,7 +88,7 @@
   <section name="Drivers Start List">
     <section name="1">
       <attstr name="module" val="bt"/>
-      <attnum name="idx" val="9"/>
+      <attnum name="idx" val="7"/>
     </section>
 
   </section>

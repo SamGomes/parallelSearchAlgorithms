@@ -38,6 +38,9 @@
     <ClCompile Include="bt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PIDController.cpp">
+      <Filter>Source Files\ControlModule</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Kernel.cuh">
@@ -60,6 +63,9 @@
     </ClInclude>
     <ClInclude Include="SeqRRTStar.h">
       <Filter>Header Files\PlanningModule</Filter>
+    </ClInclude>
+    <ClInclude Include="PIDController.h">
+      <Filter>Header Files\ControlModule</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
