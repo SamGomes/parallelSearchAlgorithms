@@ -46,7 +46,6 @@ class SeqRRTStar{
 		bool validPoint(State* targetState, double distFromSides);
 		State* generateRRT();
 		
-		double evaluateCost(State* state);
 		double evaluatePathCost(State* s1, State* s2);
 		
 		State* randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg);

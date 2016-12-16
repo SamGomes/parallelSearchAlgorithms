@@ -38,7 +38,7 @@ double Driver::currentsimtime;
 Driver::Driver(int index)
 {
 	INDEX = index;
-	pidController = PIDController(0.1, 0, 0);
+
 }
 
 
@@ -98,6 +98,27 @@ void Driver::newRace(tCarElt* car, tSituation *s)
 	// Initialize radius of segments.
 	radius = new float[track->nseg];
 	computeRadius(radius);
+
+
+
+	//------------------------------------------------------------------------------------------
+
+
+
+	////create search tree
+	//State initialState = State(car->pub.DynGC.pos, car->pub.DynGC.vel, car->pub.DynGC.acc);
+	//initialState.setPosSeg(*(car->pub.trkPos.seg));
+	//initialState.setInitialState(true); //it is indeed the initial state!
+
+	//int numberOfIterations = 1000;
+
+
+	//RRTOpt = SeqRRTOpt(initialState, numberOfIterations, *car, *track, *(car->pub.trkPos.seg), 30);
+
+
+	//create PID controller
+	pidController = PIDController(0.0001, 0, 0);
+
 
 
 }
@@ -300,7 +321,7 @@ void Driver::update(tSituation *s)
 	}
 	delay++;
 
-	printf("delay: %d", delay);*/
+	printf("delay: %d\n", delay);*/
 
 
 	// Update global car data (shared by all instances) just once per timestep.
@@ -314,19 +335,23 @@ void Driver::update(tSituation *s)
 		if (pathIterator<0 && LASTNODE){
 			LASTNODE = false;
 
-
 			State initialState = State(car->pub.DynGCg.pos, car->pub.DynGCg.vel, car->pub.DynGCg.acc);
 			initialState.setPosSeg(*(car->pub.trkPos.seg));
 			initialState.setInitialState(true); //it is indeed the initial state!
 
-			int numberOfIterations = 100;
+			int numberOfIterations = 200;
 
-			
-			SeqRRTStar RRTStar = SeqRRTStar(initialState, numberOfIterations,*car, *track, *(car->pub.trkPos.seg), 30);
 
+			SeqRRTStar RRTStar = SeqRRTStar(initialState, numberOfIterations, *car, *track, *(car->pub.trkPos.seg), 30);
+
+	
 			//dealocate current path before path recalc
 			for (int i = 0; i < path.size(); i++){
 				delete path[i];
+			}
+
+			for (int i = 0; i < graphG.size(); i++){
+				delete graphG[i];
 			}
 
 			path = RRTStar.search();
@@ -371,17 +396,14 @@ void Driver::update(tSituation *s)
 			}
 		}
 		
-		
-		/*double output = pidController.getOutput(300, car->_enginerpm, 0.02);
+		//currState->getSpeed().x*currState->getSpeed().y
 
-		std::cout << "output: " << output << std::endl;
+		double output = pidController.getOutput(1000, car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y, 0.02);
+		printf("mv: %f\n", car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y);
+		printf("output: %f\n", output);
+		car->ctrl.accelCmd = output;
+		car->ctrl.gear = getGear();
 
-		car->ctrl.accelCmd = output;*/
-
-	
-		
-		
-	 
 	}
 
 }
@@ -445,18 +467,13 @@ void drawSearchPoints(){
 
 		for (int i = 0; i < (graphG).size(); i++){
 			glColor3f(0, 0, 0);
-			drawCircle(*(graphG[i]), 2);
+			drawCircle(*(graphG[i]), 0.5);
+			if (!graphG[i]->getInitialState()){
+				drawLine(graphG[i]->getPos().x, graphG[i]->getPos().y, graphG[i]->getParent()->getPos().x, graphG[i]->getParent()->getPos().y);
+			}
 			
 		}
 
-		/*glColor3f(1, 0, 0);
-		drawLine(currStateG.getPosSeg().vertex[0].x, currStateG.getPosSeg().vertex[0].y, currStateG.getPosSeg().vertex[1].x, currStateG.getPosSeg().vertex[1].y);
-		drawLine(currStateG.getPosSeg().vertex[1].x, currStateG.getPosSeg().vertex[1].y, currStateG.getPosSeg().vertex[3].x, currStateG.getPosSeg().vertex[3].y);
-		drawLine(currStateG.getPosSeg().vertex[2].x, currStateG.getPosSeg().vertex[2].y, currStateG.getPosSeg().vertex[2].x, currStateG.getPosSeg().vertex[2].y);
-		drawLine(currStateG.getPosSeg().vertex[3].x, currStateG.getPosSeg().vertex[3].y, currStateG.getPosSeg().vertex[4].x, currStateG.getPosSeg().vertex[4].y);
-*/
-
-		glColor3f(0, 0, 0.5);
 		glColor3f(0, 0, 1);
 		for (int i = 1; i < pathG.size(); i++){
 			drawLine(pathG[i]->getPos().x, pathG[i]->getPos().y, pathG[i-1]->getPos().x, pathG[i-1]->getPos().y);
@@ -513,7 +530,7 @@ void drawCircle(State point, GLfloat radius)
 
 void drawLine(double initialPointX, double initialPointY, double finalPointX, double finalPointY)
 {
-	glLineWidth(1.0);
+	glLineWidth(0.5);
 
 	glBegin(GL_LINES);
 		glVertex2f(initialPointX, initialPointY);

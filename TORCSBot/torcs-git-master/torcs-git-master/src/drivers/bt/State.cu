@@ -12,8 +12,6 @@ State::State(){
 	this->parent = nullptr;
 	this->pathCost = 0;
 	this->posSeg = tTrackSeg();
-	//this->cost = DBL_MAX; //infinite
-	this->cost = 0;
 }
 
 CUDA_HOSTDEV
@@ -28,8 +26,6 @@ State::State(tPosd pos, tPosd speed, tPosd acceleration, State* parent){
 	this->parent = new State(*parent);
 	this->pathCost = 0;
 	this->posSeg = tTrackSeg();
-	//this->cost = DBL_MAX; //infinite
-	this->cost = 0;
 }
 
 
@@ -45,88 +41,7 @@ State::State(tPosd pos, tPosd speed, tPosd acceleration){
 	this->parent = nullptr;
 	this->pathCost = 0;
 	this->posSeg = tTrackSeg();
-	//this->cost = DBL_MAX; //infinite
-	this->cost = 0;
 }
-
-//
-//CUDA_HOSTDEV
-//State::~State(){
-//	State* aux = parent;
-//	State* curr;
-//
-//	while (aux != nullptr){
-//		curr = aux;
-//		aux = aux->parent;
-//		delete curr;
-//	}
-//}
-//
-//
-//CUDA_HOSTDEV
-//State& State::operator=(const State& other){
-//	initialState = other.initialState;
-//	posSeg = other.posSeg;
-//
-//	locPosToLeft=other.locPosToLeft;
-//
-//	locPosToRight=other.locPosToRight;
-//
-//	pos = other.pos;
-//	speed = other.speed;
-//	acceleration = other.acceleration;
-//
-//	cost = other.cost;
-//	pathCost = other.pathCost;
-//
-//	if (other.parent != nullptr){
-//		State* oldStuff;
-//		if (parent != nullptr){
-//			oldStuff = parent;
-//		}
-//
-//		parent = new State(*(other.parent));
-//
-//		if (parent != nullptr){
-//			delete oldStuff;
-//		}
-//	}
-//	else{
-//		parent = nullptr;
-//	}
-//
-//	return *this;
-//}
-//
-//
-//CUDA_HOSTDEV
-//State::State(const State& other) :
-//
-//initialState(other.initialState),
-//posSeg(other.posSeg),
-//
-//locPosToLeft(other.locPosToLeft),
-//locPosToRight(other.locPosToRight),
-//
-//pos(other.pos),
-//speed(other.speed),
-//acceleration(other.acceleration),
-//
-//cost(other.cost),
-//pathCost(other.pathCost)
-//
-//
-//
-//{
-//	if (other.parent != nullptr){
-//		parent = new State(*(other.parent));
-//	}
-//	else{
-//		parent = nullptr;
-//	}
-//
-//}
-
 
 
 CUDA_HOSTDEV 
@@ -206,19 +121,6 @@ void  State::setPathCost(double pathCost){
 }
 
 
-
-CUDA_HOSTDEV
-double  State::getCost(){
-	return this->cost;
-}
-
-CUDA_HOSTDEV
-void State::setCost(double cost){
-	this->cost = cost;
-}
-
-
-
 CUDA_HOST
 std::string State::toString(){
 	std::string res = std::string();
@@ -227,7 +129,6 @@ std::string State::toString(){
 		std::string("address: ") + std::to_string((int)this) + std::string("\n") +
 		std::string("parent: ") + std::to_string((int)this->parent) + std::string("\n") +
 		std::string("- - - - - - - - - -\n") +
-		std::string("cost: ") + std::to_string(this->cost) + std::string("\n") +
 		std::string("pathCost: ") + std::to_string(this->pathCost) + std::string("\n") +
 		std::string("- - - - - - - - - -\n") +
 		std::string("pos: (") + std::to_string((double)this->pos.x) + std::string(" , ") + std::to_string((double)this->pos.y) + std::string(" ) \n") +

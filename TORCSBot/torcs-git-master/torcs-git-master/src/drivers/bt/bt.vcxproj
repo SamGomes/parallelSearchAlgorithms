@@ -182,6 +182,7 @@
     <ClCompile Include="driver.cpp" />
     <ClCompile Include="opponent.cpp" />
     <ClCompile Include="PIDController.cpp" />
+    <ClCompile Include="SeqRRTOpt.cpp" />
     <ClCompile Include="SeqRRTStar.cpp">
       <FileType>CppCode</FileType>
     </ClCompile>
@@ -197,6 +198,7 @@
     <ClInclude Include="Macros.h" />
     <ClInclude Include="opponent.h" />
     <ClInclude Include="PIDController.h" />
+    <ClInclude Include="SeqRRTOpt.h" />
     <ClInclude Include="SeqRRTStar.h" />
     <ClInclude Include="State.cuh" />
   </ItemGroup>

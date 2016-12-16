@@ -21,6 +21,12 @@
     <Filter Include="Source Files\ControlModule">
       <UniqueIdentifier>{65d332d6-7ba8-4c3c-bf3c-eb2cf4ec6682}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\PlanningModule\Search">
+      <UniqueIdentifier>{207f5ffb-b9cc-4d32-b55f-6ee56c310101}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\PlanningModule\Search">
+      <UniqueIdentifier>{560b0ada-a145-4fae-9871-925795471326}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cardata.cpp">
@@ -32,14 +38,17 @@
     <ClCompile Include="opponent.cpp">
       <Filter>Source Files\ControlModule</Filter>
     </ClCompile>
-    <ClCompile Include="SeqRRTStar.cpp">
-      <Filter>Source Files\PlanningModule</Filter>
-    </ClCompile>
     <ClCompile Include="bt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PIDController.cpp">
       <Filter>Source Files\ControlModule</Filter>
+    </ClCompile>
+    <ClCompile Include="SeqRRTStar.cpp">
+      <Filter>Source Files\PlanningModule\Search</Filter>
+    </ClCompile>
+    <ClCompile Include="SeqRRTOpt.cpp">
+      <Filter>Source Files\PlanningModule\Search</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -61,11 +70,14 @@
     <ClInclude Include="State.cuh">
       <Filter>Header Files\PlanningModule</Filter>
     </ClInclude>
-    <ClInclude Include="SeqRRTStar.h">
-      <Filter>Header Files\PlanningModule</Filter>
-    </ClInclude>
     <ClInclude Include="PIDController.h">
       <Filter>Header Files\ControlModule</Filter>
+    </ClInclude>
+    <ClInclude Include="SeqRRTStar.h">
+      <Filter>Header Files\PlanningModule\Search</Filter>
+    </ClInclude>
+    <ClInclude Include="SeqRRTOpt.h">
+      <Filter>Header Files\PlanningModule\Search</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

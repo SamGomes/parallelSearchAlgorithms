@@ -37,8 +37,9 @@
 #include "PIDController.h"
 
 #include "Kernel.cuh"
-#include "SeqRRTStar.h"
 
+#include "SeqRRTStar.h"
+#include "SeqRRTOpt.h"
 
 #include "GL/glut.h"
 
@@ -57,6 +58,9 @@ class Driver {
 
 	private:
 		PIDController pidController;
+
+		SeqRRTOpt RRTOpt;
+
 
 		std::vector<State*> path; 
 		int pathIterator = -1; //to go trough the path!

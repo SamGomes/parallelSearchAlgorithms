@@ -1,12 +1,6 @@
 #include "SeqRRTStar.h"
 
 
-static bool compareStates(State* s1, State* s2) {
-	double s1D = s1->getCost();
-	double s2D = s2->getCost();
-
-	return (s1D < s2D);
-}
 
 
 SeqRRTStar::SeqRRTStar(State initialState, double nIterations, tCarElt car, tTrack track, tTrackSeg currentSearchSeg, int forwardSegments){
@@ -37,10 +31,10 @@ SeqRRTStar::~SeqRRTStar(){
 		delete bestState;
 	}
 
-	//as we do not need the graph anymore we just delete it!
-	for (int i = 0; i < graph.size(); i++){
+	//as we do not need the graph anymore we just delete it! (commented because it is used on driver.cpp  for debug purposes)
+	/*for (int i = 0; i < graph.size(); i++){
 		delete graph[i];
-	}
+	}*/
 }
 
 
@@ -93,14 +87,11 @@ State* SeqRRTStar::randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
 	double minSpeed;
 	double maxSpeed;
 	if (initialSeg->type == TR_STR){
-
-		minSpeed = 50;
-		maxSpeed = 70;
-	}
-	else{
-
 		minSpeed = 40;
-		maxSpeed = 50;
+		maxSpeed = 90;
+	}else{
+		minSpeed = 20;
+		maxSpeed = 90;
 	}
 
 	double speedDelta = maxSpeed - minSpeed;
@@ -144,39 +135,54 @@ State* SeqRRTStar::randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
 
 void SeqRRTStar::normalizeState(State* state, State* parent){
 	
-	double diffX = (state->getPos().x - parent->getPos().x);
-	double diffY = (state->getPos().y - parent->getPos().y); 
-	
+
+	double diffX = abs(state->getPos().x - parent->getPos().x);
+	double diffY = abs(state->getPos().y - parent->getPos().y);
+
+
+	double angle = (atan2((state->getPos().y - parent->getPos().y), (state->getPos().x - parent->getPos().x)));
+
+	double diffPathCost = evaluatePathCost(parent, state);
+
+	//try the opposite point
+	if (diffPathCost < 0){
+		angle = (atan2((parent->getPos().y - state->getPos().y), (parent->getPos().x - state->getPos().x)));
+	}
+
+	NORM0_2PI(angle);
 
 	double r = this->NEIGHBOR_DELTA_POS;
 
 	tPosd newPos = tPosd();
-	newPos = { parent->getPos().x + (r*diffX) / (sqrt(diffX*diffX + diffY*diffY)), parent->getPos().y + (r*diffY) / (sqrt(diffX*diffX + diffY*diffY)), state->getPos().z };
-	state->setCommands(newPos, state->getSpeed(), state->getAcceleration());
 
-	double diffPathCost = evaluatePathCost(parent,state);
-	
-	//try the opposite point
-	if (diffPathCost < 0){
-		newPos = { parent->getPos().x - (r*diffX) / (sqrt(diffX*diffX + diffY*diffY)), parent->getPos().y - (r*diffY) / (sqrt(diffX*diffX + diffY*diffY)), state->getPos().z };
+	double auxCalc = (sqrt(diffX*diffX + diffY*diffY));
+
+
+
+	if (angle >= 0 && angle <PI / 2){
+		newPos = { parent->getPos().x + (r*diffX) / auxCalc, parent->getPos().y + (r*diffY) / auxCalc, state->getPos().z };
+		state->setCommands(newPos, state->getSpeed(), state->getAcceleration());
+	}
+
+	if (angle >= PI / 2 && angle <PI){
+		newPos = { parent->getPos().x - (r*diffX) / auxCalc, parent->getPos().y + (r*diffY) / auxCalc, state->getPos().z };
+		state->setCommands(newPos, state->getSpeed(), state->getAcceleration());
+	}
+
+	if (angle >= PI && angle < 3 * PI / 2){
+		newPos = { parent->getPos().x - (r*diffX) / auxCalc, parent->getPos().y - (r*diffY) / auxCalc, state->getPos().z };
+		state->setCommands(newPos, state->getSpeed(), state->getAcceleration());
+	}
+
+	if (angle >= 3 * PI / 2 && angle <2 * PI){
+		newPos = { parent->getPos().x + (r*diffX) / auxCalc, parent->getPos().y - (r*diffY) / auxCalc, state->getPos().z };
 		state->setCommands(newPos, state->getSpeed(), state->getAcceleration());
 	}
 	
+
 }
 
 
-double  SeqRRTStar::evaluateCost(State* state){
-	tPosd finalPos = state->getPos();
-	tPosd a = state->getAcceleration();
-	tPosd v0 = state->getSpeed();
-	double t = this->actionSimDeltaTime;
-
-	finalPos.x += 0.5*a.x*t*t + v0.x;
-	finalPos.y += 0.5*a.y*t*t + v0.y;
-	finalPos.z += 0.5*a.z*t*t + v0.z;
-
-	return finalPos.x*finalPos.x + finalPos.y*finalPos.y;
-}
 
 double  SeqRRTStar::evaluatePathCost(State* s1,State* s2){
 	return localDistance(s1,s2,this->forwardSegments);
@@ -185,31 +191,21 @@ double  SeqRRTStar::evaluatePathCost(State* s1,State* s2){
 
 //the nearest point is the one in which its finalPos ajusts to the points current pos
 State* SeqRRTStar::nearestNeighbor(State* state, std::vector<State*> graph){
-	std::sort(graph.begin(), graph.end(), compareStates);
 
-	tPosd currentPos = state->getPos();
-
-	double currPosMod = currentPos.x*currentPos.x + currentPos.y*currentPos.y;
-
-	if (graph.size() == 1){
-		return graph[0];
-	}
-
+	State* closestState = initialState;
+	double minCost = DBL_MAX;
 	for (std::vector<State*>::iterator i = graph.begin(); i != graph.end(); ++i){
-		double currCost = (*i)->getCost();
-		if (currCost > currPosMod && i != graph.begin()){
-			double lastCost = (*(i-1))->getCost();
-			if (abs(currCost - currPosMod) < abs(lastCost - currPosMod)){
-				return (*i);
-			}
-			else{
-				return(*(i - 1));
-			}
+		double a = (*i)->getAcceleration().x*(*i)->getAcceleration().y;
+		double v0 = (*i)->getSpeed().x*(*i)->getSpeed().y;
+		double currCost = ((((*i)->getPos().x) - (state->getPos().x))*(((*i)->getPos().x) - (state->getPos().x)) + (((*i)->getPos().y) - (state->getPos().y))*(((*i)->getPos().y) - (state->getPos().y))) + a*this->actionSimDeltaTime*this->actionSimDeltaTime + v0*this->actionSimDeltaTime;
+		if (minCost > currCost){
+			minCost = currCost;
+			closestState = *i;
 		}
 	}
 
 
-	return graph.back();
+	return closestState;
 
 }
 
@@ -256,18 +252,12 @@ State* SeqRRTStar::generateRRT(){
 			continue;
 		}
 
-		double xRandNearCost = evaluateCost(xRand);
-		xRand->setCost(xRandNearCost);
-
 		State* xNearest = nearestNeighbor(xRand, graph); //after cost evaluation
 		xRand->setParent(xNearest);
 
 		//--------------------------------------------------------------------------------------------------------------------------------
 
 		normalizeState(xRand, xNearest);
-
-		xRandNearCost = evaluateCost(xRand); //redifine cost for new coords
-		xRand->setCost(xRandNearCost);
 
 		double cMin = xNearest->getPathCost() + evaluatePathCost(xNearest, xRand); //redifine path cost for new coords
 		xRand->setPathCost(cMin);
@@ -367,13 +357,7 @@ std::vector<State*> SeqRRTStar::search(){
 }
 
 std::vector<State*> SeqRRTStar::getGraph(){
-	std::vector<State*> graphAux;
-
-	for (int i = 0; i < graph.size(); i++){
-		graphAux.push_back(graph[i]);
-	}
-
-	return graphAux;
+	return graph;
 }
 
 
