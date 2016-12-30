@@ -14,6 +14,8 @@
 class SeqRRTStar{
 	private:
 
+		double maxPathCost;
+
 		int NEIGHBOR_SAMPLE_BOUNDARY = 4;
 		double NEIGHBOR_DELTA_POS = 30;
 		double NEIGHBOR_DELTA_SPEED = 10;
@@ -53,14 +55,20 @@ class SeqRRTStar{
 		std::vector<State*> nearestNeighbors(State* state, std::vector<State*> graph);
 		bool considerFinalState(State* finalState);
 
-		void normalizeState(State* state, State* parent);
+
+		void lineHeuristic(State* state, State* parent);
+		void bezierHeuristic(State* state, State* parent);
+		void applyDelta(State* state, State* parent);
 
 		double localDistance(State* s1, State* s2, int fwdLimit);
 
 	public:
+		SeqRRTStar(){};
 		SeqRRTStar(State initialState, double nIterations, tCarElt car, tTrack track, tTrackSeg currentSearchSeg, int forwardSegments);
 		~SeqRRTStar();
 		std::vector<State*> search();
+		
+		void updateCar(tCarElt car);
 
 		std::vector<State*> getGraph(); //for debug purposes
 

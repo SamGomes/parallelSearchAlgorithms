@@ -5,6 +5,10 @@
 
 SeqRRTStar::SeqRRTStar(State initialState, double nIterations, tCarElt car, tTrack track, tTrackSeg currentSearchSeg, int forwardSegments){
 
+	this->maxPathCost = -1 * DBL_MAX; //force a change
+
+	this->bestState = nullptr;
+
 	this->deleteBestState = false;
 
 	this->currentSearchSeg = currentSearchSeg;
@@ -27,14 +31,14 @@ SeqRRTStar::SeqRRTStar(State initialState, double nIterations, tCarElt car, tTra
 
 
 SeqRRTStar::~SeqRRTStar(){
-	if (deleteBestState){
-		delete bestState;
-	}
+	//if (deleteBestState){
+	//	delete bestState;
+	//}
 
-	//as we do not need the graph anymore we just delete it! (commented because it is used on driver.cpp  for debug purposes)
-	/*for (int i = 0; i < graph.size(); i++){
-		delete graph[i];
-	}*/
+	////as we do not need the graph anymore we just delete it! (commented because it is used on driver.cpp  for debug purposes)
+	//for (int i = 0; i < graph.size(); i++){
+	//	delete graph[i];
+	//}
 }
 
 
@@ -84,16 +88,9 @@ State* SeqRRTStar::randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
 
 	double trackMapZDelta = trackMapZMax - trackMapZMin;
 
-	double minSpeed;
-	double maxSpeed;
-	if (initialSeg->type == TR_STR){
-		minSpeed = 40;
-		maxSpeed = 90;
-	}else{
-		minSpeed = 20;
-		maxSpeed = 90;
-	}
-
+	double minSpeed = 0;
+	double maxSpeed = 70;
+	
 	double speedDelta = maxSpeed - minSpeed;
 
 
@@ -130,17 +127,49 @@ State* SeqRRTStar::randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
 	randAccel.y = randAccelY;
 	randAccel.z = randAccelZ;
 
+
+
 	return new State(randPos, randSpeed, randAccel);
 }
 
-void SeqRRTStar::normalizeState(State* state, State* parent){
+//accounts the position and velocity
+void SeqRRTStar::bezierHeuristic(State* state, State* parent){
+	
+	lineHeuristic(state, parent);
+
+	double curvePercent = 0.5;
+
+	tPosd newPos = tPosd();
+
+	double diffPathCost = evaluatePathCost(parent, state);
+
+	//try the opposite point
+	if (diffPathCost < 0){
+		state->setCommands({ parent->getPos().x + (state->getPos().x - parent->getPos().x), parent->getPos().y + (state->getPos().x - parent->getPos().y) }, state->getSpeed(), state->getAcceleration());
+	}
+
+	printf("ssffsfas:%f\n", state->getSpeed().x/70);
+	printf("ssffsfas:%f\n\n", state->getSpeed().y/70);
 	
 
+	newPos.x = (1 - curvePercent)*(1 - curvePercent)*state->getPos().x + 2 * curvePercent*(1 - curvePercent) * (state->getPos().x + 20 * state->getSpeed().x / 70) + curvePercent*curvePercent*parent->getPos().x;
+	newPos.y = (1 - curvePercent)*(1 - curvePercent)*state->getPos().y + 2 * curvePercent*(1 - curvePercent) * (state->getPos().y + 20 * state->getSpeed().x / 70) + curvePercent*curvePercent*parent->getPos().y;
+	newPos.z = state->getPos().z;
+
+	
+	state->setCommands(newPos, state->getSpeed(), state->getAcceleration());
+
+}
+
+//only accounts the position
+void SeqRRTStar::lineHeuristic(State* state, State* parent){
+	
 	double diffX = abs(state->getPos().x - parent->getPos().x);
 	double diffY = abs(state->getPos().y - parent->getPos().y);
 
 
 	double angle = (atan2((state->getPos().y - parent->getPos().y), (state->getPos().x - parent->getPos().x)));
+
 
 	double diffPathCost = evaluatePathCost(parent, state);
 
@@ -161,23 +190,43 @@ void SeqRRTStar::normalizeState(State* state, State* parent){
 
 	if (angle >= 0 && angle <PI / 2){
 		newPos = { parent->getPos().x + (r*diffX) / auxCalc, parent->getPos().y + (r*diffY) / auxCalc, state->getPos().z };
-		state->setCommands(newPos, state->getSpeed(), state->getAcceleration());
 	}
 
 	if (angle >= PI / 2 && angle <PI){
 		newPos = { parent->getPos().x - (r*diffX) / auxCalc, parent->getPos().y + (r*diffY) / auxCalc, state->getPos().z };
-		state->setCommands(newPos, state->getSpeed(), state->getAcceleration());
 	}
 
 	if (angle >= PI && angle < 3 * PI / 2){
 		newPos = { parent->getPos().x - (r*diffX) / auxCalc, parent->getPos().y - (r*diffY) / auxCalc, state->getPos().z };
-		state->setCommands(newPos, state->getSpeed(), state->getAcceleration());
 	}
 
 	if (angle >= 3 * PI / 2 && angle <2 * PI){
 		newPos = { parent->getPos().x + (r*diffX) / auxCalc, parent->getPos().y - (r*diffY) / auxCalc, state->getPos().z };
-		state->setCommands(newPos, state->getSpeed(), state->getAcceleration());
 	}
+
+	tPosd newSpeed = state->getSpeed();
+
+	/*double steeredAngle = state->getPosSeg().next->next->next->arc;
+	NORM_PI_PI(steeredAngle);
+
+	printf("angle:%f\n\n", steeredAngle);
+	printf("currstateAntes(%f,%f)\n", newSpeed.x, newSpeed.y);
+
+	newSpeed.x -=  newSpeed.x * abs(40 *steeredAngle) / PI;
+	newSpeed.y -=  newSpeed.y * abs(40 *steeredAngle) / PI;
+
+	printf("currstateDepois(%f,%f)\n", newSpeed.x, newSpeed.y);*/
+
+	state->setCommands(newPos, newSpeed, state->getAcceleration());
+
+}
+
+void SeqRRTStar::applyDelta(State* state, State* parent){
+	
+
+	//this->lineHeuristic(state,parent);
+	this->bezierHeuristic(state, parent);
+
 	
 
 }
@@ -195,9 +244,9 @@ State* SeqRRTStar::nearestNeighbor(State* state, std::vector<State*> graph){
 	State* closestState = initialState;
 	double minCost = DBL_MAX;
 	for (std::vector<State*>::iterator i = graph.begin(); i != graph.end(); ++i){
-		double a = (*i)->getAcceleration().x*(*i)->getAcceleration().y;
-		double v0 = (*i)->getSpeed().x*(*i)->getSpeed().y;
-		double currCost = ((((*i)->getPos().x) - (state->getPos().x))*(((*i)->getPos().x) - (state->getPos().x)) + (((*i)->getPos().y) - (state->getPos().y))*(((*i)->getPos().y) - (state->getPos().y))) + a*this->actionSimDeltaTime*this->actionSimDeltaTime + v0*this->actionSimDeltaTime;
+		double a = (*i)->getAcceleration().x*(*i)->getAcceleration().x + (*i)->getAcceleration().y*(*i)->getAcceleration().y;
+		double v0 = (*i)->getSpeed().x*(*i)->getSpeed().x + (*i)->getSpeed().y*(*i)->getSpeed().y;
+		double currCost = ((((*i)->getPos().x) - (state->getPos().x))*(((*i)->getPos().x) - (state->getPos().x)) + (((*i)->getPos().y) - (state->getPos().y))*(((*i)->getPos().y) - (state->getPos().y))) +a*this->actionSimDeltaTime*this->actionSimDeltaTime + v0*this->actionSimDeltaTime;
 		if (minCost > currCost){
 			minCost = currCost;
 			closestState = *i;
@@ -235,10 +284,6 @@ std::vector<State*> SeqRRTStar::nearestNeighbors(State* state, std::vector<State
 // - the path cost is the distance travelled by the path along the track
 
 State* SeqRRTStar::generateRRT(){
-	double maxPathCost = -1*DBL_MAX; //force a change
-	bestState = nullptr;
-
-	
 
 	for (int k = 0; k < nIterations; k++){
 		
@@ -257,7 +302,7 @@ State* SeqRRTStar::generateRRT(){
 
 		//--------------------------------------------------------------------------------------------------------------------------------
 
-		normalizeState(xRand, xNearest);
+		applyDelta(xRand, xNearest);
 
 		double cMin = xNearest->getPathCost() + evaluatePathCost(xNearest, xRand); //redifine path cost for new coords
 		xRand->setPathCost(cMin);
@@ -320,15 +365,21 @@ State* SeqRRTStar::generateRRT(){
 		this->deleteBestState = true;
 
 		tPosd newPos = initialState->getPos();
-		newPos.x += cos(car._yaw)*this->NEIGHBOR_DELTA_POS;
-		newPos.y += sin(car._yaw)*this->NEIGHBOR_DELTA_POS;
+		double theta= car._yaw;
 
-		tPosd speed = { 30, 30, 0 };
+		newPos.x += cos(theta)*this->NEIGHBOR_DELTA_POS/2;
+		newPos.y += sin(theta)*this->NEIGHBOR_DELTA_POS/2;
+
+		tPosd speed = { 20, 20, 0 };
 		tPosd accel = { 0, 0, 0 };
 
 		bestState = new State();
 		bestState->setCommands(newPos, speed, accel);
 		bestState->setParent(initialState);
+
+		bestState->setPosSeg(initialState->getPosSeg()); //error prune!
+
+		graph.push_back(bestState);
 
 		return bestState;
 	}
@@ -337,13 +388,16 @@ State* SeqRRTStar::generateRRT(){
 }
 
 
+void SeqRRTStar::updateCar(tCarElt car){
+	this->car = car;
+}
+
 std::vector<State*> SeqRRTStar::search(){
 	
 	std::vector<State*> path;
 
 	State* bestState = this->generateRRT(); //local pointer
 
-	printf("nCalls: %f\n", nCalls);
 
 
 	//lets put the path in the Heap (calling new), separating the path from the graph eliminated in the destructor!
@@ -386,7 +440,7 @@ bool SeqRRTStar::validPoint(State* targetState, double distFromSides){
 	while (currSeg != seg ){
 		RtTrackGlobal2Local(currSeg, target.x, target.y, &targetLocalPos, TR_LPOS_MAIN);
 		if (targetLocalPos.toRight >  distFromSides && targetLocalPos.toLeft >  distFromSides){
-			targetState->setPosSeg(*currSeg);
+			targetState->setPosSeg(*targetLocalPos.seg);
 			return true;
 		}
 		currSeg = currSeg->next;

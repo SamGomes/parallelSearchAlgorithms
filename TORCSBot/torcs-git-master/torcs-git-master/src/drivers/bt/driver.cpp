@@ -23,6 +23,18 @@ version              : $Id: driver.cpp,v 1.16.2.2 2008/12/31 03:53:53 berniw Exp
 #include "driver.h"
 
 
+//display GLOBAL aux vars
+tDynPt carDynCg;
+double trkMinX;
+double trkMinY;
+double trkMaxX;
+double trkMaxY;
+State currStateG;
+int pathsauxWindow, currStatsWindow;
+std::vector<State*> pathG;
+std::vector<State*> graphG;
+bool CREATEDWINDOW = false;
+
 
 const float Driver::SHIFT = 0.9f;							// [-] (% of rpmredline) When do we like to shift gears.
 const float Driver::SHIFT_MARGIN = 4.0f;					// [m/s] Avoid oscillating gear changes.
@@ -116,9 +128,10 @@ void Driver::newRace(tCarElt* car, tSituation *s)
 	//RRTOpt = SeqRRTOpt(initialState, numberOfIterations, *car, *track, *(car->pub.trkPos.seg), 30);
 
 
-	//create PID controller
-	pidController = PIDController(0.0001, 0, 0);
+	//create PID controllers
+	pedalsPidController = PIDController(0.00001, -0.00004, 0);
 
+	//steerPidController = PIDController(2, 5, 0.0001);
 
 
 }
@@ -256,7 +269,7 @@ bool Driver::pidControl(State*  target){
 	return false;
 }
 
-bool Driver::seek(State* target){
+bool Driver::passedPoint(State* target){
 
 	tdble carX = car->_pos_X;
 	tdble carY = car->_pos_Y;
@@ -269,9 +282,9 @@ bool Driver::seek(State* target){
 
 	if (abs(carX - targetX) < 18 && abs(carY - targetY) < 18){
 		STUCKONAPOINT = true;
-		car->_accelCmd = 0.3;
+		/*car->_accelCmd = 0.3;
 		car->_gearCmd = getGear();
-
+*/
 		return true;
 	}
 
@@ -281,7 +294,7 @@ bool Driver::seek(State* target){
 	targetAngle -= car->_yaw;
 	NORM_PI_PI(targetAngle);
 
-	double diff = (target->getSpeed().x + target->getSpeed().y) - (car->pub.DynGCg.vel.x + car->pub.DynGCg.vel.y + 10);
+/*	double diff = (target->getSpeed().x + target->getSpeed().y) - (car->pub.DynGCg.vel.x + car->pub.DynGCg.vel.y + 10);
 
 	if (diff > 0){
 		car->_accelCmd = abs(diff)/ 140;
@@ -292,79 +305,140 @@ bool Driver::seek(State* target){
 		car->_brakeCmd = abs(diff) / 100;
 	}
 	car->_gearCmd = getGear();
-
-	car->_steerCmd = targetAngle / car->_steerLock;
+*/
+	car->_steerCmd = targetAngle / PI;
 
 
 	return false;
 }
 
-tDynPt carDynCg;
-double trkMinX;
-double trkMinY;
-double trkMaxX;
-double trkMaxY;
-State currStateG;
-int pathsauxWindow, currStatsWindow;
-std::vector<State*> pathG;
-std::vector<State*> graphG;
-bool CREATEDWINDOW = false;
 
-int delay = 0;
 
 // Update my private data every timestep.
 void Driver::update(tSituation *s)
 {
 
-	/*if (delay == 10000){
-		getchar();
-	}
+	//if (delay == 10000){
+	//	getchar();
+	//}
+
+	//printf("delay: %d\n", delay);
 	delay++;
 
-	printf("delay: %d\n", delay);*/
-
+	
 
 	// Update global car data (shared by all instances) just once per timestep.
 	if (currentsimtime != s->currentTime) {
 		currentsimtime = s->currentTime;
 		cardata->update();
 
+		SeqRRTStar RRTStar;
 		
 
 		//------------ producer --------------
 		if (pathIterator<0 && LASTNODE){
 			LASTNODE = false;
 
-			State initialState = State(car->pub.DynGCg.pos, car->pub.DynGCg.vel, car->pub.DynGCg.acc);
-			initialState.setPosSeg(*(car->pub.trkPos.seg));
-			initialState.setInitialState(true); //it is indeed the initial state!
-
-			int numberOfIterations = 200;
-
-
-			SeqRRTStar RRTStar = SeqRRTStar(initialState, numberOfIterations, *car, *track, *(car->pub.trkPos.seg), 30);
-
-	
+			
+			
 			//dealocate current path before path recalc
 			for (int i = 0; i < path.size(); i++){
 				delete path[i];
 			}
 
-			for (int i = 0; i < graphG.size(); i++){
+			/*for (int i = 0; i < graphG.size(); i++){
 				delete graphG[i];
+			}*/
+
+			
+
+			if (pathAux.size() == 0){
+
+				State initialState = State(car->pub.DynGCg.pos, car->pub.DynGCg.vel, car->pub.DynGCg.acc);
+				initialState.setPosSeg(*(car->pub.trkPos.seg));
+				initialState.setInitialState(true); //it is indeed the initial state!
+
+
+				RRTStar = SeqRRTStar(initialState, numberOfPartialIterations, *car, *track, *(car->pub.trkPos.seg), 30);
+
+				pathAux = RRTStar.search();
+
 			}
 
-			path = RRTStar.search();
+			State* initialStateAux = pathAux[0];
+			initialStateAux->setPosSeg(pathAux[0]->getPosSeg());
+			initialStateAux->setParent(nullptr);
+			initialStateAux->setInitialState(true); //it is indeed the initial state!
+
+
+			RRTStarAux = SeqRRTStar(*initialStateAux, numberOfPartialIterations, *car, *track, *(car->pub.trkPos.seg), 30);
+			
+
+			
+
+			path = pathAux;
 			pathIterator = path.size()-1;
 
 
 
 			pathG = path;
-			graphG = RRTStar.getGraph(); //update aux window var
+			
 
 			currState = path[pathIterator--];
 
+
+
+
+
 		}
+
+		if (numberOfRealIterations<=0){
+			State* initialStateAux = pathAux[0];
+			initialStateAux->setPosSeg(pathAux[0]->getPosSeg());
+
+			RRTStarAux = SeqRRTStar(*initialStateAux, numberOfPartialIterations, *car, *track, (pathAux[0]->getPosSeg()), 30);
+			numberOfRealIterations = numberOfIterations;
+		}
+
+		//avoid more than 1 lap in search still not implemented!
+		if (delay == 50 ){
+			RRTStarAux.updateCar(*car);
+			pathAux = RRTStarAux.search();
+			graphG = RRTStarAux.getGraph(); //update aux window var
+
+			graphG.insert(std::end(graphG), std::begin(pathAux), std::end(pathAux));
+
+			delay = 0;
+			numberOfRealIterations -= numberOfPartialIterations;
+		}
+
+
+
+		//------------ consumer --------------
+		
+
+		if (this->passedPoint(currState)){
+			if (pathIterator<0){
+				LASTNODE = true;
+
+			}
+				
+			else{
+				currState = path[pathIterator--];
+			}
+
+			RRTStarAux.updateCar(*car);
+			pathAux = RRTStarAux.search();
+			graphG = RRTStarAux.getGraph(); //update aux window var getChar()
+
+			graphG.insert(std::end(graphG), std::begin(pathAux), std::end(pathAux));
+
+			delay = 0;
+			numberOfRealIterations -= numberOfPartialIterations;
+		}
+
+		
+
 
 
 		carDynCg = car->pub.DynGCg; //update aux window var
@@ -376,34 +450,31 @@ void Driver::update(tSituation *s)
 
 		//init aux windows
 		if (!CREATEDWINDOW){
-			initGLUTWindow(); 
+			initGLUTWindow();
 			CREATEDWINDOW = true;
 		}
 		GLUTWindowRedisplay(); //update aux windows
 
 		
-		//------------ consumer --------------
-		
+		//printf("currstate(%f,%f)\n",currState->getSpeed().x, currState->getSpeed().y);
+		double output = pedalsPidController.getOutput(currState->getSpeed().x*currState->getSpeed().x + currState->getSpeed().y*currState->getSpeed().y, car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y, 0.04);
+		/*printf("mv: %f\n", car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y);
+		printf("output: %f\n", output);*/
 
-		if (this->seek(currState)){
-			
-			if (pathIterator<0){
-				LASTNODE = true;
-			}
-				
-			else{
-				currState = path[pathIterator--];
-			}
-		}
-		
-		//currState->getSpeed().x*currState->getSpeed().y
-
-		double output = pidController.getOutput(1000, car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y, 0.02);
-		printf("mv: %f\n", car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y);
-		printf("output: %f\n", output);
-		car->ctrl.accelCmd = output;
+		output > 0 ? car->ctrl.accelCmd = output : car->ctrl.brakeCmd = -1*output;
 		car->ctrl.gear = getGear();
 
+
+		//double targetAngle = atan2(currState->getPos().y - car->pub.DynGC.pos.y, currState->getPos().x - car->pub.DynGC.pos.x);
+		//targetAngle -= car->_yaw;
+		//NORM_PI_PI(targetAngle);
+
+		//targetAngle = targetAngle / car->_steerLock;
+
+		//output = steerPidController.getOutput(car->_yaw, targetAngle, 0.001);
+		////printf("output: %f\n", output);
+		//
+		//car->_steerCmd = -1*output;
 	}
 
 }

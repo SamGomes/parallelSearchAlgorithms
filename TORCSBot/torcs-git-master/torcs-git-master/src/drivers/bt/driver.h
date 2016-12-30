@@ -57,7 +57,8 @@ class Opponent;
 class Driver {
 
 	private:
-		PIDController pidController;
+		PIDController pedalsPidController;
+		PIDController steerPidController;
 
 		SeqRRTOpt RRTOpt;
 
@@ -98,7 +99,7 @@ class Driver {
 		// Track variable.
 		tTrack* track;
 
-		bool seek(State* target); //true if its reached target
+		bool passedPoint(State* target); //true if its reached target
 
 		bool pidControl(State* target); //true if delay passed
 
@@ -115,6 +116,18 @@ class Driver {
 		float getOffset();
 
 
+
+
+		//search vars
+		int delay = 0;
+
+		SeqRRTStar RRTStarAux;
+		std::vector<State*> pathAux;
+
+		//search tunning vars
+		int numberOfIterations = 200;
+		int numberOfRealIterations = numberOfIterations;
+		int numberOfPartialIterations = numberOfIterations / 4;
 
 	public:
 
@@ -138,6 +151,8 @@ class Driver {
 
 	
 };
+
+
 
 
 //display related global procedures

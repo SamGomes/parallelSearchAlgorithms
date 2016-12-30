@@ -11,7 +11,7 @@ __global__ void kernel(State* initialState, State* returnedPath, int PATHMAXSIZE
 		&curandState);
 
 	//returnedPath[0] = State((curand_uniform(&curandState) * 2) - 1, (curand_uniform(&curandState) * 4 * 3.14f)  - 1.57f, initialState);
-	
+	printf("mthfk\n");
 }
 
 std::vector<State> cuda_search(State initialState){
@@ -45,7 +45,7 @@ std::vector<State> cuda_search(State initialState){
 */
 
 	std::vector<State> ret = std::vector<State>(1);
-	ret.assign(returnedPath, returnedPath + sizeof(returnedPath)); //transform array in vector
+	//ret.assign(returnedPath, returnedPath + sizeof(returnedPath)); //transform array in vector
 
 	return ret;
 }
