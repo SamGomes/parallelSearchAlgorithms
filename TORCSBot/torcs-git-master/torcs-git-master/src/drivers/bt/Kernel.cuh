@@ -18,6 +18,6 @@
 
 __global__ void kernel();
 
-std::vector<State> cuda_search(State initialState);
+State* cuda_search(State initialState);
 
 #endif

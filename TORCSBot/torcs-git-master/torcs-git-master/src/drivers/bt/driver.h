@@ -144,6 +144,8 @@ class Driver {
 		void initGLUTWindow();
 		void GLUTWindowRedisplay();
 
+		void cudaTest();
+		void algorithmTest();
 
 		tCarElt *getCarPtr() { return car; }
 		tTrack *getTrackPtr() { return track; }

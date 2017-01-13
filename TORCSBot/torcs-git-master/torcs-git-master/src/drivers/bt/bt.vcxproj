@@ -119,6 +119,8 @@
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
       <CudaRuntime>Shared</CudaRuntime>
       <GenerateLineInfo>true</GenerateLineInfo>
+      <Optimization>Od</Optimization>
+      <Runtime>MTd</Runtime>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

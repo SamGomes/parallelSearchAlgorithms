@@ -1,4 +1,4 @@
-﻿Build started 30/12/2016 19:57:15.
+﻿Build started 13/01/2017 16:36:49.
      1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\libs\tgf\tgf.vcxproj" on node 2 (Build target(s)).
      1>Link:
          tgf.vcxproj -> C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\libs\tgf\.\Debug\tgf.dll
@@ -15,4 +15,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.10
+Time Elapsed 00:00:00.27

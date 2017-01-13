@@ -89,7 +89,7 @@ State* SeqRRTStar::randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
 	double trackMapZDelta = trackMapZMax - trackMapZMin;
 
 	double minSpeed = 0;
-	double maxSpeed = 70;
+	double maxSpeed = 40;
 	
 	double speedDelta = maxSpeed - minSpeed;
 
@@ -152,8 +152,8 @@ void SeqRRTStar::bezierHeuristic(State* state, State* parent){
 	printf("ssffsfas:%f\n\n", state->getSpeed().y/70);
 	
 
-	newPos.x = (1 - curvePercent)*(1 - curvePercent)*state->getPos().x + 2 * curvePercent*(1 - curvePercent) * (state->getPos().x + 20 * state->getSpeed().x / 70) + curvePercent*curvePercent*parent->getPos().x;
-	newPos.y = (1 - curvePercent)*(1 - curvePercent)*state->getPos().y + 2 * curvePercent*(1 - curvePercent) * (state->getPos().y + 20 * state->getSpeed().x / 70) + curvePercent*curvePercent*parent->getPos().y;
+	newPos.x = (1 - curvePercent)*(1 - curvePercent)*state->getPos().x + 2 * curvePercent*(1 - curvePercent) * (state->getPos().x + 60 * state->getSpeed().x / 40) + curvePercent*curvePercent*parent->getPos().x;
+	newPos.y = (1 - curvePercent)*(1 - curvePercent)*state->getPos().y + 2 * curvePercent*(1 - curvePercent) * (state->getPos().y + 60 * state->getSpeed().x / 40) + curvePercent*curvePercent*parent->getPos().y;
 	newPos.z = state->getPos().z;
 
 	

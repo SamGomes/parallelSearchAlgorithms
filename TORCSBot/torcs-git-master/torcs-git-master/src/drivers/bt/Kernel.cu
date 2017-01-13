@@ -9,14 +9,23 @@ __global__ void kernel(State* initialState, State* returnedPath, int PATHMAXSIZE
 		0, /* the sequence number is only important with multiple cores */
 		0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
 		&curandState);
+	double randInc = (double)curand_uniform(&curandState) * (double) 50;
 
-	//returnedPath[0] = State((curand_uniform(&curandState) * 2) - 1, (curand_uniform(&curandState) * 4 * 3.14f)  - 1.57f, initialState);
-	printf("mthfk\n");
+	tPosd randPos = { initialState->getPos().x + randInc
+		, initialState->getPos().y + randInc
+		, initialState->getPos().z + randInc };
+	
+	tPosd randSpeed = { initialState->getSpeed().x + randInc
+		, initialState->getSpeed().y + randInc
+		, initialState->getSpeed().z + randInc };
+
+	returnedPath[0] = State(randPos,randSpeed,initialState->getAcceleration(),initialState);
+	//printf("executed Kernel!\n");
 }
 
-std::vector<State> cuda_search(State initialState){
+State* cuda_search(State initialState){
 
-	const int PATHMAXSIZE = 5;
+	const int PATHMAXSIZE = 1;
 
 	State* auxInitState;
 
@@ -31,21 +40,19 @@ std::vector<State> cuda_search(State initialState){
 	cudaMalloc(&auxReturnedPath, sizeof(State)*PATHMAXSIZE);
 	cudaMemcpy(auxReturnedPath, &returnedPath, sizeof(State)*PATHMAXSIZE, cudaMemcpyHostToDevice);
 
-	//kernel << < 64, 64 >> > (auxInitState, auxReturnedPath, PATHMAXSIZE);
-	//srand(time(NULL));
-	//double rand = (std::rand() / ((double)RAND_MAX / 2)) - 1;
-	kernel << < 1, 1 >> > (auxInitState, auxReturnedPath, PATHMAXSIZE, 0);
+	kernel << < 2, 10 >> > (auxInitState, auxReturnedPath, PATHMAXSIZE,0);
+	
+	//kernel << < 1, 1 >> > (auxInitState, auxReturnedPath, PATHMAXSIZE, 0);
 	cudaMemcpy(&returnedPath, auxReturnedPath, sizeof(State)*PATHMAXSIZE, cudaMemcpyDeviceToHost);
-
+	
+	cudaDeviceSynchronize();
+	
 	cudaFree(auxInitState);
 	cudaFree(auxReturnedPath);
 
-	/*cudaDeviceSynchronize();
-	std::cout << "error: " << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
-*/
+	
+	//std::cout << "error: " << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
+	
 
-	std::vector<State> ret = std::vector<State>(1);
-	//ret.assign(returnedPath, returnedPath + sizeof(returnedPath)); //transform array in vector
-
-	return ret;
+	return new State(*returnedPath);
 }
