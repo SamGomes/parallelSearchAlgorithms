@@ -98,19 +98,15 @@
         <attstr name="Speed Limiter" val="s"/>
         <attnum name="steer sensitivity" val="0.8"/>
         <attnum name="steer dead zone" val="0.04"/>
-        <attstr name="left steer" val="Left Arrow"/>
         <attnum name="left steer min" val="0"/>
         <attnum name="left steer max" val="300"/>
         <attnum name="left steer power" val="0.0034"/>
-        <attstr name="right steer" val="Right Arrow"/>
         <attnum name="right steer min" val="0"/>
         <attnum name="right steer max" val="300"/>
         <attnum name="right steer power" val="0.0034"/>
-        <attstr name="throttle" val="Up Arrow"/>
         <attnum name="throttle min" val="0"/>
         <attnum name="throttle max" val="1"/>
         <attnum name="throttle power" val="0"/>
-        <attstr name="brake" val="Down Arrow"/>
         <attnum name="brake min" val="0"/>
         <attnum name="brake max" val="1"/>
         <attnum name="brake power" val="0"/>
@@ -120,6 +116,10 @@
         <attstr name="up shift" val="a"/>
         <attstr name="down shift" val="z"/>
         <attstr name="ABS cmd" val="t"/>
+        <attstr name="left steer" val="Left Arrow"/>
+        <attstr name="right steer" val="Right Arrow"/>
+        <attstr name="throttle" val="Up Arrow"/>
+        <attstr name="brake" val="Down Arrow"/>
       </section>
 
       <section name="2">

@@ -40,7 +40,7 @@ State* cuda_search(State initialState){
 	cudaMalloc(&auxReturnedPath, sizeof(State)*PATHMAXSIZE);
 	cudaMemcpy(auxReturnedPath, &returnedPath, sizeof(State)*PATHMAXSIZE, cudaMemcpyHostToDevice);
 
-	kernel << < 2, 10 >> > (auxInitState, auxReturnedPath, PATHMAXSIZE,0);
+	kernel << < 10, 2 >> > (auxInitState, auxReturnedPath, PATHMAXSIZE,0);
 	
 	//kernel << < 1, 1 >> > (auxInitState, auxReturnedPath, PATHMAXSIZE, 0);
 	cudaMemcpy(&returnedPath, auxReturnedPath, sizeof(State)*PATHMAXSIZE, cudaMemcpyDeviceToHost);

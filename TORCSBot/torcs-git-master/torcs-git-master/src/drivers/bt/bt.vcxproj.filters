@@ -27,12 +27,21 @@
     <Filter Include="Source Files\PlanningModule\Search">
       <UniqueIdentifier>{560b0ada-a145-4fae-9871-925795471326}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\PlanningModule\Search\RRT">
+      <UniqueIdentifier>{a0e098e7-98b4-4c2d-a75a-98df6e3d39de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\PlanningModule\Search\RRT">
+      <UniqueIdentifier>{402c428a-ad18-4fe8-84e4-33dc44f93e79}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\PlanningModule\Utilities">
+      <UniqueIdentifier>{abc51fbc-9e3b-43ac-bf95-c746856d7b53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\PlanningModule\Search\Utilities">
+      <UniqueIdentifier>{aa2fb613-2ad7-4b45-9110-dcb80ccf9202}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cardata.cpp">
-      <Filter>Source Files\ControlModule</Filter>
-    </ClCompile>
-    <ClCompile Include="driver.cpp">
       <Filter>Source Files\ControlModule</Filter>
     </ClCompile>
     <ClCompile Include="opponent.cpp">
@@ -45,47 +54,56 @@
       <Filter>Source Files\ControlModule</Filter>
     </ClCompile>
     <ClCompile Include="SeqRRTStar.cpp">
-      <Filter>Source Files\PlanningModule\Search</Filter>
+      <Filter>Source Files\PlanningModule\Search\RRT</Filter>
     </ClCompile>
-    <ClCompile Include="SeqRRTOpt.cpp">
-      <Filter>Source Files\PlanningModule\Search</Filter>
+    <ClCompile Include="ParRRTStar.cpp">
+      <Filter>Source Files\PlanningModule\Search\RRT</Filter>
+    </ClCompile>
+    <ClCompile Include="RRTStar.cpp">
+      <Filter>Source Files\PlanningModule\Search\RRT</Filter>
+    </ClCompile>
+    <ClCompile Include="driver.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Kernel.cuh">
-      <Filter>Header Files\PlanningModule</Filter>
-    </ClInclude>
     <ClInclude Include="cardata.h">
-      <Filter>Header Files\ControlModule</Filter>
-    </ClInclude>
-    <ClInclude Include="driver.h">
       <Filter>Header Files\ControlModule</Filter>
     </ClInclude>
     <ClInclude Include="opponent.h">
       <Filter>Header Files\ControlModule</Filter>
     </ClInclude>
-    <ClInclude Include="Macros.h">
-      <Filter>Header Files\PlanningModule</Filter>
-    </ClInclude>
-    <ClInclude Include="State.cuh">
-      <Filter>Header Files\PlanningModule</Filter>
-    </ClInclude>
     <ClInclude Include="PIDController.h">
       <Filter>Header Files\ControlModule</Filter>
     </ClInclude>
     <ClInclude Include="SeqRRTStar.h">
-      <Filter>Header Files\PlanningModule\Search</Filter>
+      <Filter>Header Files\PlanningModule\Search\RRT</Filter>
     </ClInclude>
-    <ClInclude Include="SeqRRTOpt.h">
-      <Filter>Header Files\PlanningModule\Search</Filter>
+    <ClInclude Include="ParRRTStar.h">
+      <Filter>Header Files\PlanningModule\Search\RRT</Filter>
+    </ClInclude>
+    <ClInclude Include="RRTStar.h">
+      <Filter>Header Files\PlanningModule\Search\RRT</Filter>
+    </ClInclude>
+    <ClInclude Include="driver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="State.cuh">
+      <Filter>Header Files\PlanningModule\Search\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Macros.h">
+      <Filter>Header Files\PlanningModule\Search\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Kernel.cuh">
+      <Filter>Header Files\PlanningModule\Search\Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Kernel.cu">
-      <Filter>Source Files\PlanningModule</Filter>
+      <Filter>Source Files\PlanningModule\Utilities</Filter>
     </CudaCompile>
     <CudaCompile Include="State.cu">
-      <Filter>Source Files\PlanningModule</Filter>
+      <Filter>Source Files\PlanningModule\Utilities</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>

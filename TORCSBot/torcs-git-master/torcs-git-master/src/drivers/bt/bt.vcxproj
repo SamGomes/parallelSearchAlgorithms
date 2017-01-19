@@ -183,8 +183,9 @@
     <ClCompile Include="cardata.cpp" />
     <ClCompile Include="driver.cpp" />
     <ClCompile Include="opponent.cpp" />
+    <ClCompile Include="ParRRTStar.cpp" />
     <ClCompile Include="PIDController.cpp" />
-    <ClCompile Include="SeqRRTOpt.cpp" />
+    <ClCompile Include="RRTStar.cpp" />
     <ClCompile Include="SeqRRTStar.cpp">
       <FileType>CppCode</FileType>
     </ClCompile>
@@ -196,11 +197,12 @@
   <ItemGroup>
     <ClInclude Include="cardata.h" />
     <ClInclude Include="driver.h" />
+    <ClInclude Include="ParRRTStar.h" />
     <ClInclude Include="Kernel.cuh" />
     <ClInclude Include="Macros.h" />
     <ClInclude Include="opponent.h" />
     <ClInclude Include="PIDController.h" />
-    <ClInclude Include="SeqRRTOpt.h" />
+    <ClInclude Include="RRTStar.h" />
     <ClInclude Include="SeqRRTStar.h" />
     <ClInclude Include="State.cuh" />
   </ItemGroup>

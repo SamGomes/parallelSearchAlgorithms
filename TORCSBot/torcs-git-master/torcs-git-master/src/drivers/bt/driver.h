@@ -39,7 +39,6 @@
 #include "Kernel.cuh"
 
 #include "SeqRRTStar.h"
-#include "SeqRRTOpt.h"
 
 #include "GL/glut.h"
 
@@ -57,38 +56,6 @@ class Opponent;
 class Driver {
 
 	private:
-		PIDController pedalsPidController;
-		PIDController steerPidController;
-
-		SeqRRTOpt RRTOpt;
-
-
-		std::vector<State*> path; 
-		int pathIterator = -1; //to go trough the path!
-		State* currState;
-
-		bool LASTNODE = true; //flag to wait for last node to be executed before path recalc
-		bool STUCKONAPOINT = false;
-
-
-		// Per robot global data.
-		tCarElt *car;			// Pointer to tCarElt struct.
-
-		Opponents *opponents;	// The container for opponents.
-		Opponent *opponent;		// The array of opponents.
-
-
-		static Cardata *cardata;		// Data about all cars shared by all instances.
-		SingleCardata *mycardata;		// Pointer to "global" data about my car.
-		static double currentsimtime;	// Store time to avoid useless updates.
-
-		float clutchtime;		// Clutch timer.
-
-		float *radius;
-
-		// Data that should stay constant after first initialization.
-		int INDEX;
-		float MU_FACTOR;				// [-]
 
 		// Class constants.
 		static const float SHIFT;
@@ -96,61 +63,81 @@ class Driver {
 		static const float CLUTCH_SPEED;
 		static const float CLUTCH_FULL_MAX_TIME;
 
-		// Track variable.
-		tTrack* track;
+		// Data that should stay constant after first initialization.
+		int INDEX;
+		float MU_FACTOR;
 
-		bool passedPoint(State* target); //true if its reached target
+		static double currentsimtime;	// Store time to avoid useless updates.
+		float clutchtime;
+		float *radius;
 
-		bool pidControl(State* target); //true if delay passed
-
-
-		// Utility functions.
-		void computeRadius(float *radius);
-		void update(tSituation *s);
-
-		float getAccel();
-		float getBrake();
-		int getGear();
-		float getSteer(tPosd target);
-		float getClutch();
-		float getOffset();
-
-
-
-
-		//search vars
-		int delay = 0;
+		PIDController gasPidController;
+		PIDController brakePidController;
+		PIDController steerPidController;
 
 		SeqRRTStar RRTStarAux;
 		std::vector<State*> pathAux;
+		std::vector<State*> path;
+		int pathIterator = -1; //to go trough the path!
+		State* currState;
+		bool LASTNODE = true; //flag to wait for last node to be executed before path recalc
+		bool STUCKONAPOINT = false;
 
 		//search tunning vars
+		int delay = 0;
 		int numberOfIterations = 200;
 		int numberOfRealIterations = numberOfIterations;
-		int numberOfPartialIterations = numberOfIterations / 4;
+		int numberOfPartialIterations = numberOfIterations / 5;
+
+
+		// Per robot global data.
+		tCarElt *car;
+		static Cardata *cardata;
+		SingleCardata *mycardata;
+
+		Opponents *opponents;
+		Opponent *opponent;
+		
+		tTrack* track;
+
+
+	private:// methods
+
+		//------------CONTROLLER MODULE-----------------
+		void computeRadius(float *radius);
+		float getPedalsPos(tPosd targetSpeed);
+		int getGear();
+		float getSteer(tPosd target);
+		float getClutch();
+		bool control(); //true if delay passed
+
+		//------------PLANNING MODULE-----------------
+		bool passedPoint(State* target); //true if its reached target
+		void cudaTest();
+		void plan(); // algorithm test
+		
+		//--------------MAIN UPDATE-------------------
+		void update(tSituation *s);
 
 	public:
 
 		Driver(int index);
 		~Driver();
 
-
 		// Callback functions called from TORCS.
 		void initTrack(tTrack* t, void *carHandle, void **carParmHandle, tSituation *s);
 		void newRace(tCarElt* car, tSituation *s);
-		bool validPoint(tPosd target);
 		void drive(tSituation *s);
 
-		void initGLUTWindow();
-		void GLUTWindowRedisplay();
-
-		void cudaTest();
-		void algorithmTest();
-
+		// Callback functions called from oponnent.cpp
 		tCarElt *getCarPtr() { return car; }
 		tTrack *getTrackPtr() { return track; }
 		float getSpeed() { return mycardata->getSpeedInTrackDirection(); /*speed;*/ }
 
+
+		//display related local procedures
+		void initGLUTWindow();
+		void GLUTWindowRedisplay();
 	
 };
 
@@ -166,4 +153,3 @@ void drawLine(double initialPointX, double initialPointY, double finalPointX, do
 GLuint loadTexture(const char * filename);
 void printTextInWindow(int x, int y, char *st);
 #endif
-

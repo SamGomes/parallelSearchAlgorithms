@@ -30,7 +30,10 @@ double trkMinY;
 double trkMaxX;
 double trkMaxY;
 State currStateG;
-int pathsauxWindow, currStatsWindow;
+
+int pathsauxWindow;
+int currStatsWindow;
+
 std::vector<State*> pathG;
 std::vector<State*> graphG;
 bool CREATEDWINDOW = false;
@@ -52,7 +55,6 @@ Driver::Driver(int index)
 	INDEX = index;
 
 }
-
 
 Driver::~Driver()
 {
@@ -87,7 +89,6 @@ void Driver::initTrack(tTrack* t, void *carHandle, void **carParmHandle, tSituat
 
 }
 
-
 // Start a new race.
 void Driver::newRace(tCarElt* car, tSituation *s)
 {
@@ -115,21 +116,11 @@ void Driver::newRace(tCarElt* car, tSituation *s)
 
 	//------------------------------------------------------------------------------------------
 
+	//create PID controllers 
 
-
-	////create search tree
-	//State initialState = State(car->pub.DynGC.pos, car->pub.DynGC.vel, car->pub.DynGC.acc);
-	//initialState.setPosSeg(*(car->pub.trkPos.seg));
-	//initialState.setInitialState(true); //it is indeed the initial state!
-
-	//int numberOfIterations = 1000;
-
-
-	//RRTOpt = SeqRRTOpt(initialState, numberOfIterations, *car, *track, *(car->pub.trkPos.seg), 30);
-
-
-	//create PID controllers
-	pedalsPidController = PIDController(0.0001, 0.0001, 0.0001);
+	//split channels for the pedals
+	gasPidController = PIDController(0.0013, -0.001, -0.001);
+	brakePidController = PIDController(0.0001, 0.001, 0.001);
 
 	//steerPidController = PIDController(2, 5, 0.0001);
 
@@ -140,23 +131,17 @@ void Driver::newRace(tCarElt* car, tSituation *s)
 
 
 
-// Drive during race.
+// Interface to be called to drive during race.
 void Driver::drive(tSituation *s)
 {
 	memset(&car->ctrl, 0, sizeof(tCarCtrl));
-
 	update(s);
 }
 
 
-
-/***************************************************************************
-*
-* utility functions
-*
-***************************************************************************/
-
-
+//----------------------------------------------
+//------------CONTROLLER MODULE-----------------
+//----------------------------------------------
 
 void Driver::computeRadius(float *radius)
 {
@@ -213,7 +198,6 @@ int Driver::getGear()
 	return car->_gear;
 }
 
-
 // Compute steer value.
 float Driver::getSteer(tPosd target)
 {
@@ -222,7 +206,6 @@ float Driver::getSteer(tPosd target)
 	NORM_PI_PI(targetAngle);
 	return targetAngle / car->_steerLock;
 }
-
 
 // Compute the clutch value.
 float Driver::getClutch()
@@ -261,13 +244,43 @@ float Driver::getClutch()
 	}
 }
 
+float Driver::getPedalsPos(tPosd targetSpeed)
+{
+	double output = gasPidController.getOutput(std::sqrt(targetSpeed.x*targetSpeed.x + targetSpeed.y*targetSpeed.y), std::sqrt(car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y), 0.04);
 
-bool Driver::pidControl(State*  target){
+	if (output > -0.6){
+		return output > 0 ? output : 0;
+	}
+	else{
+		output = brakePidController.getOutput(targetSpeed.x*targetSpeed.x + targetSpeed.y*targetSpeed.y, car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y, 0.04);
+		return -1 * output;
 
-	
-
-	return false;
+	}
 }
+
+bool Driver::control(){
+
+	//--------------- STEER CONTROL--------------------------
+
+	car->_steerCmd = this->getSteer(currState->getPos());
+
+	//--------------- SHIFT CONTROL--------------------------
+
+	car->ctrl.gear = getGear();
+
+	//--------------- PEDAL CONTROL--------------------------
+
+	float pedalsOutput = getPedalsPos(currState->getSpeed());
+	pedalsOutput > 0 ? car->_accelCmd = pedalsOutput : car->_brakeCmd = pedalsOutput;
+
+	return true;
+
+}
+
+
+//----------------------------------------------
+//------------PLANNING MODULE-------------------
+//----------------------------------------------
 
 bool Driver::passedPoint(State* target){
 
@@ -278,35 +291,15 @@ bool Driver::passedPoint(State* target){
 	tdble targetY = target->getPos().y;
 	tdble targetZ = target->getPos().z;
 
-	float targetAngle;
 
 	if (abs(carX - targetX) < 18 && abs(carY - targetY) < 18){
 		STUCKONAPOINT = true;
-		/*car->_accelCmd = 0.3;
-		car->_gearCmd = getGear();
-*/
 		return true;
 	}
 
 	STUCKONAPOINT = false;
 
-	targetAngle = atan2(targetY - carY, targetX - carX);
-	targetAngle -= car->_yaw;
-	NORM_PI_PI(targetAngle);
-
-/*	double diff = (target->getSpeed().x + target->getSpeed().y) - (car->pub.DynGCg.vel.x + car->pub.DynGCg.vel.y + 10);
-
-	if (diff > 0){
-		car->_accelCmd = abs(diff)/ 140;
-		car->_brakeCmd = 0;
-	}
-	else{
-		car->_accelCmd = 0;
-		car->_brakeCmd = abs(diff) / 100;
-	}
-	car->_gearCmd = getGear();
-*/
-	car->_steerCmd = targetAngle / PI;
+	
 
 
 	return false;
@@ -327,7 +320,7 @@ void Driver::cudaTest()
 		//std::cout << "DONE! :)" << std::endl;
 	}
 
-	double output = pedalsPidController.getOutput(currState->getSpeed().x*currState->getSpeed().x + currState->getSpeed().y*currState->getSpeed().y, car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y, 0.04);
+	double output = 1;
 	
 	/*printf("sp: %f\n", currState->getSpeed().x*currState->getSpeed().x + currState->getSpeed().y*currState->getSpeed().y);
 	printf("mv: %f\n", car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y);
@@ -340,7 +333,7 @@ void Driver::cudaTest()
 
 }
 
-void Driver::algorithmTest()
+void Driver::plan() // algorithm test 
 {
 
 	SeqRRTStar RRTStar;
@@ -467,30 +460,12 @@ void Driver::algorithmTest()
 	}
 	GLUTWindowRedisplay(); //update aux windows
 
-
-	//printf("currstate(%f,%f)\n",currState->getSpeed().x, currState->getSpeed().y);
-	double output = pedalsPidController.getOutput(currState->getSpeed().x*currState->getSpeed().x + currState->getSpeed().y*currState->getSpeed().y, car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y, 0.04);
-	/*printf("mv: %f\n", car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y);
-	printf("output: %f\n", output);*/
-
-	output > 0 ? car->ctrl.accelCmd = output : car->ctrl.brakeCmd = -1 * output;
-	car->ctrl.gear = getGear();
-
-
-	//double targetAngle = atan2(currState->getPos().y - car->pub.DynGC.pos.y, currState->getPos().x - car->pub.DynGC.pos.x);
-	//targetAngle -= car->_yaw;
-	//NORM_PI_PI(targetAngle);
-
-	//targetAngle = targetAngle / car->_steerLock;
-
-	//output = steerPidController.getOutput(car->_yaw, targetAngle, 0.001);
-	////printf("output: %f\n", output);
-	//
-	//car->_steerCmd = -1*output;
 }
 
 
-// Update my private data every timestep.
+//--------------------------------------------------------------------
+// - Main update (calls the planning module and the control module). -
+//--------------------------------------------------------------------
 void Driver::update(tSituation *s)
 {
 
@@ -500,37 +475,44 @@ void Driver::update(tSituation *s)
 
 	//printf("delay: %d\n", delay);
 	
-
-	
-
 	// Update global car data (shared by all instances) just once per timestep.
 	if (currentsimtime != s->currentTime) {
 		currentsimtime = s->currentTime;
 		cardata->update();
-		this->algorithmTest();
+
+		this->plan();
+		this->control();
+
 		//this->cudaTest();
 	}
-
 }
 
 
+//------------------------------------------------
+//------------DEBUG WINDOW CODE-------------------
+//------------------------------------------------
+
 void Driver::initGLUTWindow(){
-	/*glutInitWindowSize(200, 200);
+
+	glutInitWindowSize(600, 300);
 	currStatsWindow = glutCreateWindow("current stats...");
-	glutDisplayFunc(drawCurrStats);*/
+	glutPositionWindow(200,600);
+	glutDisplayFunc(drawCurrStats);
 
-	glutInitWindowSize(trkMaxX - trkMinX, trkMaxY - trkMinY);
+	glutInitWindowSize((int)(trkMaxX - trkMinX), (int)(trkMaxY - trkMinY));
 	pathsauxWindow = glutCreateWindow("drawing paths...");
+	glutPositionWindow(800, 200);
 	glutDisplayFunc(drawSearchPoints);
-
+	
 }
 
 void Driver::GLUTWindowRedisplay(){
 	int gameplayWindow = glutGetWindow();
-	/*glutSetWindow(currStatsWindow);
-	glutPostRedisplay();*/
-	glutSetWindow(pathsauxWindow);
+	
+	glutSetWindow(currStatsWindow);
 	glutPostRedisplay();
+	glutSetWindow(pathsauxWindow);
+	glutPostRedisplay();	
 	glutSetWindow(gameplayWindow);
 
 }
@@ -538,22 +520,29 @@ void Driver::GLUTWindowRedisplay(){
 
 void drawCurrStats(){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(1, 1, 1,1);
+	glClearColor(1, 1, 1, 1);
+
+	int w = glutGet(GLUT_WINDOW_WIDTH);
+	int h = glutGet(GLUT_WINDOW_HEIGHT);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	glOrtho(0.0f, w, h, 0.0f, 0.0f, 1.0f);
 	glPushMatrix();
 		glColor3f(0, 0, 0);
 		std::string currStateGVelInfo = std::string("speed: (") + std::to_string((double)currStateG.getSpeed().x) + std::string(" , ") + std::to_string((double)currStateG.getSpeed().y) + std::string(" ) \n");
 		std::string currStateGAccelInfo = std::string("acceleration: (") + std::to_string((double)currStateG.getAcceleration().x) + std::string(" , ") + std::to_string((double)currStateG.getAcceleration().y) + std::string(" ) \n");;
-		printTextInWindow(200 - 10, 200 - 10, (char*)currStateGVelInfo.c_str());
-		printTextInWindow(200 - 10, 200 - 40, (char*)currStateGAccelInfo.c_str());
+		printTextInWindow(24, 24, (char*)currStateGVelInfo.c_str());
+		printTextInWindow(24, 40, (char*)currStateGAccelInfo.c_str());
 	glPopMatrix();
 	glutSwapBuffers();
 }
 
 void drawSearchPoints(){
 
-
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(1, 1, 1, 1);
 
 	int w = glutGet(GLUT_WINDOW_WIDTH);
@@ -712,10 +701,12 @@ void printTextInWindow(int x, int y, char *st)
 	glRasterPos2i(x, y); // location to start printing text
 	for (i = 0; i < l; i++) // loop until i is greater then l
 	{
-		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_10, st[i]); // Print a character on the screen
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, st[i]); // Print a character on the screen
 	}
 
 }
+
+
 
 
 
