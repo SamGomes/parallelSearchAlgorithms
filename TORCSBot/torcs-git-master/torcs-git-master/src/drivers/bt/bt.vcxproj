@@ -197,12 +197,13 @@
   <ItemGroup>
     <ClInclude Include="cardata.h" />
     <ClInclude Include="driver.h" />
+    <ClInclude Include="Heuristics.cuh" />
     <ClInclude Include="ParRRTStar.h" />
     <ClInclude Include="Kernel.cuh" />
     <ClInclude Include="Macros.h" />
     <ClInclude Include="opponent.h" />
     <ClInclude Include="PIDController.h" />
-    <ClInclude Include="RRTStar.h" />
+    <ClInclude Include="RRTStar.cuh" />
     <ClInclude Include="SeqRRTStar.h" />
     <ClInclude Include="State.cuh" />
   </ItemGroup>

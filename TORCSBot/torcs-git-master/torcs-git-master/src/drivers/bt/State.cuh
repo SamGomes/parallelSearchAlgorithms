@@ -3,6 +3,7 @@
 #ifndef STATE_H
 #define STATE_H
 
+
 #include "Macros.h"
 
 #include <tgf.h>

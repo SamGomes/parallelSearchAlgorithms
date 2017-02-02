@@ -11,17 +11,18 @@ private:
 	double Kp;
 	double Kd;
 
-
 	double previousError;
 
 	double integral;
 	double derivative;
 	
+	double output;
 
 public:
 	PIDController();
 	PIDController(double Ki,double Kp,double Kd);
 	double getOutput(double setPoint, double mesuredValue, double deltaTime);
+	void resetController();
 };
 
 #endif

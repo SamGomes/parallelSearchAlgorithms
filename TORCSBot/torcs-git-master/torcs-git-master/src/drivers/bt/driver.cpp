@@ -23,7 +23,7 @@ version              : $Id: driver.cpp,v 1.16.2.2 2008/12/31 03:53:53 berniw Exp
 #include "driver.h"
 
 
-//display GLOBAL aux vars
+//-------------- display GLOBAL aux vars -----------------------
 tDynPt carDynCg;
 double trkMinX;
 double trkMinY;
@@ -38,6 +38,9 @@ std::vector<State*> pathG;
 std::vector<State*> graphG;
 bool CREATEDWINDOW = false;
 
+GLuint mapTextureID;
+
+//-------------------------------------------------------------
 
 const float Driver::SHIFT = 0.9f;							// [-] (% of rpmredline) When do we like to shift gears.
 const float Driver::SHIFT_MARGIN = 4.0f;					// [m/s] Avoid oscillating gear changes.
@@ -64,6 +67,15 @@ Driver::~Driver()
 		delete cardata;
 		cardata = NULL;
 	}
+	if (RRTStarAux != NULL) {
+		delete RRTStarAux;
+		RRTStarAux = NULL;
+	}
+
+	for (int i = 0; i < path.size(); i++){
+		delete path[i];
+	}
+
 }
 
 
@@ -112,23 +124,20 @@ void Driver::newRace(tCarElt* car, tSituation *s)
 	radius = new float[track->nseg];
 	computeRadius(radius);
 
-
-
 	//------------------------------------------------------------------------------------------
+
+	this->RRTStarAux = NULL;
 
 	//create PID controllers 
 
 	//split channels for the pedals
-	gasPidController = PIDController(0.0013, -0.001, -0.001);
-	brakePidController = PIDController(0.0001, 0.001, 0.001);
+	gasPidController = PIDController(0.015, 0.005, 0.001);
+	brakePidController = PIDController(0.005, 0.001, 0.001);
 
-	//steerPidController = PIDController(2, 5, 0.0001);
+	//steerPidController = PIDController(2, 5, 0.0001); 
 
 
 }
-
-
-
 
 
 // Interface to be called to drive during race.
@@ -182,7 +191,7 @@ int Driver::getGear()
 		return 1;
 	}
 	float gr_up = car->_gearRatio[car->_gear + car->_gearOffset];
-	float omega = (car->_enginerpmRedLine) / gr_up;
+	float omega = (car->_enginerpmRedLine*0.8) / gr_up;
 	float wr = car->_wheelRadius(2);
 
 	if (omega*wr*SHIFT < car->_speed_x) {
@@ -190,7 +199,7 @@ int Driver::getGear()
 	}
 	else {
 		float gr_down = car->_gearRatio[car->_gear + car->_gearOffset - 1];
-		omega = (car->_enginerpmRedLine) / gr_down;
+		omega = (car->_enginerpmRedLine*0.7) / gr_down;
 		if (car->_gear > 1 && omega*wr*SHIFT > car->_speed_x + SHIFT_MARGIN) {
 			return car->_gear - 1;
 		}
@@ -246,16 +255,29 @@ float Driver::getClutch()
 
 float Driver::getPedalsPos(tPosd targetSpeed)
 {
-	double output = gasPidController.getOutput(std::sqrt(targetSpeed.x*targetSpeed.x + targetSpeed.y*targetSpeed.y), std::sqrt(car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y), 0.04);
+	double targetSpeedMod = std::sqrt(targetSpeed.x*targetSpeed.x + targetSpeed.y*targetSpeed.y);
+	double carSpeedMod = std::sqrt(car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y);
 
-	if (output > -0.6){
-		return output > 0 ? output : 0;
-	}
-	else{
-		output = brakePidController.getOutput(targetSpeed.x*targetSpeed.x + targetSpeed.y*targetSpeed.y, car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y, 0.04);
-		return -1 * output;
+	//printf("SP:%f\nMV:%f\n",targetSpeedMod,carSpeedMod);
 
-	}
+	double output = 0;
+
+	//if (output > 0.5){
+	//	output = gasPidController.getOutput(targetSpeedMod, carSpeedMod, 0.02);
+	//	output = 1 / (targetSpeedMod / output + 1); //apply low pass filter
+	//	return output > 0 ? output : 0;
+	//}
+	//else{
+	//	gasPidController.getOutput(targetSpeedMod, carSpeedMod, 0.02);
+	//	output = brakePidController.getOutput(targetSpeedMod, carSpeedMod, 0.02);
+	//	output = 1 / (targetSpeedMod / output + 1); //apply low pass filter
+	//	return output;
+	//}
+
+	output = gasPidController.getOutput(targetSpeedMod, carSpeedMod, 0.02);
+	return output;
+	//return output;
+
 }
 
 bool Driver::control(){
@@ -271,7 +293,7 @@ bool Driver::control(){
 	//--------------- PEDAL CONTROL--------------------------
 
 	float pedalsOutput = getPedalsPos(currState->getSpeed());
-	pedalsOutput > 0 ? car->_accelCmd = pedalsOutput : car->_brakeCmd = pedalsOutput;
+	pedalsOutput > 0 ? car->_accelCmd = pedalsOutput : car->_brakeCmd = -1*pedalsOutput;
 
 	return true;
 
@@ -298,10 +320,6 @@ bool Driver::passedPoint(State* target){
 	}
 
 	STUCKONAPOINT = false;
-
-	
-
-
 	return false;
 }
 
@@ -311,10 +329,7 @@ void Driver::cudaTest()
 	initialState.setPosSeg(*(car->pub.trkPos.seg));
 	initialState.setInitialState(true); //it is indeed the initial state!
 
-
 	currState = cuda_search(initialState);
-	
-	
 
 	if (this->passedPoint(currState)){
 		//std::cout << "DONE! :)" << std::endl;
@@ -333,125 +348,98 @@ void Driver::cudaTest()
 
 }
 
+void Driver::recalcPath(State initialState){
+	if (RRTStarAux != NULL) {
+		delete RRTStarAux;
+		RRTStarAux = NULL;
+		graphG.clear(); //to avoid having deleted members
+	}
+	RRTStarAux = new SeqRRTStar(initialState, numberOfPartialIterations, *car, *track, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
+}
+
 void Driver::plan() // algorithm test 
 {
-
-	SeqRRTStar RRTStar;
-
 	delay++;
 
 	//------------ producer --------------
+
+	//check if new recalc is needed
 	if (pathIterator<0 && LASTNODE){
 		LASTNODE = false;
 
-
-
-		//dealocate current path before path recalc
+		//delocate current path before path recalc
 		for (int i = 0; i < path.size(); i++){
 			delete path[i];
 		}
-
-		/*for (int i = 0; i < graphG.size(); i++){
-		delete graphG[i];
-		}*/
+		path.clear();
 
 
-
-		if (pathAux.size() == 0){
-
+		if (pathAhead.size() == 0){
 			State initialState = State(car->pub.DynGCg.pos, car->pub.DynGCg.vel, car->pub.DynGCg.acc);
 			initialState.setPosSeg(*(car->pub.trkPos.seg));
 			initialState.setInitialState(true); //it is indeed the initial state!
-
-
-			RRTStar = SeqRRTStar(initialState, numberOfPartialIterations, *car, *track, *(car->pub.trkPos.seg), 30);
-
-			pathAux = RRTStar.search();
-
+			recalcPath(initialState);
+			path = RRTStarAux->search();
+		}else{
+			path = pathAhead;
 		}
 
-		State* initialStateAux = pathAux[0];
-		initialStateAux->setPosSeg(pathAux[0]->getPosSeg());
-		initialStateAux->setParent(nullptr);
-		initialStateAux->setInitialState(true); //it is indeed the initial state!
 
-
-		RRTStarAux = SeqRRTStar(*initialStateAux, numberOfPartialIterations, *car, *track, *(car->pub.trkPos.seg), 30);
-
-
-
-
-		path = pathAux;
 		pathIterator = path.size() - 1;
-
-
-
 		pathG = path;
-
-
 		currState = path[pathIterator--];
+		
+		searchedPaths.clear(); //clear the paths deleted later
 
+		State* initialStateAux = path[0];
+		initialStateAux->setInitialState(true);
+		recalcPath(*initialStateAux);
+		pathAhead = RRTStarAux->search();
 
+	}else{
+		if (numberOfRealIterations == 0){
+			State initialStateAux = *pathAhead[0];
+			initialStateAux.setInitialState(true);
+			recalcPath(initialStateAux);
 
+			searchedPaths.clear();
+			searchedPaths = pathAhead;
 
-
+			numberOfRealIterations = numberOfIterations;
+		}
 	}
 
-	if (numberOfRealIterations <= 0){
-		State* initialStateAux = pathAux[0];
-		initialStateAux->setPosSeg(pathAux[0]->getPosSeg());
-
-		RRTStarAux = SeqRRTStar(*initialStateAux, numberOfPartialIterations, *car, *track, (pathAux[0]->getPosSeg()), 30);
-		numberOfRealIterations = numberOfIterations;
+	//------------ consumer --------------
+	if (this->passedPoint(currState)){
+		gasPidController.resetController();
+		brakePidController.resetController();
+		if (pathIterator<0){
+			LASTNODE = true;
+		}else{
+			currState = path[pathIterator--];
+		}
 	}
 
 	//avoid more than 1 lap in search still not implemented!
-	if (delay == 50){
-		RRTStarAux.updateCar(*car);
-		pathAux = RRTStarAux.search();
-		graphG = RRTStarAux.getGraph(); //update aux window var
+	if (delay == SEARCH_RECALC_DELAY){
+		RRTStarAux->updateCar(*car);
+		pathAhead = RRTStarAux->search();
+		pathAhead.insert(pathAhead.end(), searchedPaths.begin(), searchedPaths.end());
 
-		graphG.insert(std::end(graphG), std::begin(pathAux), std::end(pathAux));
-
-		delay = 0;
-		numberOfRealIterations -= numberOfPartialIterations;
-	}
-
-
-
-	//------------ consumer --------------
-
-
-	if (this->passedPoint(currState)){
-		if (pathIterator<0){
-			LASTNODE = true;
-
-		}
-
-		else{
-			currState = path[pathIterator--];
-		}
-
-		RRTStarAux.updateCar(*car);
-		pathAux = RRTStarAux.search();
-		graphG = RRTStarAux.getGraph(); //update aux window var getChar()
-
-		graphG.insert(std::end(graphG), std::begin(pathAux), std::end(pathAux));
+		graphG = RRTStarAux->getGraph(); //update aux window var
 
 		delay = 0;
 		numberOfRealIterations -= numberOfPartialIterations;
 	}
+	
+	//-------------------AUX WINDOW VARS-------------------------------------
 
-
-
-
-
-	carDynCg = car->pub.DynGCg; //update aux window var
-	trkMinX = track->min.x; //update aux window var
-	trkMinY = track->min.y; //update aux window var
-	trkMaxX = track->max.x; //update aux window var
-	trkMaxY = track->max.y; //update aux window var
-	currStateG = State(*this->currState);
+	carDynCg = car->pub.DynGCg;
+	trkMinX = track->min.x;
+	trkMinY = track->min.y; 
+	trkMaxX = track->max.x; 
+	trkMaxY = track->max.y; 
+	currStateG = *this->currState;
 
 	//init aux windows
 	if (!CREATEDWINDOW){
@@ -481,6 +469,7 @@ void Driver::update(tSituation *s)
 		cardata->update();
 
 		this->plan();
+		//this->simplePlan();
 		this->control();
 
 		//this->cudaTest();
@@ -496,13 +485,16 @@ void Driver::initGLUTWindow(){
 
 	glutInitWindowSize(600, 300);
 	currStatsWindow = glutCreateWindow("current stats...");
-	glutPositionWindow(200,600);
+	glutPositionWindow(200,700);
 	glutDisplayFunc(drawCurrStats);
 
 	glutInitWindowSize((int)(trkMaxX - trkMinX), (int)(trkMaxY - trkMinY));
 	pathsauxWindow = glutCreateWindow("drawing paths...");
-	glutPositionWindow(800, 200);
+	glutPositionWindow(800, 100);
 	glutDisplayFunc(drawSearchPoints);
+
+	glutSetWindow(pathsauxWindow);
+	mapTextureID = loadTexture("auxWindow/g-track-1.bmp");
 	
 }
 
@@ -596,8 +588,6 @@ void drawSearchPoints(){
 
 void drawCircle(State point, GLfloat radius)
 {
-	
-
 	int x = point.getPos().x;
 	int y = point.getPos().y;
 
@@ -618,14 +608,11 @@ void drawCircle(State point, GLfloat radius)
 			glVertex2f(x + (radius * cos(i * twicePi / triangleAmount)), y + (radius * sin(i * twicePi / triangleAmount)));
 		}
 	glEnd();
-
-	
 }
 
 void drawLine(double initialPointX, double initialPointY, double finalPointX, double finalPointY)
 {
 	glLineWidth(0.5);
-
 	glBegin(GL_LINES);
 		glVertex2f(initialPointX, initialPointY);
 		glVertex2f(finalPointX, finalPointY);
@@ -636,14 +623,14 @@ void drawLine(double initialPointX, double initialPointY, double finalPointX, do
 void drawMap(GLfloat x, GLfloat y, int width, int height)
 {
 	glEnable(GL_TEXTURE_2D);
-	glPushMatrix();	
+	glPushMatrix();
 	glLoadIdentity();
-	glBindTexture(GL_TEXTURE_2D, loadTexture("auxWindow/g-track-1.bmp"));
+	glBindTexture(GL_TEXTURE_2D, mapTextureID);
 	glBegin(GL_QUADS);
-		glTexCoord2d(0.0, 0.0); glVertex2f(x, y);
-		glTexCoord2d(1.0, 0.0); glVertex2f(x + width, y);
-		glTexCoord2d(1.0, 1.0); glVertex2f(x + width, y + height);
-		glTexCoord2d(0.0, 1.0); glVertex2f(x, y + width);
+	glTexCoord2d(0.0, 0.0); glVertex2f(x, y);
+	glTexCoord2d(1.0, 0.0); glVertex2f(x + width, y);
+	glTexCoord2d(1.0, 1.0); glVertex2f(x + width, y + height);
+	glTexCoord2d(0.0, 1.0); glVertex2f(x, y + width);
 	glEnd();
 	glPopMatrix();
 	glDisable(GL_TEXTURE_2D);
@@ -657,20 +644,18 @@ GLuint loadTexture(const char * filename)
 
 	int width, height;
 
-
-
 	FILE * file;
 
 	file = fopen(filename, "rb");
 
-	if (file == NULL) { 
+	if (file == NULL) {
 		//std::cout << "wrong path!" << std::endl;
-		return 0; 
+		return 0;
 	}
 	width = 512;
 	height = 512;
 
-	unsigned char data[512*512 * 3];
+	unsigned char data[512 * 512 * 3];
 	//int size = fseek(file,);
 	fread(data, width * height * 3, 1, file);
 	fclose(file);

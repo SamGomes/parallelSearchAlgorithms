@@ -35,12 +35,12 @@
 
 #define NBBOTS 10
 
-static const char* botname[NBBOTS] = {
+static char* botname[NBBOTS] = {
 	"RRT-ish 1", "RRT-ish 2", "RRT-ish 3", "RRT-ish 4", "RRT-ish 5",
 	"RRT-ish 6", "RRT-ish 7", "RRT-ish 8", "RRT-ish 9", "RRT-ish 10"
 };
 
-static const char* botdesc[NBBOTS] = {
+static char* botdesc[NBBOTS] = {
 	"RRT-ish 1", "RRT-ish 2", "RRT-ish 3", "RRT-ish 4", "RRT-ish 5",
 	"RRT-ish 6", "RRT-ish 7", "RRT-ish 8", "RRT-ish 9", "RRT-ish 10"
 };
@@ -63,8 +63,8 @@ extern "C" int bt(tModInfo *modInfo)
 	memset(modInfo, 0, 10*sizeof(tModInfo));
 
 	for (i = 0; i < NBBOTS; i++) {
-		modInfo[i].name    = strdup(botname[i]);	// name of the module (short).
-		modInfo[i].desc    = strdup(botdesc[i]);	// Description of the module (can be long).
+		modInfo[i].name    = botname[i];	// name of the module (short).
+		modInfo[i].desc    = botdesc[i];	// Description of the module (can be long).
 		modInfo[i].fctInit = InitFuncPt;			// Init function.
 		modInfo[i].gfId    = ROB_IDENT;				// Supported framework version.
 		modInfo[i].index   = i;						// Indices from 0 to 9.

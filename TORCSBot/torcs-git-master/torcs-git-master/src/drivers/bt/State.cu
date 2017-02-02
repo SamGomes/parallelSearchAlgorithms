@@ -123,17 +123,14 @@ void  State::setPathCost(double pathCost){
 
 CUDA_HOST
 std::string State::toString(){
-	std::string res = std::string();
-		res =
-		std::string("----------StateInfo:----------- \n") +
-		std::string("address: ") + std::to_string((int)this) + std::string("\n") +
-		std::string("parent: ") + std::to_string((int)this->parent) + std::string("\n") +
-		std::string("- - - - - - - - - -\n") +
-		std::string("pathCost: ") + std::to_string(this->pathCost) + std::string("\n") +
-		std::string("- - - - - - - - - -\n") +
-		std::string("pos: (") + std::to_string((double)this->pos.x) + std::string(" , ") + std::to_string((double)this->pos.y) + std::string(" ) \n") +
-		std::string("speed: (") + std::to_string((double)this->speed.x) + std::string(" , ") + std::to_string((double)this->speed.y) + std::string(" ) \n") +
-		std::string("acceleration: (") + std::to_string((double)this->acceleration.x) + std::string(" , ") + std::to_string((double)this->acceleration.y) + std::string(" ) \n");
-		
-	return res;
+	return
+	std::string("----------StateInfo:----------- \n") +
+	std::string("address: ") + std::to_string((int)this) + std::string("\n") +
+	std::string("parent: ") + std::to_string((int)this->parent) + std::string("\n") +
+	std::string("- - - - - - - - - -\n") +
+	std::string("pathCost: ") + std::to_string(this->pathCost) + std::string("\n") +
+	std::string("- - - - - - - - - -\n") +
+	std::string("pos: (") + std::to_string((double)this->pos.x) + std::string(" , ") + std::to_string((double)this->pos.y) + std::string(" ) \n") +
+	std::string("speed: (") + std::to_string((double)this->speed.x) + std::string(" , ") + std::to_string((double)this->speed.y) + std::string(" ) \n") +
+	std::string("acceleration: (") + std::to_string((double)this->acceleration.x) + std::string(" , ") + std::to_string((double)this->acceleration.y) + std::string(" ) \n");
 }

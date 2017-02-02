@@ -20,6 +20,7 @@
 #ifndef _DRIVER_H_
 #define _DRIVER_H_
 
+
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,12 +34,13 @@
 #include <robot.h>
 #include <portability.h>
 
+#include "SeqRRTStar.h"
+#include "RRTStar.cuh"
+
 
 #include "PIDController.h"
 
 #include "Kernel.cuh"
-
-#include "SeqRRTStar.h"
 
 #include "GL/glut.h"
 
@@ -75,8 +77,10 @@ class Driver {
 		PIDController brakePidController;
 		PIDController steerPidController;
 
-		SeqRRTStar RRTStarAux;
-		std::vector<State*> pathAux;
+		RRTStar* RRTStarAux = NULL;	
+	
+		std::vector<State*> searchedPaths; //save the searched paths
+		std::vector<State*> pathAhead; //ahead of current path
 		std::vector<State*> path;
 		int pathIterator = -1; //to go trough the path!
 		State* currState;
@@ -85,9 +89,11 @@ class Driver {
 
 		//search tunning vars
 		int delay = 0;
-		int numberOfIterations = 200;
+		int numberOfIterations = 300;
 		int numberOfRealIterations = numberOfIterations;
-		int numberOfPartialIterations = numberOfIterations / 5;
+		int numberOfPartialIterations = numberOfIterations / 20;
+		int SEARCH_RECALC_DELAY = 10;
+		int SEARCH_SEGMENTS_AHEAD = 30;
 
 
 		// Per robot global data.
@@ -114,8 +120,8 @@ class Driver {
 		//------------PLANNING MODULE-----------------
 		bool passedPoint(State* target); //true if its reached target
 		void cudaTest();
+		void recalcPath(State initialState);
 		void plan(); // algorithm test
-		
 		//--------------MAIN UPDATE-------------------
 		void update(tSituation *s);
 

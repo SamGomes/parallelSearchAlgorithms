@@ -1,5 +1,5 @@
-﻿Build started 07/12/2016 21:45:05.
-     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\berniw3\berniw3.vcxproj" on node 5 (Build target(s)).
+﻿Build started 19/01/2017 19:39:37.
+     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\berniw3\berniw3.vcxproj" on node 7 (Build target(s)).
      1>Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\Debug/berniw3.dll" /INCREMENTAL:NO /NOLOGO /LIBPATH:../../../export/libd /LIBPATH:../../windows/lib tgf.lib robottools.lib sg_vs2008_32.lib ul_vs2008_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:LIBCMT /DEF:".\berniw3.def" /MANIFEST:NO /DEBUG /PDB:".\Debug/berniw3.pdb" /MAP:".\Debug/berniw3.map" /TLBID:1 /DYNAMICBASE:NO /IMPLIB:".\Debug/berniw3.lib" /MACHINE:X86 /SAFESEH:NO /DLL .\Debug/berniw3.obj
          .\Debug/mycar.obj
@@ -17,4 +17,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:07.85
+Time Elapsed 00:00:01.38

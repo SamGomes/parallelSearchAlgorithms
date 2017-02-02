@@ -39,6 +39,9 @@
     <Filter Include="Header Files\PlanningModule\Search\Utilities">
       <UniqueIdentifier>{aa2fb613-2ad7-4b45-9110-dcb80ccf9202}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\PlanningModule\Search\Heuristics">
+      <UniqueIdentifier>{3d647828-90ff-43ed-a79a-45ef2f9ac418}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cardata.cpp">
@@ -82,9 +85,6 @@
     <ClInclude Include="ParRRTStar.h">
       <Filter>Header Files\PlanningModule\Search\RRT</Filter>
     </ClInclude>
-    <ClInclude Include="RRTStar.h">
-      <Filter>Header Files\PlanningModule\Search\RRT</Filter>
-    </ClInclude>
     <ClInclude Include="driver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -96,6 +96,12 @@
     </ClInclude>
     <ClInclude Include="Kernel.cuh">
       <Filter>Header Files\PlanningModule\Search\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Heuristics.cuh">
+      <Filter>Header Files\PlanningModule\Search\Heuristics</Filter>
+    </ClInclude>
+    <ClInclude Include="RRTStar.cuh">
+      <Filter>Header Files\PlanningModule\Search\RRT</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
