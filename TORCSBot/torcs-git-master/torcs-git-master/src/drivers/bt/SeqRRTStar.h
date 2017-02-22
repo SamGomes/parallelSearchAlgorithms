@@ -29,7 +29,8 @@ private: //vars
 	//initialization vars
 	tTrackSeg currentSearchSeg;
 	tTrackSeg forwardSearchSeg;
-	tTrack track;
+	tTrackSeg* trackSegArray;
+	int nTrackSegs;
 	tCarElt car;
 	double nIterations;
 	State* initialState;
@@ -58,18 +59,13 @@ private: //methods
 	State* nearestNeighbor(State* state, State** graph);
 	State** nearestNeighbors(State* state, std::vector<State*> graph);
 
-	//variation enforcement operations
-	void applyDelta(State* state, State* parent);
-
-	//constraint enforcement operations
-	bool validPoint(State* targetState, double distFromSides);
 
 	//main loop procedure
 	void generateStates(double nIterations);
 	State* generateRRT();
 
 public:
-	SeqRRTStar(State initialState, double nIterations, tCarElt car, tTrack track, tTrackSeg currentSearchSeg, int forwardSegments);
+	SeqRRTStar(State initialState, double nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments);
 	~SeqRRTStar();
 
 	void updateCar(tCarElt car); //for multiple search calls

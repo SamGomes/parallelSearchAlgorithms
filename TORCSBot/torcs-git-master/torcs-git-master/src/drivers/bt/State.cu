@@ -19,7 +19,6 @@ State::State(tPosd pos, tPosd speed, tPosd acceleration, State* parent){
 
 	this->initialState = false;
 
-
 	this->speed = speed;
 	this->pos = pos;
 	this->acceleration = acceleration;

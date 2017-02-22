@@ -111,7 +111,7 @@
     </section>
 
     <section name="Potato">
-      <attnum name="camera" val="2"/>
+      <attnum name="camera" val="0"/>
       <attnum name="camera head list" val="0"/>
     </section>
 

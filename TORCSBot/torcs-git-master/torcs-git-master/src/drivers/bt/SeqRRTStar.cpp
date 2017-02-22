@@ -1,18 +1,20 @@
 #include "SeqRRTStar.h"
 
 
-SeqRRTStar::SeqRRTStar(State initialState, double nIterations, tCarElt car, tTrack track, tTrackSeg currentSearchSeg, int forwardSegments){
+SeqRRTStar::SeqRRTStar(State initialState, double nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments){
 
 	this->maxPathCost = -1 * DBL_MAX; //force a change
 	this->bestState = nullptr;
 	this->currentSearchSeg = currentSearchSeg;
+
 	this->forwardSegments = forwardSegments;
 
-	while (forwardSegments > 0){
-		currentSearchSeg = *currentSearchSeg.next;
-		forwardSegments--;
-	}
-	this->forwardSearchSeg = currentSearchSeg;
+	int startSegIndex = (currentSearchSeg.id);
+	int finalIndex = (startSegIndex + forwardSegments) % (nTrackSegs - 1);
+
+	this->currentSearchSeg = trackSegArray[startSegIndex];
+	this->forwardSearchSeg = trackSegArray[finalIndex];
+
 	this->nIterations = nIterations;
 	this->initialState = new State(initialState);
 
@@ -20,8 +22,10 @@ SeqRRTStar::SeqRRTStar(State initialState, double nIterations, tCarElt car, tTra
 	pushBackToGraph(this->initialState);
 
 	std::srand(time(NULL));
-	this->track = track;
+	this->trackSegArray = trackSegArray;
+	this->nTrackSegs = nTrackSegs;
 	this->car = car;
+
 }
 SeqRRTStar::~SeqRRTStar(){
 
@@ -30,7 +34,7 @@ SeqRRTStar::~SeqRRTStar(){
 }
 
 void SeqRRTStar::initGraph(){
-	graphSize = (unsigned int) nIterations + 1;
+	graphSize = (unsigned int)nIterations + 1;
 	graph = new State*[graphSize]; //upper bound removes useless resizes
 	graphIterator = 0;
 }
@@ -40,7 +44,7 @@ void SeqRRTStar::resizeGraph(unsigned int newSize){
 	graphSize = newSize;
 
 	for (int i = 0; i < graphIterator; i++){
-		newGraph[i]= graph[i];
+		newGraph[i] = graph[i];
 	}
 	delete[] graph;
 	graph = newGraph;
@@ -55,9 +59,9 @@ void SeqRRTStar::deleteGraph(){
 
 
 void SeqRRTStar::pushBackToGraph(State* element){
-	if (graphIterator == graphSize){ 
+	if (graphIterator == graphSize){
 		//graph limited exceeded, resize the graph
-		resizeGraph(graphSize + (unsigned int) nIterations);
+		resizeGraph(graphSize + (unsigned int)nIterations);
 	}
 	graph[graphIterator] = element;
 	graphIterator++;
@@ -110,7 +114,7 @@ State* SeqRRTStar::randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
 	double trackMapZDelta = trackMapZMax - trackMapZMin;
 
 	double minSpeed = 0;
-	double maxSpeed = 50;
+	double maxSpeed = 60;
 
 	double speedDelta = maxSpeed - minSpeed;
 
@@ -172,46 +176,6 @@ State* SeqRRTStar::nearestNeighbor(State* state, State** graph){
 
 }
 
-void SeqRRTStar::applyDelta(State* state, State* parent){
-
-	double diffPathCost = EvalFunctions::evaluatePathCost(parent, state,this->forwardSegments);
-
-	DeltaHeuristics::bezierHeuristic(this->NEIGHBOR_DELTA_POS, this->NEIGHBOR_DELTA_SPEED, state, parent,diffPathCost);
-	//DeltaHeuristics::lineHeuristic(this->NEIGHBOR_DELTA_POS,state, parent, diffPathCost);
-
-}
-bool SeqRRTStar::validPoint(State* targetState, double distFromSides){
-	tPosd target = targetState->getPos();
-
-	////point on oponent?
-	//if (target.x <= (opponent->getCarPtr()->_pos_X + 20) &&
-	//	target.x >= (opponent->getCarPtr()->_pos_X - 20) &&
-	//	target.y <= (opponent->getCarPtr()->_pos_Y + 20) &&
-	//	target.y >= (opponent->getCarPtr()->_pos_Y - 20)){
-	//	return false;
-
-	//}
-
-
-
-
-	//point outside track?
-
-	tTrkLocPos targetLocalPos;
-	tTrackSeg* seg = track.seg;
-	tTrackSeg* currSeg = seg->next;
-
-
-	while (currSeg != seg){
-		RtTrackGlobal2Local(currSeg, target.x, target.y, &targetLocalPos, TR_LPOS_MAIN);
-		if (targetLocalPos.toRight >  distFromSides && targetLocalPos.toLeft >  distFromSides){
-			targetState->setPosSeg(*targetLocalPos.seg);
-			return true;
-		}
-		currSeg = currSeg->next;
-	}
-	return false;
-}
 
 void SeqRRTStar::generateStates(double nIterations){
 
@@ -222,24 +186,25 @@ void SeqRRTStar::generateStates(double nIterations){
 		xRand = randomState(&currentSearchSeg, &forwardSearchSeg);
 
 		//the generation didnt work
-		if (!validPoint(xRand, 0)){
+		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, xRand, 0)){
 			delete xRand;
 			continue;
 		}
 
-		State* xNearest = nearestNeighbor(xRand, graph); //after cost evaluation
+		State* xNearest = nearestNeighbor(xRand, graph);
 		xRand->setParent(xNearest);
 
 		//--------------------------------------------------------------------------------------------------------------------------------
 
-		applyDelta(xRand, xNearest);
+		DeltaHeuristics::applyDelta(xRand, xNearest,trackSegArray,nTrackSegs,forwardSegments,NEIGHBOR_DELTA_POS,NEIGHBOR_DELTA_SPEED);
 
-		double cMin = xNearest->getPathCost() + EvalFunctions::evaluatePathCost(xNearest, xRand, this->forwardSegments); //redifine path cost for new coords
+		double cMin = xNearest->getPathCost() + EvalFunctions::evaluatePathCost(trackSegArray, nTrackSegs, xNearest, xRand, this->forwardSegments); //redifine path cost for new coords
+		//double cMin = xNearest->getPathCost() + EvalFunctions::oldEvaluatePathCost( xNearest, xRand, this->forwardSegments);
 		xRand->setPathCost(cMin);
 
 
 		//the normalization didnt work
-		if (!validPoint(xRand, -1)){
+		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, xRand, -1)){
 			delete xRand;
 			continue;
 		}

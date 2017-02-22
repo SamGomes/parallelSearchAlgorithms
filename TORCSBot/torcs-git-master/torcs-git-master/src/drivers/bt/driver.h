@@ -22,6 +22,7 @@
 
 
 #include <iostream>
+#include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring>
@@ -35,6 +36,7 @@
 #include <portability.h>
 
 #include "SeqRRTStar.h"
+#include "ParRRTStar.h"
 #include "RRTStar.cuh"
 
 
@@ -69,6 +71,8 @@ class Driver {
 		int INDEX;
 		float MU_FACTOR;
 
+		tTrackSeg* trackSegArray; //needed because of CUDA memory management
+
 		static double currentsimtime;	// Store time to avoid useless updates.
 		float clutchtime;
 		float *radius;
@@ -89,7 +93,7 @@ class Driver {
 
 		//search tunning vars
 		int delay = 0;
-		int numberOfIterations = 300;
+		int numberOfIterations = 400;
 		int numberOfRealIterations = numberOfIterations;
 		int numberOfPartialIterations = numberOfIterations / 20;
 		int SEARCH_RECALC_DELAY = 10;
@@ -119,9 +123,10 @@ class Driver {
 
 		//------------PLANNING MODULE-----------------
 		bool passedPoint(State* target); //true if its reached target
-		void cudaTest();
 		void recalcPath(State initialState);
-		void plan(); // algorithm test
+		void plan();
+		void simplePlan(); // algorithm test
+		void humanControl();
 		//--------------MAIN UPDATE-------------------
 		void update(tSituation *s);
 
