@@ -27,100 +27,122 @@ public:
 		tdble	curWidth;
 		p.type = type;
 
+
 		while (segnotfound) {
 
 			switch (seg.type) {
-			case 3:
-				/* rotation */
-				tdble sine, cosine;
-				tdble ts;
-				sine = sin(seg.angle[0]);
-				cosine = cos(seg.angle[0]);
-				x = X - seg.vertex[1].x;
-				y = Y - seg.vertex[1].y;
-				ts = x * cosine + y * sine;
-				p.seg = &seg;
-				p.toStart = ts;
-				p.toRight = y * cosine - x * sine;
-				if ((ts < 0) && (depl < 1)) {
-					/* get back */
-					segArrayIterator--;
-					segArrayIterator = (segArrayIterator <0) ? nTrackSegs - 1 : segArrayIterator;
-					seg = segmentArray[segArrayIterator];
-					depl = -1;
-				}
-				else if ((ts > seg.length) && (depl > -1)) {
+				case 3:
 
-					segArrayIterator++;
-					segArrayIterator = (segArrayIterator >(nTrackSegs - 1)) ? 0 : segArrayIterator;
-					seg = segmentArray[segArrayIterator];
-					depl = 1;
-				}
-				else {
-					segnotfound = 0;
-				}
-				break;
+					//printf("aqui1");
 
-			case 2:
-				/* rectangular to polar */
-				x = X - seg.center.x;
-				y = Y - seg.center.y;
-				a2 = seg.arc / 2.0;
-				theta = atan2(y, x) - (seg.angle[6] + a2);
-				theta = normPI_PI(theta);
-				p.seg = &seg;
-				p.toStart = theta + a2;
-				p.toRight = seg.radiusr - sqrt(x*x + y*y);
-				if ((theta < -a2) && (depl < 1)) {
-					segArrayIterator--;
-					segArrayIterator = (segArrayIterator <0) ? nTrackSegs - 1 : segArrayIterator;
-					seg = segmentArray[segArrayIterator];
-					depl = -1;
-				}
-				else if ((theta > a2) && (depl > -1)) {
-					segArrayIterator++;
-					segArrayIterator = (segArrayIterator >(nTrackSegs - 1)) ? 0 : segArrayIterator;
-					seg = segmentArray[segArrayIterator];
-					depl = 1;
-				}
-				else {
-					segnotfound = 0;
-				}
-				break;
+					/* rotation */
+					tdble sine, cosine;
+					tdble ts;
+					sine = sin(seg.angle[0]);
+					cosine = cos(seg.angle[0]);
+					x = X - seg.vertex[1].x;
+					y = Y - seg.vertex[1].y;
+					ts = x * cosine + y * sine;
+					p.seg = &seg;
+					p.toStart = ts;
+					p.toRight = y * cosine - x * sine;
+					if ((ts < 0) && (depl < 1)) {
+						/* get back */
+						segArrayIterator--;
+						segArrayIterator = (segArrayIterator <0) ? nTrackSegs - 1 : segArrayIterator;
+						seg = segmentArray[segArrayIterator];
+						depl = -1;
+					}
+					else if ((ts > seg.length) && (depl > -1)) {
 
-			case 1:
-				/* rectangular to polar */
-				x = X - seg.center.x;
-				y = Y - seg.center.y;
-				a2 = seg.arc / 2.0;
-				theta = seg.angle[6] - a2 - atan2(y, x);
-				theta = normPI_PI(theta);
-				p.seg = &seg;
-				p.toStart = theta + a2;
-				p.toRight = sqrt(x*x + y*y) - seg.radiusr;
-				if ((theta < -a2) && (depl < 1)) {
-					segArrayIterator--;
-					segArrayIterator = (segArrayIterator <0) ? nTrackSegs - 1 : segArrayIterator;
-					seg = segmentArray[segArrayIterator];
-					depl = -1;
-				}
-				else if ((theta > a2) && (depl > -1)) {
-					segArrayIterator++;
-					segArrayIterator = (segArrayIterator >(nTrackSegs - 1)) ? 0 : segArrayIterator;
-					seg = segmentArray[segArrayIterator];
-					depl = 1;
-				}
-				else {
-					segnotfound = 0;
-				}
-				break;
+						segArrayIterator++;
+						segArrayIterator = (segArrayIterator >(nTrackSegs - 1)) ? 0 : segArrayIterator;
+						seg = segmentArray[segArrayIterator];
+						depl = 1;
+					}
+					else {
+						segnotfound = 0;
+					}
+
+					//printf("aqui1fim");
+
+					break;
+
+				case 2:
+
+					//printf("aqui2");
+
+
+					/* rectangular to polar */
+					x = X - seg.center.x;
+					y = Y - seg.center.y;
+					a2 = seg.arc / 2.0;
+					theta = atan2(y, x) - (seg.angle[6] + a2);
+					theta = normPI_PI(theta);
+					p.seg = &seg;
+					p.toStart = theta + a2;
+					p.toRight = seg.radiusr - sqrt(x*x + y*y);
+					if ((theta < -a2) && (depl < 1)) {
+						segArrayIterator--;
+						segArrayIterator = (segArrayIterator <0) ? nTrackSegs - 1 : segArrayIterator;
+						seg = segmentArray[segArrayIterator];
+						depl = -1;
+					}
+					else if ((theta > a2) && (depl > -1)) {
+						segArrayIterator++;
+						segArrayIterator = (segArrayIterator >(nTrackSegs - 1)) ? 0 : segArrayIterator;
+						seg = segmentArray[segArrayIterator];
+						depl = 1;
+					}
+					else {
+						segnotfound = 0;
+					}
+
+					//printf("aqui2fim");
+
+					break;
+
+				case 1:
+
+					//printf("aqui3");
+
+					/* rectangular to polar */
+					x = X - seg.center.x;
+					y = Y - seg.center.y;
+					a2 = seg.arc / 2.0;
+					theta = seg.angle[6] - a2 - atan2(y, x);
+					theta = normPI_PI(theta);
+					p.seg = &seg;
+					p.toStart = theta + a2;
+					p.toRight = sqrt(x*x + y*y) - seg.radiusr;
+					if ((theta < -a2) && (depl < 1)) {
+						segArrayIterator--;
+						segArrayIterator = (segArrayIterator <0) ? nTrackSegs - 1 : segArrayIterator;
+						seg = segmentArray[segArrayIterator];
+						depl = -1;
+					}
+					else if ((theta > a2) && (depl > -1)) {
+						segArrayIterator++;
+						segArrayIterator = (segArrayIterator >(nTrackSegs - 1)) ? 0 : segArrayIterator;
+						seg = segmentArray[segArrayIterator];
+						depl = 1;
+					}
+					else {
+						segnotfound = 0;
+					}
+					//printf("aqui3fim");
+					break;
 			}
+			
 		}
 
 		/* The track is of constant width */
 		/* This is subject to change */
 		p.toMiddle = p.toRight - seg.width / 2.0;
 		p.toLeft = seg.width - p.toRight;
+
+		//printf("aqui4");
+
 		return p;
 
 	}
@@ -171,7 +193,7 @@ public:
 		int trackSegIterator = 0;
 		tTrkLocPos targetLocalPos;
 
-		while(trackSegIterator<nTrackSegs){
+		while(trackSegIterator < nTrackSegs){
 			targetLocalPos = UtilityMethods::SimpleRtTrackGlobal2Local(segArray, trackSegIterator, nTrackSegs, target.x, target.y, 0);
 			if (targetLocalPos.toRight >  distFromSides && targetLocalPos.toLeft >  distFromSides){
 				targetState->setPosSeg(*targetLocalPos.seg);
@@ -402,27 +424,6 @@ public:
 		return currCost;
 	}
 
-	
-	CUDA_HOSTDEV
-	//the nearest point is the one in which its finalPos prediction ajusts to the current pos
-	static State* nearestNeighbor(State* state, State* graph, int graphIterator, double actionSimDeltaTime){
-
-		State* closestState = &graph[0];
-		double minCost = DBL_MAX;
-		for (int j = 0; j < graphIterator; j++){
-			State* i = &graph[j];
-			double currCost = evaluateStateCost(i, state, actionSimDeltaTime);
-			if (minCost > currCost){
-				minCost = currCost;
-				closestState = i;
-			}
-		}
-
-
-		return closestState;
-
-	}
-
 };
 
 
@@ -484,7 +485,7 @@ public:
 
 	//accounts for the position and speed (quadratic)
 	CUDA_HOSTDEV
-		static void quadraticBezierHeuristic(int neighboorDeltaPos, int neighboorDeltaSpeed, State* state, State* parent, double diffPathCost){
+		static void quadraticBezierHeuristic(double neighboorDeltaPos, double neighboorDeltaSpeed, State* state, State* parent, double diffPathCost){
 
 		double PI = 3.14159265358979323846;
 
@@ -538,7 +539,7 @@ public:
 
 	//accounts for the position and speed (quadratic)
 	CUDA_HOSTDEV
-		static void smoothBezierHeuristic(int neighboorDeltaPos, int neighboorDeltaSpeed, State* state, State* parent, double diffPathCost){
+		static void smoothBezierHeuristic(double neighboorDeltaPos, double neighboorDeltaSpeed, State* state, State* parent, double diffPathCost){
 
 		double PI = 3.14159265358979323846;
 
@@ -595,7 +596,7 @@ public:
 
 	//accounts for the position, speed and acceleration (cubic)
 	CUDA_HOSTDEV
-		static void cubicBezierHeuristic(int neighboorDeltaPos, int neighboorDeltaSpeed, State* state, State* parent, double diffPathCost){ //accounts for the position and speed
+		static void cubicBezierHeuristic(double neighboorDeltaPos, double neighboorDeltaSpeed, State* state, State* parent, double diffPathCost){ //accounts for the position and speed
 
 		double PI = 3.14159265358979323846;
 

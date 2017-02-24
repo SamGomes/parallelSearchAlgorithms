@@ -1,17 +1,24 @@
-﻿Build started 18/02/2017 02:09:25.
-     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\human\human.vcxproj" on node 9 (Build target(s)).
-     1>Link:
+﻿Build started 23/02/2017 18:56:29.
+     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\human\human.vcxproj" on node 4 (Rebuild target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I../../../export/include /I../../windows/include /I../../.. /Zi /nologo /W2 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D HUMAN_EXPORTS /D DEBUG /D DEBUG_OUT /D _VC80_UPGRADE=0x0600 /D _WINDLL /D _MBCS /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Debug/" /Fd".\Debug/vc120.pdb" /FR".\Debug\\" /Gd /TP /analyze- /errorReport:prompt human.cpp pref.cpp
+         human.cpp
+         pref.cpp
+         Generating Code...
+       Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\Debug/human.dll" /INCREMENTAL:NO /NOLOGO /LIBPATH:../../../export/libd /LIBPATH:../../windows/lib client.lib tgf.lib robottools.lib sg_vs2008_32.lib ul_vs2008_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:LIBCMT /DEF:".\human.def" /MANIFEST:NO /DEBUG /PDB:".\Debug/human.pdb" /MAP:".\Debug/human.map" /TLBID:1 /DYNAMICBASE:NO /IMPLIB:".\Debug/human.lib" /MACHINE:X86 /SAFESEH:NO /DLL .\Debug/human.obj
          .\Debug/pref.obj
             Creating library .\Debug/human.lib and object .\Debug/human.exp
          human.vcxproj -> C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\human\.\Debug\human.dll
+       BscMake:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\bscmake.exe /nologo /o".\Debug/human.bsc" .\Debug\human.sbr .\Debug\pref.sbr
        PostBuildEvent:
          copy C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\human\Debug\*.dll C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\runtimed\drivers\human
          :VCEnd
          C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\human\Debug\human.dll
                  1 file(s) copied.
-     1>Done Building Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\human\human.vcxproj" (Build target(s)).
+     1>Done Building Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\human\human.vcxproj" (Rebuild target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:03.42
+Time Elapsed 00:00:10.18

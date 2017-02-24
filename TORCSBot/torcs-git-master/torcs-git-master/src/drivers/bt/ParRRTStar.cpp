@@ -3,8 +3,7 @@
 
 ParRRTStar::ParRRTStar(State initialState, double nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments){
 
-	this->maxPathCost = -1 * DBL_MAX; //force a change
-	this->bestState = nullptr;
+	
 	this->currentSearchSeg = currentSearchSeg;
 
 	this->forwardSegments = forwardSegments;
@@ -18,50 +17,14 @@ ParRRTStar::ParRRTStar(State initialState, double nIterations, tCarElt car, tTra
 	this->nIterations = nIterations;
 	this->initialState = new State(initialState);
 
-	initGraph();
 	this->trackSegArray = trackSegArray;
 	this->nTrackSegs = nTrackSegs;
 	this->car = car;
 }
 ParRRTStar::~ParRRTStar(){
-
-	//as we do not need the graph anymore we just delete it! (commented because it is used on driver.cpp  for debug purposes)
-	deleteGraph();
-}
-
-void ParRRTStar::initGraph(){
-	graphSize = (unsigned int)nIterations + 1;
-	graph = new State*[graphSize]; //upper bound removes useless resizes
-	graphIterator = 0;
-}
-
-void ParRRTStar::resizeGraph(unsigned int newSize){
-	State** newGraph = new State*[newSize];
-	graphSize = newSize;
-
-	for (int i = 0; i < graphIterator; i++){
-		newGraph[i] = graph[i];
-	}
-	delete[] graph;
-	graph = newGraph;
-}
-void ParRRTStar::deleteGraph(){
-	/*for (int i = 0; i < graphIterator; i++){
-		delete graph[i];
-	}*/
-
-	delete[] graph;
 }
 
 
-void ParRRTStar::pushBackToGraph(State* element){
-	if (graphIterator == graphSize){
-		//graph limited exceeded, resize the graph
-		resizeGraph(graphSize + (unsigned int)nIterations);
-	}
-	graph[graphIterator] = element;
-	graphIterator++;
-}
 
 State* ParRRTStar::generateRandomStates(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
 
@@ -91,7 +54,8 @@ State* ParRRTStar::generateRandomStates(tTrackSeg* initialSeg, tTrackSeg* finalS
 
 	}
 
-	return callKernel(trackSegArray, nTrackSegs, minXVertex, maxXVertex, minYVertex, maxYVertex, nIterations,forwardSegments,NEIGHBOR_DELTA_POS,NEIGHBOR_DELTA_SPEED,actionSimDeltaTime);
+	return Kernel::callKernel(trackSegArray, nTrackSegs, initialState, minXVertex, maxXVertex, minYVertex, maxYVertex, nIterations,forwardSegments,NEIGHBOR_DELTA_POS,NEIGHBOR_DELTA_SPEED,actionSimDeltaTime);
+	//return callKernel(trackSegArray, nTrackSegs, minXVertex, maxXVertex, minYVertex, maxYVertex, nIterations);
 
 }
 
@@ -104,28 +68,30 @@ void ParRRTStar::updateCar(tCarElt car){
 }
 std::vector<State*> ParRRTStar::search(){
 
-	State* CUDAGraph = generateRandomStates(&currentSearchSeg, &forwardSearchSeg);
+	State* bestPath = generateRandomStates(&currentSearchSeg, &forwardSearchSeg);
+
 	
-	pushBackToGraph(this->initialState);
-
-
 	/*for (int i = 0; i < nIterations; i++){
 		std::cout << "foundNode: " << graph[i]->toString() << std::endl;
 	}*/
 	
 	std::vector<State*> path;
 	
+	int pathItertor = 0;
 	//lets put a path copy in the Heap (calling new), separating the path from the graph eliminated after!
-	while (!bestState->getInitialState()){
-		path.push_back(new State(*bestState));
-		bestState = bestState->getParent();
+	while (!bestPath[pathItertor].getInitialState()){
+		path.push_back(new State(bestPath[pathItertor]));
+		pathItertor++;
 	}
 
-	
+	/*while (pathItertor<this->nIterations){
+		path.push_back(new State(bestPath[pathItertor]));
+		pathItertor++;
+	}*/
 	return path;
 }
 std::vector<State*> ParRRTStar::getGraph(){
-	std::vector<State*>  graphVector = std::vector<State*>(graph, &graph[graphIterator - 1]);
+	std::vector<State*>  graphVector; //= std::vector<State>(graph, &graph[graphIterator - 1]);
 
 	return graphVector;
 }

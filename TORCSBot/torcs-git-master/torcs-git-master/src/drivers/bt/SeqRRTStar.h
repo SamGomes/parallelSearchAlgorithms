@@ -57,7 +57,7 @@ private: //methods
 
 	//selection operations
 	State* nearestNeighbor(State* state, State** graph);
-	State** nearestNeighbors(State* state, std::vector<State*> graph);
+	//State** nearestNeighbors(State* state, std::vector<State*> graph);
 
 
 	//main loop procedure
@@ -71,7 +71,7 @@ public:
 	void updateCar(tCarElt car); //for multiple search calls
 	std::vector<State*> search();
 
-	std::vector<State*> getGraph(); //for debug purposes
+	std::vector<State*>  getGraph(); //for debug purposes
 };
 
 #endif

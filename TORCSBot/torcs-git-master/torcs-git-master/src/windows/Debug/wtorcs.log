@@ -1,5 +1,5 @@
-﻿Build started 22/02/2017 02:17:19.
-     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\windows\wtorcs.vcxproj" on node 3 (Build target(s)).
+﻿Build started 24/02/2017 20:45:13.
+     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\windows\wtorcs.vcxproj" on node 4 (Build target(s)).
      1>Link:
          wtorcs.vcxproj -> C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\windows\.\Debug\wtorcs.exe
        PostBuildEvent:
@@ -21,4 +21,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.09
+Time Elapsed 00:00:00.11

@@ -5,7 +5,6 @@ SeqRRTStar::SeqRRTStar(State initialState, double nIterations, tCarElt car, tTra
 
 	this->maxPathCost = -1 * DBL_MAX; //force a change
 	this->bestState = nullptr;
-	this->currentSearchSeg = currentSearchSeg;
 
 	this->forwardSegments = forwardSegments;
 
@@ -196,7 +195,7 @@ void SeqRRTStar::generateStates(double nIterations){
 
 		//--------------------------------------------------------------------------------------------------------------------------------
 
-		DeltaHeuristics::applyDelta(xRand, xNearest,trackSegArray,nTrackSegs,forwardSegments,NEIGHBOR_DELTA_POS,NEIGHBOR_DELTA_SPEED);
+		DeltaHeuristics::applyDelta(xRand, xNearest, trackSegArray, nTrackSegs, forwardSegments, NEIGHBOR_DELTA_POS, NEIGHBOR_DELTA_SPEED);
 
 		double cMin = xNearest->getPathCost() + EvalFunctions::evaluatePathCost(trackSegArray, nTrackSegs, xNearest, xRand, this->forwardSegments); //redifine path cost for new coords
 		//double cMin = xNearest->getPathCost() + EvalFunctions::oldEvaluatePathCost( xNearest, xRand, this->forwardSegments);
@@ -266,7 +265,7 @@ std::vector<State*> SeqRRTStar::search(){
 	return path;
 }
 std::vector<State*> SeqRRTStar::getGraph(){
-	std::vector<State*>  graphVector = std::vector<State*>(graph, &graph[graphIterator - 1]);
+	std::vector<State*>  graphVector; // = std::vector<State*>(graph, &graph[graphIterator - 1]);
 
 	return graphVector;
 }

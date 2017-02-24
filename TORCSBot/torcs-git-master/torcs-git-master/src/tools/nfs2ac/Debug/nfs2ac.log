@@ -1,5 +1,5 @@
-﻿Build started 17/02/2017 22:57:17.
-     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\tools\nfs2ac\nfs2ac.vcxproj" on node 6 (Rebuild target(s)).
+﻿Build started 23/02/2017 18:54:02.
+     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\tools\nfs2ac\nfs2ac.vcxproj" on node 2 (Rebuild target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /nologo /W2 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _VC80_UPGRADE=0x0600 /D _MBCS /Gm- /EHsc /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Debug/" /Fd".\Debug/vc120.pdb" /FR".\Debug\\" /Gd /TP /analyze- /errorReport:prompt mainnfs2ac.cpp
          mainnfs2ac.cpp
@@ -16,4 +16,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:03.51
+Time Elapsed 00:00:06.52

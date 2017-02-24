@@ -37,21 +37,8 @@ private: //vars
 	State* initialState;
 	int forwardSegments;
 
-	//aux vars
-	double maxPathCost;
-	State* bestState;
-
-	State** graph; // the RRT itself!
-	unsigned int graphSize;
-	int graphIterator;
-
 private: //methods
 
-	//graph operations
-	void initGraph();
-	void resizeGraph(unsigned int newSize);
-	void deleteGraph();
-	void pushBackToGraph(State* element);
 
 	State* generateRandomStates(tTrackSeg* initialSeg, tTrackSeg* finalSeg);
 

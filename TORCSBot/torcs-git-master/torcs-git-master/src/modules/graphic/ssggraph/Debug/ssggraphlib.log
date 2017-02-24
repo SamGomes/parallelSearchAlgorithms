@@ -1,5 +1,5 @@
-﻿Build started 17/02/2017 22:57:17.
-     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\modules\graphic\ssggraph\ssggraphlib.vcxproj" on node 3 (Rebuild target(s)).
+﻿Build started 23/02/2017 18:54:00.
+     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\modules\graphic\ssggraph\ssggraphlib.vcxproj" on node 4 (Rebuild target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I./ /I../../../../export/include /I../../../windows/include /I../../../.. /Zi /nologo /W2 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _LIB /D DEBUG /D DEBUG_OUT /D _VC80_UPGRADE=0x0600 /D _MBCS /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Debug/" /Fd".\Debug/vc120.pdb" /FR".\Debug\\" /Gd /TP /analyze- /errorReport:prompt CarSoundData.cpp grboard.cpp grcam.cpp grcar.cpp grcarlight.cpp grloadac.cpp grmain.cpp grmultitexstate.cpp grscene.cpp grscreen.cpp grshadow.cpp grskidmarks.cpp grsmoke.cpp grsound.cpp grtexture.cpp grtrackmap.cpp grutil.cpp grvtxtable.cpp OpenalSoundInterface.cpp PlibSoundInterface.cpp SoundInterface.cpp ssggraph.cpp TorcsSound.cpp
          CarSoundData.cpp
@@ -64,4 +64,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:24.47
+Time Elapsed 00:00:43.70

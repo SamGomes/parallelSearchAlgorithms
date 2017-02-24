@@ -76,7 +76,7 @@ Driver::~Driver()
 		delete path[i];
 	}
 	
-	for (int i = 0; i < track->nseg+1; i++){
+	for (int i = 0; i < track->nseg; i++){
 		delete &trackSegArray[i];
 	}
 	free(trackSegArray);
@@ -351,7 +351,7 @@ void Driver::recalcPath(State initialState){
 		RRTStarAux = NULL;
 		graphG.clear(); //to avoid having deleted members
 	}
-	RRTStarAux = new SeqRRTStar(initialState, numberOfPartialIterations, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
+	RRTStarAux = new ParRRTStar(initialState, numberOfPartialIterations, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
 }
 
 void Driver::plan()
@@ -459,17 +459,20 @@ void Driver::simplePlan() // algorithm test
 	trkMinY = track->min.y;
 	trkMaxX = track->max.x;
 	trkMaxY = track->max.y;
-	//currStateG = *this->currState;
+	currStateG = State();
 
 	//init aux windows
 	if (!CREATEDWINDOW){
-		State initialState = State(car->pub.DynGCg.pos, car->pub.DynGCg.vel, car->pub.DynGCg.acc);
+
+		initGLUTWindow();
+		
+		State initialState = State(carDynCg.pos, carDynCg.vel, carDynCg.acc);
 		initialState.setPosSeg(*(car->pub.trkPos.seg));
 		initialState.setInitialState(true); //it is indeed the initial state!
-		RRTStarAux = new SeqRRTStar(initialState, 1000, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
+		RRTStarAux = new ParRRTStar(initialState, 30, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
 		pathG = RRTStarAux->search();
 		graphG = RRTStarAux->getGraph();
-		initGLUTWindow();
+
 		CREATEDWINDOW = true;
 	}
 	GLUTWindowRedisplay(); //update aux windows
@@ -509,11 +512,11 @@ void Driver::humanControl(){
 		firstState =  new State(car->pub.DynGC.pos, car->pub.DynGC.vel, car->pub.DynGC.acc);
 		firstState->setPosSeg(*car->pub.trkPos.seg);
 	}
-	if (!CREATEDWINDOW){
+	/*if (!CREATEDWINDOW){
 		firstState = new State(car->pub.DynGC.pos, car->pub.DynGC.vel, car->pub.DynGC.acc);
 		firstState->setPosSeg(*car->pub.trkPos.seg);
 		CREATEDWINDOW = true;
-	}
+	}*/
 	
 	/*currState = &State(car->pub.DynGC.pos, car->pub.DynGC.vel, car->pub.DynGC.acc);
 	std::cout << "currSegment: " << car->pub.trkPos.seg->name << "::" << car->pub.trkPos.seg->id << std::endl;
@@ -547,9 +550,9 @@ void Driver::update(tSituation *s)
 		currentsimtime = s->currentTime;
 		cardata->update();
 
-		this->plan();
-		//this->simplePlan();
-		this->control();
+		//this->plan();
+		this->simplePlan();
+		//this->control();
 		//this->humanControl();
 	}
 }
@@ -567,6 +570,7 @@ void Driver::initGLUTWindow(){
 	glutDisplayFunc(drawCurrStats);
 
 	glutInitWindowSize((int)(trkMaxX - trkMinX), (int)(trkMaxY - trkMinY));
+	
 	pathsauxWindow = glutCreateWindow("drawing paths...");
 	glutPositionWindow(800, 100);
 	glutDisplayFunc(drawSearchPoints);
@@ -623,45 +627,49 @@ void drawSearchPoints(){
 	glLoadIdentity();
 	glOrtho(0.0f, w, h, 0.0f, 0.0f, 1.0f);
 
-	glMatrixMode(GL_MODELVIEW);	
+	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glPushMatrix();
 
-		drawMap(0, 0, w, h);
 
-		for (int i = 0; i < (graphG).size(); i++){
-			glColor3f(0, 0, 0);
-			drawCircle(*(graphG[i]), 0.5);
-			if (!graphG[i]->getInitialState()){
-				drawLine(graphG[i]->getPos().x, graphG[i]->getPos().y, graphG[i]->getParent()->getPos().x, graphG[i]->getParent()->getPos().y);
-			}
-			
+
+	drawMap(0, 0, w, h);
+
+	for (int i = 0; i < (graphG).size(); i++){
+		glColor3f(0, 0, 0);
+		drawCircle(*(graphG[i]), 0.5);
+		if (!graphG[i]->getInitialState()){
+			drawLine(graphG[i]->getPos().x, h - graphG[i]->getPos().y, graphG[i]->getParent()->getPos().x, h - graphG[i]->getParent()->getPos().y);
 		}
 
-		glColor3f(0, 0, 1);
-		for (int i = 1; i < pathG.size(); i++){
-			drawLine(pathG[i]->getPos().x, pathG[i]->getPos().y, pathG[i-1]->getPos().x, pathG[i-1]->getPos().y);
+	}
+
+	glColor3f(0, 0, 1);
+	for (int i = 1; i < pathG.size(); i++){
+		drawLine(pathG[i]->getPos().x, h -pathG[i]->getPos().y, pathG[i - 1]->getPos().x, h - pathG[i - 1]->getPos().y);
+	}
+
+	for (int i = 0; i < pathG.size(); i++){
+		if (pathG[i]->getPathCost() < currStateG.getPathCost()){
+			glColor3f(0, 1, 1);
+			drawCircle(*pathG[i], 2);
 		}
+		else{
 
-		for (int i = 0; i < pathG.size(); i++){
-			if (pathG[i]->getPathCost() < currStateG.getPathCost()){
-				glColor3f(0, 1, 1);
-				drawCircle(*pathG[i], 2);
-			}else{
-
-				glColor3f(0, 0, 1);
-				drawCircle(*pathG[i], 2);
-			}
-			std::string statePosSeg = std::to_string((double)pathG[i]->getPathCost());
-			printTextInWindow(pathG[i]->getPos().x + 10, pathG[i]->getPos().y + 10, (char*)statePosSeg.c_str());
-
+			glColor3f(0, 0, 1);
+			drawCircle(*pathG[i], 2);
 		}
-		
-		glColor3f(1, 0, 1);
-		drawCircle(currStateG, 3);
-		
-		glColor3f(1, 0, 0);
-		drawCircle(State(carDynCg.pos, carDynCg.vel, carDynCg.acc), 2);
+		std::string statePosSeg = std::to_string((double)pathG[i]->getPathCost());
+		printTextInWindow(pathG[i]->getPos().x + 10, (h -pathG[i]->getPos().y) + 10, (char*)statePosSeg.c_str());
+
+	}
+
+	glColor3f(1, 0, 1);
+	drawCircle(currStateG, 3);
+
+	glColor3f(1, 0, 0);
+
+	drawCircle(State(carDynCg.pos, carDynCg.vel, carDynCg.acc), 2);
 
 	glPopMatrix();
 	glutSwapBuffers();
@@ -669,11 +677,13 @@ void drawSearchPoints(){
 
 void drawCircle(State point, GLfloat radius)
 {
-	int x = point.getPos().x;
-	int y = point.getPos().y;
+
 
 	int w = glutGet(GLUT_WINDOW_WIDTH);
 	int h = glutGet(GLUT_WINDOW_HEIGHT);
+
+	int x = point.getPos().x;
+	int y = h - point.getPos().y;
 
 	int i;
 	int triangleAmount = 30;
@@ -708,10 +718,10 @@ void drawMap(GLfloat x, GLfloat y, int width, int height)
 	glLoadIdentity();
 	glBindTexture(GL_TEXTURE_2D, mapTextureID);
 	glBegin(GL_QUADS);
-	glTexCoord2d(0.0, 0.0); glVertex2f(x, y);
-	glTexCoord2d(1.0, 0.0); glVertex2f(x + width, y);
-	glTexCoord2d(1.0, 1.0); glVertex2f(x + width, y + height);
-	glTexCoord2d(0.0, 1.0); glVertex2f(x, y + width);
+	glTexCoord2d(0.0, 1.0); glVertex2f(x, y);
+	glTexCoord2d(1.0, 1.0); glVertex2f(x + width, y);
+	glTexCoord2d(1.0, 0.0); glVertex2f(x + width, y + height);
+	glTexCoord2d(0.0, 0.0); glVertex2f(x, y + height);
 	glEnd();
 	glPopMatrix();
 	glDisable(GL_TEXTURE_2D);
@@ -745,6 +755,8 @@ GLuint loadTexture(const char * filename)
 
 	dataVector.assign(data, data + sizeof(data)); //transform array in vector
 	dataVector.erase(dataVector.begin(), dataVector.begin() + 54);//removes windows bmp header
+
+	//std::reverse(dataVector.begin(), dataVector.end());
 
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
