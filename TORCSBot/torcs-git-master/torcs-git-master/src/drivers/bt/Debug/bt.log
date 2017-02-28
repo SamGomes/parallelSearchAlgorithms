@@ -1,65 +1,8 @@
-﻿Build started 24/02/2017 20:45:13.
+﻿Build started 28/02/2017 00:18:20.
      1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\bt\bt.vcxproj" on node 3 (Build target(s)).
-     1>AddCudaCompileDeps:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\cl.exe /E /nologo /showIncludes /TP /D__CUDACC__ /DWIN32 /D_DEBUG /D_WINDOWS /D_USRDLL /DBT_EXPORTS /DDEBUG /DDEBUG_OUT /D_VC80_UPGRADE=0x0600 /D_WINDLL /D_MBCS /I../../../export/include /I../../windows/include /I../../.. /I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include" /I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\bin" /I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include" /I. /FIcuda_runtime.h /c C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\bt\Kernel.cu 
-       CudaBuild:
-         Compiling CUDA source file Kernel.cu...
-         cmd.exe /C "C:\Users\Samuel\AppData\Local\Temp\tmp78edde6b1d2c42669787dd7ae28e6fc7.cmd"
-         "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\bin\nvcc.exe" -gencode=arch=compute_20,code=\"sm_20,compute_20\" --use-local-env --cl-version 2013 -ccbin "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin" -rdc=true -I../../../export/include -I../../windows/include -I../../.. -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include"  -G -lineinfo  --keep-dir Debug -maxrregcount=0  --machine 32 --compile -cudart shared  -g   -DWIN32 -D_DEBUG -D_WINDOWS -D_USRDLL -DBT_EXPORTS -DDEBUG -DDEBUG_OUT -D_VC80_UPGRADE=0x0600 -D_WINDLL -D_MBCS -Xcompiler "/EHsc /W2 /nologo /Od /Zi /RTC1 /MTd " -o .\Debug\Kernel.cu.obj "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\bt\Kernel.cu"
-         
-         C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\bt>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\bin\nvcc.exe" -gencode=arch=compute_20,code=\"sm_20,compute_20\" --use-local-env --cl-version 2013 -ccbin "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin" -rdc=true -I../../../export/include -I../../windows/include -I../../.. -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include"  -G -lineinfo  --keep-dir Debug -maxrregcount=0  --machine 32 --compile -cudart shared  -g   -DWIN32 -D_DEBUG -D_WINDOWS -D_USRDLL -DBT_EXPORTS -DDEBUG -DDEBUG_OUT -D_VC80_UPGRADE=0x0600 -D_WINDLL -D_MBCS -Xcompiler "/EHsc /W2 /nologo /Od /Zi /RTC1 /MTd " -o .\Debug\Kernel.cu.obj "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\bt\Kernel.cu" 
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(27): warning : variable "curWidth" was declared but never referenced
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(221): warning : taking the address of a temporary
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(222): warning : taking the address of a temporary
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(335): warning : taking the address of a temporary
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(337): warning : taking the address of a temporary
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(465): warning : invalid narrowing conversion from "double" to "float"
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(465): warning : invalid narrowing conversion from "double" to "float"
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(469): warning : invalid narrowing conversion from "double" to "float"
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(469): warning : invalid narrowing conversion from "double" to "float"
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(473): warning : invalid narrowing conversion from "double" to "float"
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(473): warning : invalid narrowing conversion from "double" to "float"
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(477): warning : invalid narrowing conversion from "double" to "float"
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(477): warning : invalid narrowing conversion from "double" to "float"
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(27): warning : variable "curWidth" was declared but never referenced
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(221): warning : taking the address of a temporary
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(222): warning : taking the address of a temporary
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(335): warning : taking the address of a temporary
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(337): warning : taking the address of a temporary
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(465): warning : invalid narrowing conversion from "double" to "float"
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(465): warning : invalid narrowing conversion from "double" to "float"
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(469): warning : invalid narrowing conversion from "double" to "float"
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(469): warning : invalid narrowing conversion from "double" to "float"
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(473): warning : invalid narrowing conversion from "double" to "float"
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(473): warning : invalid narrowing conversion from "double" to "float"
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(477): warning : invalid narrowing conversion from "double" to "float"
-     1>c:\users\samuel\documents\faculdademestrado\2║ano\tese\gitrepository\torcsbot\torcs-git-master\torcs-git-master\src\drivers\bt\Heuristics.cuh(477): warning : invalid narrowing conversion from "double" to "float"
-         Kernel.cu
-     1>C:/Users/Samuel/Documents/faculdadeMestrado/2ºano/Tese/GitRepository/TORCSBot/torcs-git-master/torcs-git-master/src/drivers/bt/Kernel.cu(154): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
-       CudaLink:
-         cmd.exe /C "C:\Users\Samuel\AppData\Local\Temp\tmpad9dea8132d94b09ba852d59b6a7e698.cmd"
-         "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\bin\nvcc.exe" -dlink -o .\Debug\bt.device-link.obj -Xcompiler "/EHsc /W2 /nologo /Od /Zi /RTC1 /MTd " -L../../../export/libd -L../../windows/lib -L"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\lib\Win32" cudart.lib tgf.lib robottools.lib sg_vs2008_32.lib ul_vs2008_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib  -gencode=arch=compute_20,code=sm_20 -G --machine 32 .\Debug\State.cu.obj .\Debug\Kernel.cu.obj
-         
-         C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\bt>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\bin\nvcc.exe" -dlink -o .\Debug\bt.device-link.obj -Xcompiler "/EHsc /W2 /nologo /Od /Zi /RTC1 /MTd " -L../../../export/libd -L../../windows/lib -L"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\lib\Win32" cudart.lib tgf.lib robottools.lib sg_vs2008_32.lib ul_vs2008_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib  -gencode=arch=compute_20,code=sm_20 -G --machine 32 .\Debug\State.cu.obj .\Debug\Kernel.cu.obj 
-         cudart.lib
-         tgf.lib
-         robottools.lib
-         sg_vs2008_32.lib
-         ul_vs2008_32.lib
-         kernel32.lib
-         user32.lib
-         gdi32.lib
-         winspool.lib
-         comdlg32.lib
-         advapi32.lib
-         shell32.lib
-         ole32.lib
-         oleaut32.lib
-         uuid.lib
-         odbc32.lib
-         odbccp32.lib
-         State.cu.obj
-         Kernel.cu.obj
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I../../../export/include /I../../windows/include /I../../.. /I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include" /Zi /nologo /W2 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D BT_EXPORTS /D DEBUG /D DEBUG_OUT /D _VC80_UPGRADE=0x0600 /D _WINDLL /D _MBCS /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Debug/" /Fd".\Debug/vc120.pdb" /FR".\Debug\\" /Gd /TP /analyze- /errorReport:prompt driver.cpp
+         driver.cpp
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\Debug/bt.dll" /INCREMENTAL:NO /NOLOGO /LIBPATH:../../../export/libd /LIBPATH:../../windows/lib /LIBPATH:"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\lib\Win32" cudart.lib tgf.lib robottools.lib sg_vs2008_32.lib ul_vs2008_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:LIBCMT /DEF:".\bt.def" /MANIFEST:NO /DEBUG /PDB:".\Debug/bt.pdb" /MAP:".\Debug/bt.map" /TLBID:1 /DYNAMICBASE:NO /IMPLIB:".\Debug/bt.lib" /MACHINE:X86 /SAFESEH:NO /DLL .\Debug\State.cu.obj
          .\Debug\Kernel.cu.obj
@@ -74,6 +17,8 @@
          ".\Debug\bt.device-link.obj"
             Creating library .\Debug/bt.lib and object .\Debug/bt.exp
          bt.vcxproj -> C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\bt\.\Debug\bt.dll
+       BscMake:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\bscmake.exe /nologo /o".\Debug/bt.bsc" .\Debug\bt.sbr .\Debug\cardata.sbr .\Debug\driver.sbr .\Debug\opponent.sbr .\Debug\ParRRTStar.sbr .\Debug\PIDController.sbr .\Debug\RRTStar.sbr .\Debug\SeqRRTStar.sbr
        PostBuildEvent:
          copy C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\bt\Debug\*.dll C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\runtimed\drivers\bt
          :VCEnd
@@ -83,4 +28,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:32.30
+Time Elapsed 00:00:03.06

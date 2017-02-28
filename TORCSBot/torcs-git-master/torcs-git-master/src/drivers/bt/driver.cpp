@@ -280,25 +280,12 @@ float Driver::getPedalsPos(tPosd targetSpeed)
 	double targetSpeedMod = std::sqrt(targetSpeed.x*targetSpeed.x + targetSpeed.y*targetSpeed.y);
 	double carSpeedMod = std::sqrt(car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y);
 
-	//printf("SP:%f\nMV:%f\n",targetSpeedMod,carSpeedMod);
 
 	double output = 0;
 
-	//if (output > 0.5){
-	//	output = gasPidController.getOutput(targetSpeedMod, carSpeedMod, 0.02);
-	//	output = 1 / (targetSpeedMod / output + 1); //apply low pass filter
-	//	return output > 0 ? output : 0;
-	//}
-	//else{
-	//	gasPidController.getOutput(targetSpeedMod, carSpeedMod, 0.02);
-	//	output = brakePidController.getOutput(targetSpeedMod, carSpeedMod, 0.02);
-	//	output = 1 / (targetSpeedMod / output + 1); //apply low pass filter
-	//	return output;
-	//}
 
 	output = gasPidController.getOutput(targetSpeedMod, carSpeedMod, 0.02);
 	return output;
-	//return output;
 
 }
 
@@ -351,7 +338,7 @@ void Driver::recalcPath(State initialState){
 		RRTStarAux = NULL;
 		graphG.clear(); //to avoid having deleted members
 	}
-	RRTStarAux = new ParRRTStar(initialState, numberOfPartialIterations, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
+	RRTStarAux = new SeqRRTStar(initialState, numberOfPartialIterations, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
 }
 
 void Driver::plan()
@@ -463,20 +450,32 @@ void Driver::simplePlan() // algorithm test
 
 	//init aux windows
 	if (!CREATEDWINDOW){
-
 		initGLUTWindow();
-		
-		State initialState = State(carDynCg.pos, carDynCg.vel, carDynCg.acc);
-		initialState.setPosSeg(*(car->pub.trkPos.seg));
-		initialState.setInitialState(true); //it is indeed the initial state!
-		RRTStarAux = new ParRRTStar(initialState, 30, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
-		pathG = RRTStarAux->search();
-		graphG = RRTStarAux->getGraph();
-
 		CREATEDWINDOW = true;
 	}
 	GLUTWindowRedisplay(); //update aux windows
-
+	
+	if (path.size() == 0)
+	{
+		/*if (GetAsyncKeyState(VK_TAB) & 0x8000)
+		{*/
+			State initialState = State(carDynCg.pos, carDynCg.vel, carDynCg.acc);
+			initialState.setPosSeg(*(car->pub.trkPos.seg));
+			initialState.setInitialState(true); //it is indeed the initial state!
+			RRTStarAux = new ParRRTStar(initialState, 200, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
+			path = RRTStarAux->search();
+			pathG = path;
+			graphG = RRTStarAux->getGraph();
+		//}
+		currState = path[path.size() - 1];
+	}else{
+		if (passedPoint(currState)){
+			path.pop_back();
+			if (path.size()!=0)
+				currState = path[path.size()-1];
+			
+		}
+	}
 }
 
 State* firstState;
@@ -507,11 +506,7 @@ void Driver::humanControl(){
 	}
 
 
-	if (GetAsyncKeyState(VK_TAB) & 0x8000)
-	{
-		firstState =  new State(car->pub.DynGC.pos, car->pub.DynGC.vel, car->pub.DynGC.acc);
-		firstState->setPosSeg(*car->pub.trkPos.seg);
-	}
+	
 	/*if (!CREATEDWINDOW){
 		firstState = new State(car->pub.DynGC.pos, car->pub.DynGC.vel, car->pub.DynGC.acc);
 		firstState->setPosSeg(*car->pub.trkPos.seg);
@@ -552,7 +547,7 @@ void Driver::update(tSituation *s)
 
 		//this->plan();
 		this->simplePlan();
-		//this->control();
+		this->control();
 		//this->humanControl();
 	}
 }

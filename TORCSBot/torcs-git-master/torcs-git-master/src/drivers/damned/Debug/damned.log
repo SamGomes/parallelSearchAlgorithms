@@ -1,4 +1,4 @@
-﻿Build started 24/02/2017 20:45:13.
+﻿Build started 28/02/2017 00:18:20.
      1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\damned\damned.vcxproj" on node 4 (Build target(s)).
      1>Link:
          damned.vcxproj -> C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\damned\.\Debug\damned.dll
@@ -11,4 +11,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.26
+Time Elapsed 00:00:00.19

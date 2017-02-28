@@ -121,6 +121,7 @@
       <GenerateLineInfo>true</GenerateLineInfo>
       <Optimization>Od</Optimization>
       <Runtime>MTd</Runtime>
+      <AdditionalOptions>-Xptxas="-v" %(AdditionalOptions)</AdditionalOptions>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

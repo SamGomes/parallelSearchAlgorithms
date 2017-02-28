@@ -179,6 +179,8 @@ State* SeqRRTStar::nearestNeighbor(State* state, State** graph){
 void SeqRRTStar::generateStates(double nIterations){
 
 	State* xRand = nullptr;
+	
+	clock_t validPointTimer = clock();
 
 	for (int k = 0; k < nIterations; k++){
 
@@ -189,6 +191,7 @@ void SeqRRTStar::generateStates(double nIterations){
 			delete xRand;
 			continue;
 		}
+
 
 		State* xNearest = nearestNeighbor(xRand, graph);
 		xRand->setParent(xNearest);
@@ -216,6 +219,8 @@ void SeqRRTStar::generateStates(double nIterations){
 		pushBackToGraph(xRand);
 
 	}
+	validPointTimer = clock() - validPointTimer;
+		std::cout << "validPointTimer timer: " << double(validPointTimer) / (double)CLOCKS_PER_SEC << std::endl;
 
 }
 
@@ -265,7 +270,7 @@ std::vector<State*> SeqRRTStar::search(){
 	return path;
 }
 std::vector<State*> SeqRRTStar::getGraph(){
-	std::vector<State*>  graphVector; // = std::vector<State*>(graph, &graph[graphIterator - 1]);
+	std::vector<State*>  graphVector = std::vector<State*>(graph, &graph[graphIterator - 1]);
 
 	return graphVector;
 }

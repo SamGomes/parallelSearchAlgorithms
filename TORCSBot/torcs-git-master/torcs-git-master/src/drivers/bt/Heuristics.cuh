@@ -199,7 +199,7 @@ public:
 				targetState->setPosSeg(*targetLocalPos.seg);
 				return true;
 			}
-			trackSegIterator++;
+			trackSegIterator+=(nTrackSegs/2);
 		}
 		return false;
 	}

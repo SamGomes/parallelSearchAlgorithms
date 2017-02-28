@@ -4,8 +4,8 @@ AdditionalCompilerOptions=
 AdditionalDependencies=
 AdditionalDeps=
 AdditionalLibraryDirectories=
-AdditionalOptions=
-AdditionalOptions=
+AdditionalOptions=-Xptxas="-v" 
+AdditionalOptions=-Xptxas="-v" 
 CodeGeneration=compute_20,sm_20
 CodeGeneration=compute_20,sm_20
 CompileOut=.\Debug\Kernel.cu.obj

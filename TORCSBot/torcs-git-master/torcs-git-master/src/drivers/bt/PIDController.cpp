@@ -28,7 +28,6 @@ double PIDController::getOutput(double setPoint,double mesuredValue, double delt
 	output = Kp*error + Ki*integral + Kd*derivative;
 	
 	this->previousError = error;
-	printf("error:%f\n output:%f\n", this->previousError, output);
 
 	if (this->output >= 1.0){
 		this->integral = prevIntegral;

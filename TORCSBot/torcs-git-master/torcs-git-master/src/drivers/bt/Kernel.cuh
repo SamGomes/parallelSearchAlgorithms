@@ -59,7 +59,6 @@ public:
 			}
 		}
 		return closestState;
-
 	}
 
 	static	State* callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialState,
