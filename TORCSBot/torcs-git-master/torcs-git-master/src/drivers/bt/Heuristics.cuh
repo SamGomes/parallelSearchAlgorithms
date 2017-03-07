@@ -199,7 +199,7 @@ public:
 				targetState->setPosSeg(*targetLocalPos.seg);
 				return true;
 			}
-			trackSegIterator+=(nTrackSegs/2);
+			trackSegIterator+=(nTrackSegs/2-1);
 		}
 		return false;
 	}
@@ -419,8 +419,8 @@ public:
 		double v0 = s2->getSpeed().x*s2->getSpeed().x + s2->getSpeed().y*s2->getSpeed().y;
 		double dx = ((s1->getPos().x) - (s2->getPos().x))*((s1->getPos().x) - (s2->getPos().x));
 		double dy = ((s1->getPos().y) - (s2->getPos().y))*((s1->getPos().y) - (s2->getPos().y));
-		double d = std::sqrtf(dx*dx + dy*dy);
-		double currCost = d / a*actionSimDeltaTime*actionSimDeltaTime + v0*actionSimDeltaTime;
+		double d = dx*dx + dy*dy;
+		double currCost = d / v0*actionSimDeltaTime; //+a*actionSimDeltaTime*actionSimDeltaTime;
 		return currCost;
 	}
 

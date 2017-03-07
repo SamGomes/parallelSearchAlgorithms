@@ -2,12 +2,19 @@
 #include "Kernel.cuh"
 
 
+__global__ void warmStart(int* f)
+{
+	*f = 0;
+}
+
 __global__ void CUDAProcedure(tTrackSeg* segArray, int nTrackSegs, State* graph, int stateIterator, 
 	double minXVertex, double maxXVertex, double minYVertex, double maxYVertex, 
 	int numThreads, double maxPathCost, State* bestPath,
 	int forwardSegments, double neighborDeltaPos, double neighborDeltaSpeed, double actionSimDeltaTime){
 
 	int idx = threadIdx.x + blockDim.x*blockIdx.x;
+
+	int offset = stateIterator*numThreads + idx;
 
 	curandState_t curandState;
 
@@ -18,7 +25,6 @@ __global__ void CUDAProcedure(tTrackSeg* segArray, int nTrackSegs, State* graph,
 		0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
 		&curandState);
 
-	int offset = stateIterator*numThreads + idx;
 
 	double trackMapXMin = minXVertex;
 	double trackMapXMax = maxXVertex;
@@ -130,39 +136,15 @@ __global__ void CUDAProcedure(tTrackSeg* segArray, int nTrackSegs, State* graph,
 	
 }
 
-
-State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs,State* initialState,
-	double minXVertex, double maxXVertex, double minYVertex, double maxYVertex,
-	double numIterations,
-	int forwardSegments, double neighborDeltaPos, double neighborDeltaSpeed, double actionSimDeltaTime){
-
-	State* bestPath = new State[(unsigned int)numIterations];
-	State* auxBestPath;
-
-	State* graph = new State[(unsigned int)numIterations];
-	graph[0] = *initialState;
-
-
-	State* auxGraph;
-	tTrackSeg* auxSegArray;
-
-
-	double maxPathCost = -1 * DBL_MAX; //force a change
-
-
-	int NUM_BLOCKS = 2;
-	int NUM_THREADS_EACH_BLOCK = 50;
-	int NUM_THREADS = NUM_BLOCKS*NUM_THREADS_EACH_BLOCK;
-
-	int numPartialIterations = numIterations / NUM_THREADS;
-
-	if (numPartialIterations == 0) numPartialIterations++;
-
-	//------------------------------ GPU INFO -------------------------------------
+//This method takes off the CUDA initialization delay on first call during real-time
+// because it is done during loading (pre-computing phase)
+void Kernel::gpuWarmup(){
 	int count;
 	cudaDeviceProp prop;
 
 	cudaGetDeviceCount(&count);
+
+	// --- print devices info ----------------------------------------------------------
 
 	for (int i = 0; i<count; i++) {
 
@@ -200,8 +182,49 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs,State* initialStat
 
 		printf("\n");
 	}
+	
+	// -- create a context -- kernel warmup ---------------------------------------------
+
+	int *f = NULL;
+	cudaMalloc(&f, sizeof(int));
+	warmStart <<< 1, 1 >> >(f);
+	cudaFree(f);
+
+	cudaDeviceSynchronize();
+	std::cout << "kernel error: " << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
+
 
 	//-----------------------------------------------------------------------------------
+
+}
+
+State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs,State* initialState,
+	double minXVertex, double maxXVertex, double minYVertex, double maxYVertex,
+	double numIterations,
+	int forwardSegments, double neighborDeltaPos, double neighborDeltaSpeed, double actionSimDeltaTime){
+
+	State* bestPath = new State[(unsigned int)numIterations];
+	State* auxBestPath;
+
+	State* graph = new State[(unsigned int)numIterations];
+	graph[0] = *initialState;
+
+
+	State* auxGraph;
+	tTrackSeg* auxSegArray;
+
+
+	double maxPathCost = -1 * DBL_MAX; //force a change
+
+
+	int NUM_BLOCKS = 5;
+	int NUM_THREADS_EACH_BLOCK = 100;
+	int NUM_THREADS = NUM_BLOCKS*NUM_THREADS_EACH_BLOCK;
+
+	int numPartialIterations = numIterations / NUM_THREADS;
+
+	if (numPartialIterations == 0) numPartialIterations++;
+
 
 	clock_t mallocTimer;
 	clock_t memcpyTimer1;
@@ -259,20 +282,15 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs,State* initialStat
 	std::cout << "memcpyTimer2 timer: " << double(memcpyTimer2) / (double) CLOCKS_PER_SEC << std::endl;
 
 
-	//cudaDeviceSynchronize();
-
-	/*for (int i = 0; i < 10; i++){
-		printf("dgraphPos!:%f\n", graph[i].getPos().x);
-	}*/
-
 	cudaFree(auxGraph);
 	cudaFree(auxSegArray);
 	cudaFree(auxBestPath);
 
-	std::cout << "gcnsjfddgjvhgdffgshgfuiserror: " << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
+	cudaDeviceSynchronize();
+	std::cout << "kernel error: " << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
 
 
-	
+
 
 	delete[] graph;
 

@@ -61,6 +61,9 @@ Driver::Driver(int index)
 
 Driver::~Driver()
 {
+	StatsLogWriter::closeLog("ParallelRRTSearchTimes");
+	StatsLogWriter::closeLog("SequentialRRTSearchTimes");
+
 	delete opponents;
 	delete[] radius;
 	if (cardata != NULL) {
@@ -121,6 +124,8 @@ void Driver::initTrack(tTrack* t, void *carHandle, void **carParmHandle, tSituat
 		printf("segId:%d\n", trackSegArray[i].id);
 	}
 
+	Kernel::gpuWarmup();
+
 }
 
 // Start a new race.
@@ -154,7 +159,7 @@ void Driver::newRace(tCarElt* car, tSituation *s)
 
 	//split channels for the pedals
 	gasPidController = PIDController(0.015, 0.005, 0.001);
-	brakePidController = PIDController(0.005, 0.001, 0.001);
+	brakePidController = PIDController(0.030, 0.001, 0.001); //not used currently
 
 	//steerPidController = PIDController(2, 5, 0.0001); 
 
@@ -283,8 +288,21 @@ float Driver::getPedalsPos(tPosd targetSpeed)
 
 	double output = 0;
 
+	//if (targetSpeedMod >= carSpeedMod){
+		output = gasPidController.getOutput(targetSpeedMod, carSpeedMod, 0.02);
+		/*brakePidController.equalizeOutput(output);
+		brakePidController.getOutput(targetSpeedMod, carSpeedMod, 0.02);
 
-	output = gasPidController.getOutput(targetSpeedMod, carSpeedMod, 0.02);
+	}
+	else{
+		output = brakePidController.getOutput(targetSpeedMod, carSpeedMod, 0.02);
+	*/	//gasPidController.equalizeOutput(output);
+		//gasPidController.getOutput(targetSpeedMod, carSpeedMod, 0.02);
+	//}
+
+	//printf("output: %f\n", output);
+
+
 	return output;
 
 }
@@ -462,8 +480,17 @@ void Driver::simplePlan() // algorithm test
 			State initialState = State(carDynCg.pos, carDynCg.vel, carDynCg.acc);
 			initialState.setPosSeg(*(car->pub.trkPos.seg));
 			initialState.setInitialState(true); //it is indeed the initial state!
-			RRTStarAux = new ParRRTStar(initialState, 200, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
+			RRTStarAux = new ParRRTStar(initialState, 2000, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
+			
+			clock_t searchTimer = clock();
+			
 			path = RRTStarAux->search();
+			
+			searchTimer = clock() - searchTimer;
+			std::string stats = std::string("search time: ") + std::to_string(double(searchTimer) / (double)CLOCKS_PER_SEC);
+			//StatsLogWriter::writeToLog("SequentialRRTSearchTimes", stats);
+			StatsLogWriter::writeToLog("ParallelRRTSearchTimes", stats);
+
 			pathG = path;
 			graphG = RRTStarAux->getGraph();
 		//}

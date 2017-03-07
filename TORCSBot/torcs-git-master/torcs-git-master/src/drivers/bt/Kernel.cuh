@@ -7,6 +7,7 @@
 
 #include "State.cuh"
 #include "Heuristics.cuh"
+#include "StatsLogWriter.h"
 #include <time.h>
 #include <stdio.h>
 #include <iostream>
@@ -60,6 +61,8 @@ public:
 		}
 		return closestState;
 	}
+
+	static void gpuWarmup();
 
 	static	State* callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialState,
 							double minXVertex, double maxXVertex, double minYVertex, double maxYVertex,

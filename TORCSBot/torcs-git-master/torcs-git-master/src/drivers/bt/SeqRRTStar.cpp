@@ -180,7 +180,6 @@ void SeqRRTStar::generateStates(double nIterations){
 
 	State* xRand = nullptr;
 	
-	clock_t validPointTimer = clock();
 
 	for (int k = 0; k < nIterations; k++){
 
@@ -219,8 +218,7 @@ void SeqRRTStar::generateStates(double nIterations){
 		pushBackToGraph(xRand);
 
 	}
-	validPointTimer = clock() - validPointTimer;
-		std::cout << "validPointTimer timer: " << double(validPointTimer) / (double)CLOCKS_PER_SEC << std::endl;
+	
 
 }
 

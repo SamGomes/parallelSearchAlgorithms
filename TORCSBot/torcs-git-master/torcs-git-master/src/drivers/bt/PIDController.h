@@ -23,6 +23,7 @@ public:
 	PIDController(double Ki,double Kp,double Kd);
 	double getOutput(double setPoint, double mesuredValue, double deltaTime);
 	void resetController();
+	void equalizeOutput(double targetOutput);
 };
 
 #endif
