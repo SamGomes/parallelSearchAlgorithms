@@ -1,7 +1,7 @@
 #include "ParRRTStar.h"
 
 
-ParRRTStar::ParRRTStar(State initialState, double nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments){
+ParRRTStar::ParRRTStar(State initialState, int nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments){
 
 	
 	this->currentSearchSeg = currentSearchSeg;

@@ -1,7 +1,7 @@
 #include "SeqRRTStar.h"
 
 
-SeqRRTStar::SeqRRTStar(State initialState, double nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments){
+SeqRRTStar::SeqRRTStar(State initialState, int nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments){
 
 	this->maxPathCost = -1 * DBL_MAX; //force a change
 	this->bestState = nullptr;

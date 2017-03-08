@@ -187,7 +187,7 @@ void Kernel::gpuWarmup(){
 
 State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialState,
 	double minXVertex, double maxXVertex, double minYVertex, double maxYVertex,
-	double numIterations,
+	int numIterations,
 	int forwardSegments, double neighborDeltaPos, double neighborDeltaSpeed, double actionSimDeltaTime){
 
 	State* auxBestState;

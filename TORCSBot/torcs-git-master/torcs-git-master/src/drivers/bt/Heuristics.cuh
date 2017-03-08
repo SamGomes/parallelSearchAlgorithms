@@ -17,12 +17,12 @@ public:
 
 		tTrkLocPos p;
 		int 	segnotfound = 1;
-		double 	x, y;
+		float 	x, y;
 
 		int segArrayIterator = trackSegIterator;
 
 		tTrackSeg 	seg = segmentArray[segArrayIterator];
-		double 	theta, a2;
+		float 	theta, a2;
 		int 	depl = 0;
 		p.type = type;
 
@@ -32,8 +32,8 @@ public:
 			switch (seg.type) {
 				case 3:
 					/* rotation */
-					double sine, cosine;
-					double ts;
+					float sine, cosine;
+					float ts;
 					sine = sin(seg.angle[0]);
 					cosine = cos(seg.angle[0]);
 					x = X - seg.vertex[1].x;
@@ -198,21 +198,21 @@ public:
 
 
 
-		tTrackSeg	*l1Seg = &(s1->getPosSeg());
-		tTrackSeg	*l2Seg = &(s2->getPosSeg());
+		tTrackSeg	l1Seg = (s1->getPosSeg());
+		tTrackSeg	l2Seg = (s2->getPosSeg());
 
 
 		double totalCost = 0;
 
-		if (l1Seg->id == l2Seg->id){
+		if (l1Seg.id == l2Seg.id){
 			double distance = 0;
 
-			switch (l2Seg->type) {
+			switch (l2Seg.type) {
 			case 3:
 				distance = l2.toStart - l1.toStart;
 				break;
 			default:
-				distance = (l2.toStart - l1.toStart)*l1Seg->radius;
+				distance = (l2.toStart - l1.toStart)*l1Seg.radius;
 				break;
 			}
 
@@ -220,34 +220,34 @@ public:
 		}
 		else
 		{
-			int fwdIterator = (l1Seg->id + 1 >(nTrackSegs - 1)) ? 0 : l1Seg->id + 1;
-			int bwdIterator = (l1Seg->id - 1 <0) ? nTrackSegs - 1 : l1Seg->id - 1;
-			tTrackSeg* currSegFwd = &segmentArray[fwdIterator];
-			tTrackSeg* currSegBwd = &segmentArray[bwdIterator];
+			int fwdIterator = (l1Seg.id + 1 >(nTrackSegs - 1)) ? 0 : l1Seg.id + 1;
+			int bwdIterator = (l1Seg.id - 1 <0) ? nTrackSegs - 1 : l1Seg.id - 1;
+			tTrackSeg currSegFwd = segmentArray[fwdIterator];
+			tTrackSeg currSegBwd = segmentArray[bwdIterator];
 			double bwdDist = 0;
 			double fwdDist = 0;
 
-			while (currSegFwd != currSegBwd && fwdLimit>0){
+			while (currSegFwd.id != currSegBwd.id && fwdLimit>0){
 
-				if (currSegFwd->id == l2Seg->id){
-					switch (currSegFwd->type) {
+				if (currSegFwd.id == l2Seg.id){
+					switch (currSegFwd.type) {
 						case TR_STR:
-							switch (l1Seg->type) {
+							switch (l1Seg.type) {
 								case TR_STR:
-									totalCost = fwdDist + (l2Seg->length - l2.toStart) + (l1Seg->length - l1.toStart);
+									totalCost = fwdDist + (l2Seg.length - l2.toStart) + (l1Seg.length - l1.toStart);
 									break;
 								default:
-									totalCost = fwdDist + (l2Seg->length - l2.toStart) + (l1Seg->length - l1.toStart*l1Seg->radius);
+									totalCost = fwdDist + (l2Seg.length - l2.toStart) + (l1Seg.length - l1.toStart*l1Seg.radius);
 									break;
 							}
 							break;
 						default:
-							switch (l1Seg->type) {
+							switch (l1Seg.type) {
 								case TR_STR:
-									totalCost = fwdDist + (l2Seg->length - l2.toStart*currSegFwd->radius) + (l1Seg->length - l1.toStart);
+									totalCost = fwdDist + (l2Seg.length - l2.toStart*currSegFwd.radius) + (l1Seg.length - l1.toStart);
 									break;
 								default:
-									totalCost = fwdDist + (l2Seg->length - l2.toStart*currSegFwd->radius) + (l1Seg->length - l1.toStart*l1Seg->radius);
+									totalCost = fwdDist + (l2Seg.length - l2.toStart*currSegFwd.radius) + (l1Seg.length - l1.toStart*l1Seg.radius);
 									break;
 							}
 							break;
@@ -255,25 +255,25 @@ public:
 					break;
 				}
 
-				if (currSegBwd->id == l2Seg->id){
-					switch (currSegBwd->type) {
+				if (currSegBwd.id == l2Seg.id){
+					switch (currSegBwd.type) {
 						case TR_STR:
-							switch (l1Seg->type) {
+							switch (l1Seg.type) {
 								case TR_STR:
-									totalCost = - 1 * ((bwdDist + l2.toStart*currSegBwd->radius) + (l1Seg->length - l1.toStart));
+									totalCost = - 1 * ((bwdDist + l2.toStart*currSegBwd.radius) + (l1Seg.length - l1.toStart));
 									break;
 								default:
-									totalCost = - 1 * ((bwdDist + l2.toStart*currSegBwd->radius) + (l1Seg->length - l1.toStart*l1Seg->radius));
+									totalCost = - 1 * ((bwdDist + l2.toStart*currSegBwd.radius) + (l1Seg.length - l1.toStart*l1Seg.radius));
 									break;
 							}
 							break;
 						default:
-							switch (l1Seg->type) {
+							switch (l1Seg.type) {
 								case TR_STR:
-									totalCost = - 1 * ((bwdDist + l2.toStart) + (l2Seg->length - l2.toStart) + l1.toStart);
+									totalCost = - 1 * ((bwdDist + l2.toStart) + (l2Seg.length - l2.toStart) + l1.toStart);
 									break;
 								default:
-									totalCost = - 1 * ((bwdDist + l2.toStart) + (l2Seg->length - l2.toStart) + l1.toStart*l1Seg->radius);
+									totalCost = - 1 * ((bwdDist + l2.toStart) + (l2Seg.length - l2.toStart) + l1.toStart*l1Seg.radius);
 									break;
 							}
 							break;
@@ -282,22 +282,22 @@ public:
 					break;
 				}
 
-				fwdDist += currSegFwd->length;
-				bwdDist += currSegBwd->length;
+				fwdDist += currSegFwd.length;
+				bwdDist += currSegBwd.length;
 					
 
 				
 				fwdIterator++;
 				fwdIterator = (fwdIterator >(nTrackSegs - 1)) ? 0 : fwdIterator;
-				currSegFwd = &(segmentArray[fwdIterator]);
+				currSegFwd = (segmentArray[fwdIterator]);
 
 				bwdIterator--;
 				bwdIterator = (bwdIterator <0) ? nTrackSegs - 1 : bwdIterator;
-				currSegBwd = &(segmentArray[bwdIterator]);
+				currSegBwd = (segmentArray[bwdIterator]);
 
 				fwdLimit--;
 			}
-			if (fwdLimit == 0 && currSegBwd!=currSegFwd){
+			if (fwdLimit == 0 && currSegBwd.id!=currSegFwd.id){
 				totalCost = -1 * (bwdDist); //when they exceed forward segs limit (or equidistant if limit exceeds half the segments)
 			}
 		}
@@ -307,91 +307,90 @@ public:
 		return totalCost;
 	}
 
-	CUDA_HOSTDEV
-		static double oldEvaluatePathCost(State* s1, State* s2, int fwdLimit){
+	//CUDA_HOSTDEV
+	//	static double oldEvaluatePathCost(State* s1, State* s2, int fwdLimit){
 
-		tTrkLocPos l1, l2;
+	//	tTrkLocPos l1, l2;
 
-		RtTrackGlobal2Local(&(s1->getPosSeg()), s1->getPos().x, s1->getPos().y, &l1, TR_LPOS_MAIN);
-
-		RtTrackGlobal2Local(&(s2->getPosSeg()), s2->getPos().x, s2->getPos().y, &l2, TR_LPOS_MAIN);
-
+	//	RtTrackGlobal2Local(&(s1->getPosSeg()), s1->getPos().x, s1->getPos().y, &l1, TR_LPOS_MAIN);
+	//	RtTrackGlobal2Local(&(s2->getPosSeg()), s2->getPos().x, s2->getPos().y, &l2, TR_LPOS_MAIN);
 
 
-		tTrackSeg	*l1Seg = l1.seg;
-		tTrackSeg	*l2Seg = l2.seg;
+
+	//	tTrackSeg	*l1Seg = l1.seg;
+	//	tTrackSeg	*l2Seg = l2.seg;
 
 
-		if (l1Seg->id == l2Seg->id){
-			double distance = 0;
+	//	if (l1Seg->id == l2Seg->id){
+	//		double distance = 0;
 
-			switch (l2Seg->type) {
-			case TR_STR:
-				distance = l2.toStart - l1.toStart;
-				break;
-			default:
-				distance = l2.toStart*l2Seg->radius - l1.toStart*l2Seg->radius;
-				break;
-			}
+	//		switch (l2Seg->type) {
+	//		case TR_STR:
+	//			distance = l2.toStart - l1.toStart;
+	//			break;
+	//		default:
+	//			distance = l2.toStart*l2Seg->radius - l1.toStart*l2Seg->radius;
+	//			break;
+	//		}
 
-			return distance;
-		}
-		else{
-			tTrackSeg* currSegFwd = l1Seg->next;
-			tTrackSeg* currSegBwd = l1Seg->prev;
-			double bwdDist = 0;
-			double fwdDist = 0;
-			while (currSegFwd != currSegBwd && fwdLimit>0){
+	//		return distance;
+	//	}
+	//	else{
+	//		tTrackSeg* currSegFwd = l1Seg->next;
+	//		tTrackSeg* currSegBwd = l1Seg->prev;
+	//		double bwdDist = 0;
+	//		double fwdDist = 0;
+	//		while (currSegFwd != currSegBwd && fwdLimit>0){
 
-				if (currSegFwd->id == l2Seg->id){
-
-
-					switch (currSegBwd->type) {
-					case TR_STR:
-						return fwdDist + (l1Seg->length - l1.toStart);
-					default:
-						return fwdDist + (l1Seg->length*currSegBwd->radius - l1.toStart*currSegBwd->radius);
-					}
-
-				}
-
-				if (currSegBwd->id == l2Seg->id){
-
-					switch (currSegBwd->type) {
-					case TR_STR:
-						return -1 * (bwdDist + l1.toStart);
-					default:
-						return -1 * (bwdDist + l1.toStart*currSegBwd->radius);
-					}
+	//			if (currSegFwd->id == l2Seg->id){
 
 
-				}
+	//				switch (currSegBwd->type) {
+	//				case TR_STR:
+	//					return fwdDist + (l1Seg->length - l1.toStart);
+	//				default:
+	//					return fwdDist + (l1Seg->length*currSegBwd->radius - l1.toStart*currSegBwd->radius);
+	//				}
 
-				switch (currSegBwd->type) {
-				case TR_STR:
-					bwdDist += currSegBwd->length;
-					break;
-				default:
-					bwdDist += currSegBwd->length * currSegBwd->radius;
-					break;
-				}
+	//			}
 
-				switch (currSegFwd->type) {
-				case TR_STR:
-					fwdDist += currSegFwd->length;
-					break;
-				default:
-					fwdDist += currSegFwd->length *currSegFwd->radius;
-					break;
-				}
+	//			if (currSegBwd->id == l2Seg->id){
 
-				currSegFwd = currSegFwd->next;
-				currSegBwd = currSegBwd->prev;
-				fwdLimit--;
-			}
-			return -1 * (bwdDist); //when they exceed forward segs limit (or equidistant if limit exceeds half the segments)
-		}
-	}
+	//				switch (currSegBwd->type) {
+	//				case TR_STR:
+	//					return -1 * (bwdDist + l1.toStart);
+	//				default:
+	//					return -1 * (bwdDist + l1.toStart*currSegBwd->radius);
+	//				}
+
+
+	//			}
+
+	//			switch (currSegBwd->type) {
+	//			case TR_STR:
+	//				bwdDist += currSegBwd->length;
+	//				break;
+	//			default:
+	//				bwdDist += currSegBwd->length * currSegBwd->radius;
+	//				break;
+	//			}
+
+	//			switch (currSegFwd->type) {
+	//			case TR_STR:
+	//				fwdDist += currSegFwd->length;
+	//				break;
+	//			default:
+	//				fwdDist += currSegFwd->length *currSegFwd->radius;
+	//				break;
+	//			}
+
+	//			currSegFwd = currSegFwd->next;
+	//			currSegBwd = currSegBwd->prev;
+	//			fwdLimit--;
+	//		}
+	//		return -1 * (bwdDist); //when they exceed forward segs limit (or equidistant if limit exceeds half the segments)
+	//	}
+	//}
 
 	CUDA_HOSTDEV
 		static double evaluateStateCost(State* s1, State* s2, double actionSimDeltaTime){
@@ -416,14 +415,14 @@ public:
 	//accounts for the position (linear)
 	CUDA_HOSTDEV
 		static void lineHeuristic(int neighboorDeltaPos, State* state, State* parent, double diffPathCost){ //only accounts the position
+		
+		float PI = 3.14159265358979323846f;
 
-		double PI = 3.14159265358979323846;
-
-		double diffX = fabs(state->getPos().x - parent->getPos().x);
-		double diffY = fabs(state->getPos().y - parent->getPos().y);
+		float diffX = fabs(state->getPos().x - parent->getPos().x);
+		float diffY = fabs(state->getPos().y - parent->getPos().y);
 
 
-		double angle = (atan2((state->getPos().y - parent->getPos().y), (state->getPos().x - parent->getPos().x)));
+		float angle = (atan2((state->getPos().y - parent->getPos().y), (state->getPos().x - parent->getPos().x)));
 
 
 		//try the opposite point
@@ -433,11 +432,11 @@ public:
 
 		angle = UtilityMethods::norm0_2PI(angle);
 
-		double r = neighboorDeltaPos;
+		int r = neighboorDeltaPos;
 
 		tPosd newPos = tPosd();
 
-		double auxCalc = (sqrt(diffX*diffX + diffY*diffY));
+		float auxCalc = (sqrt(diffX*diffX + diffY*diffY));
 
 
 
@@ -467,13 +466,13 @@ public:
 	CUDA_HOSTDEV
 		static void quadraticBezierHeuristic(double neighboorDeltaPos, double neighboorDeltaSpeed, State* state, State* parent, double diffPathCost){
 
-		double PI = 3.14159265358979323846;
+		float PI = 3.14159265358979323846f;
 
-		double curvePercent = 0.5;
+		float curvePercent = 0.5;
 
 		tPosd newPos = tPosd();
 
-		double angle = (atan2((state->getPos().y - parent->getPos().y), (state->getPos().x - parent->getPos().x)));
+		float angle = (atan2((state->getPos().y - parent->getPos().y), (state->getPos().x - parent->getPos().x)));
 
 		//try the opposite point
 		if (diffPathCost < 0){
@@ -482,8 +481,8 @@ public:
 
 		angle = UtilityMethods::norm0_2PI(angle);
 
-		double signedSpeedX = 0;
-		double signedSpeedY = 0;
+		float signedSpeedX = 0;
+		float signedSpeedY = 0;
 
 		if (angle >= 0 && angle <PI / 2){
 			signedSpeedX = parent->getPos().x > 0 ? state->getSpeed().x : -1 * state->getSpeed().x;
@@ -521,11 +520,11 @@ public:
 	CUDA_HOSTDEV
 		static void smoothBezierHeuristic(double neighboorDeltaPos, double neighboorDeltaSpeed, State* state, State* parent, double diffPathCost){
 
-		double PI = 3.14159265358979323846;
+		float PI = 3.14159265358979323846f;
 
-		double curvePercent = 0.6;
+		float curvePercent = 0.6f;
 		tPosd newPos = tPosd();
-		double angle = (atan2((state->getPos().y - parent->getPos().y), (state->getPos().x - parent->getPos().x)));
+		float angle = (atan2((state->getPos().y - parent->getPos().y), (state->getPos().x - parent->getPos().x)));
 
 		//try the opposite point
 		if (diffPathCost < 0){
@@ -534,11 +533,11 @@ public:
 
 		angle = UtilityMethods::norm0_2PI(angle);
 
-		double speedPorportion = 0.3;
+		float speedPorportion = 0.3f;
 
 
-		double diffX = UtilityMethods::mod(parent->getSpeed().x + state->getSpeed().x);
-		double diffY = UtilityMethods::mod(parent->getSpeed().y + state->getSpeed().y);
+		float diffX = UtilityMethods::mod(parent->getSpeed().x + state->getSpeed().x);
+		float diffY = UtilityMethods::mod(parent->getSpeed().y + state->getSpeed().y);
 
 		if (angle >= 0 && angle <PI / 2){
 			diffX = parent->getPos().x > 0 ? diffX : -1 * diffX;
@@ -578,13 +577,13 @@ public:
 	CUDA_HOSTDEV
 		static void cubicBezierHeuristic(double neighboorDeltaPos, double neighboorDeltaSpeed, State* state, State* parent, double diffPathCost){ //accounts for the position and speed
 
-		double PI = 3.14159265358979323846;
+		float PI = 3.14159265358979323846f;
 
-		double curvePercent = 0.5;
+		float curvePercent = 0.5;
 
 		tPosd newPos = tPosd();
 
-		double angle = (atan2((state->getPos().y - parent->getPos().y), (state->getPos().x - parent->getPos().x)));
+		float angle = (atan2((state->getPos().y - parent->getPos().y), (state->getPos().x - parent->getPos().x)));
 
 		//try the opposite point
 		if (diffPathCost < 0){
@@ -592,11 +591,11 @@ public:
 		}
 		angle = UtilityMethods::norm0_2PI(angle);
 
-		double signedSpeedX = 0;
-		double signedSpeedY = 0;
+		float signedSpeedX = 0;
+		float signedSpeedY = 0;
 
-		double signedAccelerationX = 0;
-		double signedAccelerationY = 0;
+		float signedAccelerationX = 0;
+		float signedAccelerationY = 0;
 
 		if (angle >= 0 && angle <PI / 2){
 			signedSpeedX = parent->getPos().x > 0 ? state->getSpeed().x : -1 * state->getSpeed().x;

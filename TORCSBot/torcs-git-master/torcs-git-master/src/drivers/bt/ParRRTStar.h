@@ -33,7 +33,7 @@ private: //vars
 	tTrackSeg* trackSegArray;
 	int nTrackSegs;
 	tCarElt car;
-	double nIterations;
+	int nIterations;
 	State* initialState;
 	int forwardSegments;
 
@@ -46,7 +46,7 @@ private: //methods
 
 
 public:
-	ParRRTStar(State initialState, double nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments);
+	ParRRTStar(State initialState, int nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments);
 	~ParRRTStar();
 
 	void updateCar(tCarElt car); //for multiple search calls

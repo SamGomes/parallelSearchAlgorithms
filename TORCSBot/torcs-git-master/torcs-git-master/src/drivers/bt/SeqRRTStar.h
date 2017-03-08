@@ -32,7 +32,7 @@ private: //vars
 	tTrackSeg* trackSegArray;
 	int nTrackSegs;
 	tCarElt car;
-	double nIterations;
+	int nIterations;
 	State* initialState;
 	int forwardSegments;
 	//Opponent *opponent;		// The array of opponents.
@@ -65,7 +65,7 @@ private: //methods
 	State* generateRRT();
 
 public:
-	SeqRRTStar(State initialState, double nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments);
+	SeqRRTStar(State initialState, int nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments);
 	~SeqRRTStar();
 
 	void updateCar(tCarElt car); //for multiple search calls
