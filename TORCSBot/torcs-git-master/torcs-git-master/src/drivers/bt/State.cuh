@@ -29,7 +29,8 @@ class State
 		tPosd speed;
 		tPosd acceleration;
 
-		State* parent;
+		int myGraphIndex; //index of this state
+		int parentGraphIndex; //index of the parent
 		
 
 		double pathCost; //path cost (comulative distance)
@@ -38,9 +39,11 @@ class State
 
 	public:
 
+		
+
+
 		CUDA_HOSTDEV State(); //for method initialization purposes only!
 
-		CUDA_HOSTDEV State(tPosd finalPos, tPosd finalSpeed, tPosd acceleration, State* parent);
 		CUDA_HOSTDEV State(tPosd finalPos, tPosd finalSpeed, tPosd acceleration);
 
 
@@ -61,8 +64,11 @@ class State
 		CUDA_HOSTDEV tTrackSeg getPosSeg();
 
 
-		CUDA_HOSTDEV void setParent(State* parent);
-		CUDA_HOSTDEV State* getParent();	
+		CUDA_HOSTDEV void setMyGraphIndex(int myGraphIndex);
+		CUDA_HOSTDEV int getMyGraphIndex();
+
+		CUDA_HOSTDEV void setParentGraphIndex(int parentGraphIndex);
+		CUDA_HOSTDEV int getParentGraphIndex();
 
 
 		CUDA_HOSTDEV void setPathCost(double pathCost);

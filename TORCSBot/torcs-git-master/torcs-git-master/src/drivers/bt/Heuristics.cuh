@@ -17,14 +17,13 @@ public:
 
 		tTrkLocPos p;
 		int 	segnotfound = 1;
-		tdble 	x, y;
+		double 	x, y;
 
 		int segArrayIterator = trackSegIterator;
 
 		tTrackSeg 	seg = segmentArray[segArrayIterator];
-		tdble 	theta, a2;
+		double 	theta, a2;
 		int 	depl = 0;
-		tdble	curWidth;
 		p.type = type;
 
 
@@ -32,12 +31,9 @@ public:
 
 			switch (seg.type) {
 				case 3:
-
-					//printf("aqui1");
-
 					/* rotation */
-					tdble sine, cosine;
-					tdble ts;
+					double sine, cosine;
+					double ts;
 					sine = sin(seg.angle[0]);
 					cosine = cos(seg.angle[0]);
 					x = X - seg.vertex[1].x;
@@ -63,16 +59,9 @@ public:
 					else {
 						segnotfound = 0;
 					}
-
-					//printf("aqui1fim");
-
 					break;
 
 				case 2:
-
-					//printf("aqui2");
-
-
 					/* rectangular to polar */
 					x = X - seg.center.x;
 					y = Y - seg.center.y;
@@ -97,15 +86,9 @@ public:
 					else {
 						segnotfound = 0;
 					}
-
-					//printf("aqui2fim");
-
 					break;
 
 				case 1:
-
-					//printf("aqui3");
-
 					/* rectangular to polar */
 					x = X - seg.center.x;
 					y = Y - seg.center.y;
@@ -130,7 +113,6 @@ public:
 					else {
 						segnotfound = 0;
 					}
-					//printf("aqui3fim");
 					break;
 			}
 			
@@ -140,8 +122,6 @@ public:
 		/* This is subject to change */
 		p.toMiddle = p.toRight - seg.width / 2.0;
 		p.toLeft = seg.width - p.toRight;
-
-		//printf("aqui4");
 
 		return p;
 

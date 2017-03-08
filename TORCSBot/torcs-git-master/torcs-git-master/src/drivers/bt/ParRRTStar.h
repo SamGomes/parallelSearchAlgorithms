@@ -37,10 +37,12 @@ private: //vars
 	State* initialState;
 	int forwardSegments;
 
+	State* graph;
+
 private: //methods
 
 
-	State* generateRandomStates(tTrackSeg* initialSeg, tTrackSeg* finalSeg);
+	State* generateSolution(tTrackSeg* initialSeg, tTrackSeg* finalSeg);
 
 
 public:

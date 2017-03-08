@@ -661,7 +661,7 @@ void drawSearchPoints(){
 		glColor3f(0, 0, 0);
 		drawCircle(*(graphG[i]), 0.5);
 		if (!graphG[i]->getInitialState()){
-			drawLine(graphG[i]->getPos().x, h - graphG[i]->getPos().y, graphG[i]->getParent()->getPos().x, h - graphG[i]->getParent()->getPos().y);
+			drawLine(graphG[i]->getPos().x, h - graphG[i]->getPos().y, graphG[graphG[i]->getParentGraphIndex()]->getPos().x, h - graphG[graphG[i]->getParentGraphIndex()]->getPos().y);
 		}
 
 	}

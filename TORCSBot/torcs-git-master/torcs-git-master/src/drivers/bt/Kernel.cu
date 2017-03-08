@@ -9,12 +9,12 @@ __global__ void warmStart(int* f)
 
 __global__ void CUDAProcedure(tTrackSeg* segArray, int nTrackSegs, State* graph, int stateIterator, 
 	double minXVertex, double maxXVertex, double minYVertex, double maxYVertex, 
-	int numThreads, double maxPathCost, State* bestPath,
+	int numThreads, double maxPathCost, State* bestState,
 	int forwardSegments, double neighborDeltaPos, double neighborDeltaSpeed, double actionSimDeltaTime){
 
 	int idx = threadIdx.x + blockDim.x*blockIdx.x;
 
-	int offset = stateIterator*numThreads + idx;
+	int offset = (stateIterator*numThreads + idx) + 1; //the initial state does not need this computation
 
 	curandState_t curandState;
 
@@ -92,8 +92,9 @@ __global__ void CUDAProcedure(tTrackSeg* segArray, int nTrackSegs, State* graph,
 		return;
 	}
 		
-	State* xNearest = Kernel::nearestNeighbor(&xRand, graph, 200, actionSimDeltaTime); //GRAPH ITERATOR FUCKUP!
-	xRand.setParent(xNearest);
+	State* xNearest = Kernel::nearestNeighbor(&xRand, graph, 2000, actionSimDeltaTime); //GRAPH ITERATOR FUCKUP!
+	xRand.setParentGraphIndex(xNearest->getMyGraphIndex());
+	printf("nearestIndex: %d\n", xNearest->getMyGraphIndex());
 
 	//------------------------------apply delta--------------------------------------
 
@@ -106,31 +107,17 @@ __global__ void CUDAProcedure(tTrackSeg* segArray, int nTrackSegs, State* graph,
 	//printf("parent out!:%f:%f\n", xRand.getPos().x, xRand.getParent()->getPos().x);
 
 	////the delta application didnt work
-	if (!ConstraintChecking::validPoint(segArray, nTrackSegs, &xRand, (double) -2.0)){
+	if (!ConstraintChecking::validPoint(segArray, nTrackSegs, &xRand, (double) -1.0)){
 		return;
 	}
 
 
-	//------------------------------push to graph--------------------------------------
-	graph[offset] = xRand;
-
-	//------------------------------check best path--------------------------------------
 	
 
-	if (xRand.getPathCost() >= maxPathCost){ //reevaluate best path
-
-		maxPathCost = xRand.getPathCost();
-		delete bestPath;
-		int pathIndex = 0;
-		State* initialNode = &graph[0];
-		while (!xRand.getInitialState()){
-			//printf("backtracking:%f\n", xRand.getPos().x);
-			bestPath[pathIndex] = xRand;
-			xRand = *xRand.getParent();
-			pathIndex++;
-		}
-		bestPath[pathIndex] = *initialNode;
-	}
+	//------------------------------push to graph--------------------------------------
+	xRand.setMyGraphIndex(offset);
+	graph[offset] = xRand;
+	
 
 
 	
@@ -198,24 +185,22 @@ void Kernel::gpuWarmup(){
 
 }
 
-State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs,State* initialState,
+State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialState,
 	double minXVertex, double maxXVertex, double minYVertex, double maxYVertex,
 	double numIterations,
 	int forwardSegments, double neighborDeltaPos, double neighborDeltaSpeed, double actionSimDeltaTime){
 
-	State* bestPath = new State[(unsigned int)numIterations];
-	State* auxBestPath;
+	State* auxBestState;
 
-	State* graph = new State[(unsigned int)numIterations];
+	State* graph = new State[(unsigned int)numIterations+1];
+	initialState->setMyGraphIndex(0);
 	graph[0] = *initialState;
 
 
 	State* auxGraph;
 	tTrackSeg* auxSegArray;
 
-
-	double maxPathCost = -1 * DBL_MAX; //force a change
-
+	double maxPathCost = 0; //just to mock (was not removed as it can still be needed)
 
 	int NUM_BLOCKS = 5;
 	int NUM_THREADS_EACH_BLOCK = 100;
@@ -236,7 +221,7 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs,State* initialStat
 
 	cudaMalloc(&auxGraph, sizeof(State)*(unsigned int)numIterations);
 	cudaMalloc(&auxSegArray, sizeof(tTrackSeg)*(unsigned int)nTrackSegs);
-	cudaMalloc(&auxBestPath, sizeof(State)*(unsigned int)numIterations);
+	cudaMalloc(&auxBestState, sizeof(State));
 
 	mallocTimer = clock() - mallocTimer;
 	std::cout << "malloc timer: " << double(mallocTimer) / (double) CLOCKS_PER_SEC << std::endl;
@@ -256,7 +241,7 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs,State* initialStat
 
 		CUDAProcedure << < NUM_BLOCKS, NUM_THREADS_EACH_BLOCK >> > (auxSegArray, nTrackSegs, auxGraph, i,
 			minXVertex, maxXVertex, minYVertex, maxYVertex,
-			NUM_THREADS, maxPathCost, auxBestPath,
+			NUM_THREADS, maxPathCost, auxBestState,
 			forwardSegments, neighborDeltaPos, neighborDeltaSpeed, actionSimDeltaTime);
 
 		kernelCallTimer = clock() - kernelCallTimer;
@@ -275,7 +260,7 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs,State* initialStat
 	memcpyTimer2 = clock();
 
 	cudaMemcpy(graph, auxGraph, sizeof(State)*(unsigned int)numIterations, cudaMemcpyDeviceToHost);
-	cudaMemcpy(bestPath, auxBestPath, sizeof(State)*(unsigned int)numIterations, cudaMemcpyDeviceToHost);
+	//cudaMemcpy(bestState, auxBestState, sizeof(State)*(unsigned int)numIterations, cudaMemcpyDeviceToHost);
 
 	memcpyTimer2 = clock() - memcpyTimer2;
 
@@ -284,15 +269,13 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs,State* initialStat
 
 	cudaFree(auxGraph);
 	cudaFree(auxSegArray);
-	cudaFree(auxBestPath);
+	cudaFree(auxBestState);
 
 	cudaDeviceSynchronize();
 	std::cout << "kernel error: " << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
 
 
+	
 
-
-	delete[] graph;
-
-	return bestPath;
+	return graph;
 }

@@ -38,7 +38,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort =
 
 __global__ void CUDAProcedure(tTrackSeg* segArray, int nTrackSegs, State* graph, int stateIterator,
 								double minXVertex, double maxXVertex, double minYVertex, double maxYVertex,
-								int numThreads, double maxPathCost, State* bestPath,
+								int numThreads, double maxPathCost, State* bestState,
 								int forwardSegments, double neighborDeltaPos, double neighborDeltaSpeed, double actionSimDeltaTime);
 
 class Kernel{
@@ -51,7 +51,7 @@ public:
 		double minCost = DBL_MAX;
 		for (int j = 0; j < graphIterator; j++){
 			State* i = &graph[j];
-			if (i == nullptr)
+			if (i->getMyGraphIndex() == -1 || i==state)  //still unassigned
 				continue;
 			double currCost = EvalFunctions::evaluateStateCost(i, state, actionSimDeltaTime);
 			if (minCost > currCost){
@@ -64,7 +64,7 @@ public:
 
 	static void gpuWarmup();
 
-	static	State* callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialState,
+	static	State*  callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialState,
 							double minXVertex, double maxXVertex, double minYVertex, double maxYVertex,
 							double numIterations,
 							int forwardSegments, double neighborDeltaPos, double neighborDeltaSpeed, double actionSimDeltaTime);

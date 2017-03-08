@@ -9,24 +9,11 @@ State::State(){
 	this->speed = tPosd();
 	this->pos = tPosd();
 	this->acceleration = tPosd();
-	this->parent = nullptr;
+	this->myGraphIndex = -1;
+	this->parentGraphIndex = -1;
 	this->pathCost = 0;
 	this->posSeg = tTrackSeg();
 }
-
-CUDA_HOSTDEV
-State::State(tPosd pos, tPosd speed, tPosd acceleration, State* parent){
-
-	this->initialState = false;
-
-	this->speed = speed;
-	this->pos = pos;
-	this->acceleration = acceleration;
-	this->parent = new State(*parent);
-	this->pathCost = 0;
-	this->posSeg = tTrackSeg();
-}
-
 
 
 CUDA_HOSTDEV
@@ -37,7 +24,8 @@ State::State(tPosd pos, tPosd speed, tPosd acceleration){
 	this->speed = speed;
 	this->pos = pos;
 	this->acceleration = acceleration;
-	this->parent = nullptr;
+	this->myGraphIndex = -1;
+	this->parentGraphIndex = -1;
 	this->pathCost = 0;
 	this->posSeg = tTrackSeg();
 }
@@ -83,17 +71,26 @@ void State::setCommands(tPosd pos, tPosd speed, tPosd acceleration){
 
 
 CUDA_HOSTDEV
-State* State::getParent(){
-	return this->parent;
+int State::getParentGraphIndex(){
+	return this->parentGraphIndex;
 }
 
 
 CUDA_HOSTDEV
-void State::setParent(State* parent){
-	this->parent = parent;
+void State::setParentGraphIndex(int parentGraphIndex){
+	this->parentGraphIndex = parentGraphIndex;
 }
 
 
+CUDA_HOSTDEV 
+void State::setMyGraphIndex(int myGraphIndex){
+	this->myGraphIndex = myGraphIndex;
+}
+
+CUDA_HOSTDEV 
+int State::getMyGraphIndex(){
+	return this->myGraphIndex;
+}
 
 
 CUDA_HOSTDEV
@@ -125,7 +122,7 @@ std::string State::toString(){
 	return
 	std::string("----------StateInfo:----------- \n") +
 	std::string("address: ") + std::to_string((int)this) + std::string("\n") +
-	std::string("parent: ") + std::to_string((int)this->parent) + std::string("\n") +
+	std::string("parentIndex: ") + std::to_string((int)this->parentGraphIndex) + std::string("\n") +
 	std::string("- - - - - - - - - -\n") +
 	std::string("pathCost: ") + std::to_string(this->pathCost) + std::string("\n") +
 	std::string("- - - - - - - - - -\n") +

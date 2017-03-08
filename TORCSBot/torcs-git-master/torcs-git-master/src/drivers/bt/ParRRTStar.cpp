@@ -22,11 +22,12 @@ ParRRTStar::ParRRTStar(State initialState, double nIterations, tCarElt car, tTra
 	this->car = car;
 }
 ParRRTStar::~ParRRTStar(){
+	delete[] graph; //allocated on the kernel
 }
 
 
 
-State* ParRRTStar::generateRandomStates(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
+State* ParRRTStar::generateSolution(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
 
 
 	double minXVertex = initialSeg->vertex[0].x;
@@ -68,26 +69,41 @@ void ParRRTStar::updateCar(tCarElt car){
 }
 std::vector<State*> ParRRTStar::search(){
 
-	State* bestPath = generateRandomStates(&currentSearchSeg, &forwardSearchSeg);
+	 graph = generateSolution(&currentSearchSeg, &forwardSearchSeg);
 
-	
-	/*for (int i = 0; i < nIterations; i++){
-		std::cout << "foundNode: " << graph[i]->toString() << std::endl;
-	}*/
-	
+	 State* bestState = nullptr;
+
+	 //-------------------- calc best node -----------------------------
+
+	 double maxPathCost = -1 * DBL_MAX; //force a change
+
+	 for (int i = 1; i < nIterations+1; i++){
+		 State xRand = graph[i];
+		 if (xRand.getMyGraphIndex() == -1)  //still unassigned
+			 continue;
+		 if (xRand.getPathCost() > maxPathCost){
+			 maxPathCost = xRand.getPathCost();
+			 bestState = &graph[i];
+		 }
+	 }
+
+	 if (bestState == nullptr){
+		 State* initialStateCopy = new State(*initialState);
+		 initialStateCopy->setInitialState(false);
+		 initialStateCopy->setParentGraphIndex(initialState->getMyGraphIndex());
+		 bestState = initialStateCopy;
+	 }
+	//---------------------- BACKTRACKING ----------------------------------
+
+
 	std::vector<State*> path;
-	
-	int pathItertor = 0;
-	//lets put a path copy in the Heap (calling new), separating the path from the graph eliminated after!
-	while (!bestPath[pathItertor].getInitialState()){
-		path.push_back(new State(bestPath[pathItertor]));
-		pathItertor++;
-	}
 
-	/*while (pathItertor<this->nIterations){
-		path.push_back(new State(bestPath[pathItertor]));
-		pathItertor++;
-	}*/
+
+	//lets put a path copy in the Heap (calling new), separating the path from the graph eliminated after!
+	while (!bestState->getInitialState()){
+		path.push_back(new State(*bestState));
+		bestState = &graph[bestState->getParentGraphIndex()];
+	}
 	return path;
 }
 std::vector<State*> ParRRTStar::getGraph(){

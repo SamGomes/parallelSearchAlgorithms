@@ -62,6 +62,7 @@ void SeqRRTStar::pushBackToGraph(State* element){
 		//graph limited exceeded, resize the graph
 		resizeGraph(graphSize + (unsigned int)nIterations);
 	}
+	element->setMyGraphIndex(graphIterator); //sets the element index
 	graph[graphIterator] = element;
 	graphIterator++;
 }
@@ -193,7 +194,7 @@ void SeqRRTStar::generateStates(double nIterations){
 
 
 		State* xNearest = nearestNeighbor(xRand, graph);
-		xRand->setParent(xNearest);
+		xRand->setParentGraphIndex(xNearest->getMyGraphIndex());
 
 		//--------------------------------------------------------------------------------------------------------------------------------
 
@@ -215,6 +216,7 @@ void SeqRRTStar::generateStates(double nIterations){
 			maxPathCost = xRand->getPathCost();
 			bestState = xRand;
 		}
+		
 		pushBackToGraph(xRand);
 
 	}
@@ -234,7 +236,7 @@ State* SeqRRTStar::generateRRT(){
 		if (bestState == nullptr){
 			State* initialStateCopy = new State(*initialState);
 			initialStateCopy->setInitialState(false);
-			initialStateCopy->setParent(initialState);
+			initialStateCopy->setParentGraphIndex(initialState->getMyGraphIndex());
 			bestState = initialStateCopy;
 
 			pushBackToGraph(initialStateCopy);
@@ -262,7 +264,7 @@ std::vector<State*> SeqRRTStar::search(){
 	//lets put a path copy in the Heap (calling new), separating the path from the graph eliminated after!
 	while (!bestState->getInitialState()){
 		path.push_back(new State(*bestState));
-		bestState = bestState->getParent();
+		bestState = graph[bestState->getParentGraphIndex()];
 	}
 
 	return path;
