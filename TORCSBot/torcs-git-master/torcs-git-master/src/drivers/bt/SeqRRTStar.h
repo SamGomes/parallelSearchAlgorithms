@@ -72,62 +72,9 @@ public:
 	std::vector<State*> search();
 
 	std::vector<State*>  getGraph(); //for debug purposes
+
+	char* getSearchName();
+
 };
 
 #endif
-
-
-//--------RECICLE BIN------------
-
-//std::vector<State*> SeqRRTStar::nearestNeighbors(State* state, std::vector<State*> graph){
-//	std::vector<State*> neighbors = std::vector<State*>();
-//
-//	State** auxGraph = graph;
-//
-//	int effectiveIterations = (auxGraph.size() -1 < NEIGHBOR_SAMPLE_BOUNDARY) ? (auxGraph.size() - 1) : NEIGHBOR_SAMPLE_BOUNDARY;
-//
-//	for (int i = 0; i < effectiveIterations; i++){
-//		int index = std::rand() % auxGraph.size();
-//		//remove initial node
-//		if (state->getInitialState()){
-//			auxGraph.erase(std::remove(auxGraph.begin(), auxGraph.end(), state), auxGraph.end());
-//		}
-//		State* currNearestNeighbor = nearestNeighbor(state, auxGraph);
-//		neighbors.push_back(currNearestNeighbor);
-//		auxGraph.erase(std::remove(auxGraph.begin(), auxGraph.end(), currNearestNeighbor), auxGraph.end());
-//	}
-//	return neighbors;
-//}
-
-//std::vector<State*> nearNeighbors = nearestNeighbors(xRand, graph);
-//State* xMin = xNearest;
-//
-//
-////check if there is a better path
-//for (State* xCurr : nearNeighbors){
-//	double cCurr = xCurr->getPathCost() + evaluatePathCost(xCurr, xRand);
-//	if (cCurr > cMin){
-//		xMin = xCurr;
-//		cMin = cCurr;
-//	}
-//}
-//
-//xRand->setParent(xMin);
-//xRand->setPathCost(cMin);
-//
-//
-////reorder path to create a better path (it is not working now as it creates loops)
-//for (State* xCurr : nearNeighbors){
-//	//except xMin
-//	if (xCurr == xMin || xRand->getParent() == NULL || xRand->getParent() != xCurr) 
-//		continue;
-//
-//	double cCurr = xRand->getDistance() + evaluateDistance(xCurr, xRand);
-//	if (cCurr > xCurr->getDistance()){
-//		xCurr->setParent(xRand);
-//		xCurr->setDistance(cCurr);
-//	}
-//
-//	//missing costs update to the path!
-//
-//}

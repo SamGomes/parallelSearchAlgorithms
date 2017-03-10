@@ -36,11 +36,14 @@
     <Filter Include="Source Files\PlanningModule\Utilities">
       <UniqueIdentifier>{abc51fbc-9e3b-43ac-bf95-c746856d7b53}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\PlanningModule\Search\Utilities">
+    <Filter Include="Header Files\PlanningModule\Utilities">
       <UniqueIdentifier>{aa2fb613-2ad7-4b45-9110-dcb80ccf9202}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\PlanningModule\Search\Heuristics">
+    <Filter Include="Header Files\PlanningModule\Heuristics">
       <UniqueIdentifier>{3d647828-90ff-43ed-a79a-45ef2f9ac418}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\PlanningModule\Heuristics">
+      <UniqueIdentifier>{98911466-7da8-409c-9c30-1f707457128b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -68,6 +71,12 @@
     <ClCompile Include="driver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="StatsLogWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Heuristics.cu">
+      <Filter>Source Files\PlanningModule\Heuristics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cardata.h">
@@ -89,19 +98,22 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="State.cuh">
-      <Filter>Header Files\PlanningModule\Search\Utilities</Filter>
+      <Filter>Header Files\PlanningModule\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Macros.h">
-      <Filter>Header Files\PlanningModule\Search\Utilities</Filter>
+      <Filter>Header Files\PlanningModule\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Kernel.cuh">
-      <Filter>Header Files\PlanningModule\Search\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Heuristics.cuh">
-      <Filter>Header Files\PlanningModule\Search\Heuristics</Filter>
+      <Filter>Header Files\PlanningModule\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="RRTStar.cuh">
       <Filter>Header Files\PlanningModule\Search\RRT</Filter>
+    </ClInclude>
+    <ClInclude Include="StatsLogWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Heuristics.cuh">
+      <Filter>Header Files\PlanningModule\Heuristics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

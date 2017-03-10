@@ -17,6 +17,9 @@ public:
 	virtual std::vector<State*> search() = 0;
 	virtual std::vector<State*> getGraph() = 0; //for debug purposes
 
+	virtual char* getSearchName() = 0; //for debug purposes
+
+
 };
 
 #endif;

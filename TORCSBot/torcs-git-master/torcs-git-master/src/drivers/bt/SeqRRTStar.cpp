@@ -186,11 +186,11 @@ void SeqRRTStar::generateStates(double nIterations){
 
 		xRand = randomState(&currentSearchSeg, &forwardSearchSeg);
 
-		//the generation didnt work
-		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, xRand, 0)){
-			delete xRand;
-			continue;
-		}
+		////the generation didnt work
+		//if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, xRand, 0)){
+		//	delete xRand;
+		//	continue;
+		//}
 
 
 		State* xNearest = nearestNeighbor(xRand, graph);
@@ -199,17 +199,16 @@ void SeqRRTStar::generateStates(double nIterations){
 		//--------------------------------------------------------------------------------------------------------------------------------
 
 		DeltaHeuristics::applyDelta(xRand, xNearest, trackSegArray, nTrackSegs, forwardSegments, NEIGHBOR_DELTA_POS, NEIGHBOR_DELTA_SPEED);
+		
+		//the normalization didnt work
+		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, xRand, 0)){
+			delete xRand;
+			continue;
+		}
 
 		double cMin = xNearest->getPathCost() + EvalFunctions::evaluatePathCost(trackSegArray, nTrackSegs, xNearest, xRand, this->forwardSegments); //redifine path cost for new coords
 		//double cMin = xNearest->getPathCost() + EvalFunctions::oldEvaluatePathCost( xNearest, xRand, this->forwardSegments);
 		xRand->setPathCost(cMin);
-
-
-		//the normalization didnt work
-		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, xRand, -1)){
-			delete xRand;
-			continue;
-		}
 
 
 		if (xRand->getPathCost() >= maxPathCost){
@@ -273,4 +272,9 @@ std::vector<State*> SeqRRTStar::getGraph(){
 	std::vector<State*>  graphVector = std::vector<State*>(graph, &graph[graphIterator - 1]);
 
 	return graphVector;
+}
+
+
+char* SeqRRTStar::getSearchName(){
+	return "SequentialRRT";
 }

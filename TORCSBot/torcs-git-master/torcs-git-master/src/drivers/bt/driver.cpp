@@ -480,7 +480,7 @@ void Driver::simplePlan() // algorithm test
 			State initialState = State(carDynCg.pos, carDynCg.vel, carDynCg.acc);
 			initialState.setPosSeg(*(car->pub.trkPos.seg));
 			initialState.setInitialState(true); //it is indeed the initial state!
-			RRTStarAux = new ParRRTStar(initialState, 2000, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
+			RRTStarAux = new SeqRRTStar(initialState, 20000, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
 			
 			clock_t searchTimer = clock();
 			
@@ -488,8 +488,15 @@ void Driver::simplePlan() // algorithm test
 			
 			searchTimer = clock() - searchTimer;
 			std::string stats = std::string("search time: ") + std::to_string(double(searchTimer) / (double)CLOCKS_PER_SEC);
-			//StatsLogWriter::writeToLog("SequentialRRTSearchTimes", stats);
-			StatsLogWriter::writeToLog("ParallelRRTSearchTimes", stats);
+			
+
+			if (strcmp(RRTStarAux->getSearchName(), "SequentialRRT")==0){
+				StatsLogWriter::writeToLog("SequentialRRTSearchTimes", stats);
+			}
+
+			if (strcmp(RRTStarAux->getSearchName(), "ParallelRRT") == 0){
+				StatsLogWriter::writeToLog("ParallelRRTSearchTimes", stats);
+			}
 
 			pathG = path;
 			graphG = RRTStarAux->getGraph();
@@ -498,11 +505,13 @@ void Driver::simplePlan() // algorithm test
 	}else{
 		if (passedPoint(currState)){
 			path.pop_back();
-			if (path.size()!=0)
+			if (path.size() != 0){
 				currState = path[path.size()-1];
-			
+				
+			}
 		}
 	}
+	currStateG = *currState;
 }
 
 State* firstState;

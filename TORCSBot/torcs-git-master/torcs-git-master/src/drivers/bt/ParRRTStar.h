@@ -41,7 +41,6 @@ private: //vars
 
 private: //methods
 
-
 	State* generateSolution(tTrackSeg* initialSeg, tTrackSeg* finalSeg);
 
 
@@ -53,6 +52,8 @@ public:
 	std::vector<State*> search();
 
 	std::vector<State*> getGraph(); //for debug purposes
+
+	char* getSearchName();
 };
 
 #endif

@@ -38,7 +38,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort =
 
 __global__ void CUDAProcedure(tTrackSeg* segArray, int nTrackSegs, State* graph, int stateIterator,
 								double minXVertex, double maxXVertex, double minYVertex, double maxYVertex,
-								int numThreads, double maxPathCost, State* bestState,
+								int numThreads, int graphSize, double maxPathCost, State* bestState,
 								int forwardSegments, double neighborDeltaPos, double neighborDeltaSpeed, double actionSimDeltaTime);
 
 class Kernel{
@@ -66,7 +66,7 @@ public:
 
 	static	State*  callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialState,
 							double minXVertex, double maxXVertex, double minYVertex, double maxYVertex,
-							int numIterations,
+							int numIterations, 
 							int forwardSegments, double neighborDeltaPos, double neighborDeltaSpeed, double actionSimDeltaTime);
 
 };

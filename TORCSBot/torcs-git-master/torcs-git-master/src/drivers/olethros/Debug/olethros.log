@@ -1,21 +1,6 @@
-﻿Build started 23/02/2017 18:56:19.
-     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\olethros\olethros.vcxproj" on node 5 (Rebuild target(s)).
-     1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I../../../export/include /I../../windows/include /I../../.. /Zi /nologo /W2 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D OLETHROS_EXPORTS /D _VC80_UPGRADE=0x0600 /D _WINDLL /D _MBCS /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Debug/" /Fd".\Debug/vc120.pdb" /FR".\Debug\\" /Gd /TP /analyze- /errorReport:prompt ..\..\libs\learning\MathFunctions.cpp cardata.cpp driver.cpp geometry.cpp learn.cpp olethros.cpp opponent.cpp pit.cpp spline.cpp strategy.cpp TrackData.cpp Trajectory.cpp
-         MathFunctions.cpp
-         cardata.cpp
-         driver.cpp
-         geometry.cpp
-         learn.cpp
-         olethros.cpp
-         opponent.cpp
-         pit.cpp
-         spline.cpp
-         strategy.cpp
-         TrackData.cpp
-         Trajectory.cpp
-         Generating Code...
-       Link:
+﻿Build started 08/03/2017 12:51:21.
+     1>Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\olethros\olethros.vcxproj" on node 6 (Build target(s)).
+     1>Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\Debug/olethros.dll" /INCREMENTAL:NO /NOLOGO /LIBPATH:../../../export/libd /LIBPATH:../../windows/lib tgf.lib robottools.lib sg_vs2008_32.lib ul_vs2008_32.lib learning.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:LIBCMT /DEF:".\olethros.def" /MANIFEST:NO /DEBUG /PDB:".\Debug/olethros.pdb" /MAP:".\Debug/olethros.map" /TLBID:1 /DYNAMICBASE:NO /IMPLIB:".\Debug/olethros.lib" /MACHINE:X86 /SAFESEH:NO /DLL .\Debug/MathFunctions.obj
          .\Debug/cardata.obj
          .\Debug/driver.obj
@@ -30,15 +15,13 @@
          .\Debug/Trajectory.obj
             Creating library .\Debug/olethros.lib and object .\Debug/olethros.exp
          olethros.vcxproj -> C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\olethros\.\Debug\olethros.dll
-       BscMake:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\bscmake.exe /nologo /o".\Debug/olethros.bsc" .\Debug\MathFunctions.sbr .\Debug\cardata.sbr .\Debug\driver.sbr .\Debug\geometry.sbr .\Debug\learn.sbr .\Debug\olethros.sbr .\Debug\opponent.sbr .\Debug\pit.sbr .\Debug\spline.sbr .\Debug\strategy.sbr .\Debug\TrackData.sbr .\Debug\Trajectory.sbr
        PostBuildEvent:
          copy C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\olethros\Debug\*.dll C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\runtimed\drivers\olethros
          :VCEnd
          C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\olethros\Debug\olethros.dll
                  1 file(s) copied.
-     1>Done Building Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\olethros\olethros.vcxproj" (Rebuild target(s)).
+     1>Done Building Project "C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\drivers\olethros\olethros.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:22.85
+Time Elapsed 00:00:02.41

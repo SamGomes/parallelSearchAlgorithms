@@ -1,0 +1,3 @@
+search time: 2.824000
+search time: 2.405000
+search time: 2.128000

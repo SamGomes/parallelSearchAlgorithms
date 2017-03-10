@@ -111,3 +111,8 @@ std::vector<State*> ParRRTStar::getGraph(){
 
 	return graphVector;
 }
+
+
+char* ParRRTStar::getSearchName(){
+	return "ParallelRRT";
+}

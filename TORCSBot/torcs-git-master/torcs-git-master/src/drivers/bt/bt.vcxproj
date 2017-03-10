@@ -118,10 +118,11 @@
     <CudaCompile>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
       <CudaRuntime>Shared</CudaRuntime>
-      <GenerateLineInfo>true</GenerateLineInfo>
+      <GenerateLineInfo>false</GenerateLineInfo>
       <Optimization>Od</Optimization>
       <Runtime>MTd</Runtime>
       <AdditionalOptions>-Xptxas="-v" %(AdditionalOptions)</AdditionalOptions>
+      <GPUDebugInfo>false</GPUDebugInfo>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -183,6 +184,7 @@
     <ClCompile Include="bt.cpp" />
     <ClCompile Include="cardata.cpp" />
     <ClCompile Include="driver.cpp" />
+    <ClCompile Include="Heuristics.cu" />
     <ClCompile Include="opponent.cpp" />
     <ClCompile Include="ParRRTStar.cpp" />
     <ClCompile Include="PIDController.cpp" />
@@ -190,6 +192,7 @@
     <ClCompile Include="SeqRRTStar.cpp">
       <FileType>CppCode</FileType>
     </ClCompile>
+    <ClCompile Include="StatsLogWriter.cpp" />
     <CudaCompile Include="State.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -207,6 +210,7 @@
     <ClInclude Include="RRTStar.cuh" />
     <ClInclude Include="SeqRRTStar.h" />
     <ClInclude Include="State.cuh" />
+    <ClInclude Include="StatsLogWriter.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\libs\robottools\robottools.vcxproj">

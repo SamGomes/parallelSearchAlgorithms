@@ -14,10 +14,10 @@ CudaToolkitCustomDir=
 Defines=;WIN32;_DEBUG;_WINDOWS;_USRDLL;BT_EXPORTS;DEBUG;DEBUG_OUT;_VC80_UPGRADE=0x0600;_WINDLL;_MBCS;
 Emulation=false
 FastMath=false
-GenerateLineInfo=true
+GenerateLineInfo=false
 GenerateRelocatableDeviceCode=true
-GPUDebugInfo=true
-GPUDebugInfo=true
+GPUDebugInfo=false
+GPUDebugInfo=false
 HostDebugInfo=true
 Include=;../../../export/include;../../windows/include;../../..;;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include
 Inputs=
