@@ -22,7 +22,12 @@ ParRRTStar::ParRRTStar(State initialState, int nIterations, tCarElt car, tTrackS
 	this->car = car;
 }
 ParRRTStar::~ParRRTStar(){
-	delete[] graph; //allocated on the kernel
+	if (this->initialState != nullptr){
+		delete initialState;
+	}
+	if (this->graph != nullptr){
+		delete[] graph; //allocated on the kernel
+	}
 }
 
 
@@ -108,7 +113,10 @@ std::vector<State*> ParRRTStar::search(){
 }
 std::vector<State*> ParRRTStar::getGraph(){
 	std::vector<State*>  graphVector; //= std::vector<State>(graph, &graph[graphIterator - 1]);
-
+	/*for (int i = 0; i < nIterations + 1; i++){
+		State xRand = graph[i];
+		graphVector.push_back(&graph[i]);
+	}*/
 	return graphVector;
 }
 

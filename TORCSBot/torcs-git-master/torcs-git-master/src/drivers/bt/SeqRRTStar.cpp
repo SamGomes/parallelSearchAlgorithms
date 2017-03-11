@@ -186,11 +186,11 @@ void SeqRRTStar::generateStates(double nIterations){
 
 		xRand = randomState(&currentSearchSeg, &forwardSearchSeg);
 
-		////the generation didnt work
-		//if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, xRand, 0)){
-		//	delete xRand;
-		//	continue;
-		//}
+		//the generation didnt work
+		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, xRand, 0)){
+			delete xRand;
+			continue;
+		}
 
 
 		State* xNearest = nearestNeighbor(xRand, graph);

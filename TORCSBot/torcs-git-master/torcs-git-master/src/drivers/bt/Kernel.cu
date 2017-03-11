@@ -87,10 +87,10 @@ __global__ void CUDAProcedure(tTrackSeg* segArray, int nTrackSegs, State* graph,
 
 	//------------------------------find parent--------------------------------------
 
-	////the generation didnt work
-	//if (!ConstraintChecking::validPoint(segArray, nTrackSegs, &xRand, 0)){
-	//	return;
-	//}
+	//the generation didnt work
+	if (!ConstraintChecking::validPoint(segArray, nTrackSegs, &xRand, 0)){
+		return;
+	}
 		
 	State* xNearest = Kernel::nearestNeighbor(&xRand, graph, graphSize, actionSimDeltaTime); //GRAPH ITERATOR FUCKUP!
 	xRand.setParentGraphIndex(xNearest->getMyGraphIndex());
@@ -203,8 +203,8 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialSta
 
 	double maxPathCost = 0; //just to mock (was not removed as it can still be needed)
 
-	int NUM_BLOCKS = 50;
-	int NUM_THREADS_EACH_BLOCK = 200;
+	int NUM_BLOCKS = 20;
+	int NUM_THREADS_EACH_BLOCK = 500;
 	int NUM_THREADS = NUM_BLOCKS*NUM_THREADS_EACH_BLOCK;
 
 	float iterationRatio = numIterations / NUM_THREADS;

@@ -392,25 +392,22 @@ public:
 		float posYDiff = (state->getPos().y - parent->getPos().y);
 
 		
-		
+		//try the opposite point
+		if (diffPathCost < 0){
+			posXDiff *= -1.0f;
+			posYDiff *= -1.0f;
 
+		}
 
 		float signedSpeedX = posXDiff > 0 ? state->getSpeed().x : -1 * state->getSpeed().x;
 		float signedSpeedY = posYDiff > 0 ? state->getSpeed().y : -1 * state->getSpeed().y;
 	
-		////try the opposite point
-		//if (diffPathCost < 0){
-		//	signedSpeedX *= -1.0f;
-		//	signedSpeedY *= -1.0f;
-
-		//}
-
 		newPos.x = ((1 - curvePercent)*(1 - curvePercent)) *parent->getPos().x +
 			2 * curvePercent*(1 - curvePercent)* (parent->getPos().x + 2.3*signedSpeedX) +
-			curvePercent*curvePercent* state->getPos().x;
+			curvePercent*curvePercent* (parent->getPos().x + posXDiff);
 		newPos.y = ((1 - curvePercent)*(1 - curvePercent)) *parent->getPos().y +
 			2 * curvePercent*(1 - curvePercent)* (parent->getPos().y + 2.3*signedSpeedY) +
-			curvePercent*curvePercent* state->getPos().y;
+			curvePercent*curvePercent* (parent->getPos().y + posYDiff);
 		newPos.z = state->getPos().z;
 
 		

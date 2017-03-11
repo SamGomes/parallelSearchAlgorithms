@@ -477,10 +477,16 @@ void Driver::simplePlan() // algorithm test
 	{
 		/*if (GetAsyncKeyState(VK_TAB) & 0x8000)
 		{*/
+			if (RRTStarAux != NULL) {
+				delete RRTStarAux;
+				RRTStarAux = NULL;
+				graphG.clear(); //to avoid having deleted members
+			}
+
 			State initialState = State(carDynCg.pos, carDynCg.vel, carDynCg.acc);
 			initialState.setPosSeg(*(car->pub.trkPos.seg));
 			initialState.setInitialState(true); //it is indeed the initial state!
-			RRTStarAux = new SeqRRTStar(initialState, 20000, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
+			RRTStarAux = new SeqRRTStar(initialState, 40000, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
 			
 			clock_t searchTimer = clock();
 			
@@ -669,6 +675,8 @@ void drawSearchPoints(){
 	for (int i = 0; i < (graphG).size(); i++){
 		glColor3f(0, 0, 0);
 		drawCircle(*(graphG[i]), 0.5);
+		if (graphG[i]->getMyGraphIndex() == -1)  //still unassigned
+			continue;
 		if (!graphG[i]->getInitialState()){
 			drawLine(graphG[i]->getPos().x, h - graphG[i]->getPos().y, graphG[graphG[i]->getParentGraphIndex()]->getPos().x, h - graphG[graphG[i]->getParentGraphIndex()]->getPos().y);
 		}
