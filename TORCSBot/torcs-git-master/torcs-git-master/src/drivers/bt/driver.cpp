@@ -489,6 +489,7 @@ void Driver::simplePlan() // algorithm test
 		initialState.setInitialState(true); //it is indeed the initial state!
 		RRTStarAux = new SeqRRTStar(initialState, 1000, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
 			
+
 		clock_t searchTimer = clock();
 			
 		path = RRTStarAux->search();
@@ -511,6 +512,7 @@ void Driver::simplePlan() // algorithm test
 		}
 
 		pathG = path;
+		std::reverse(pathG.begin(), pathG.end());
 		graphG = RRTStarAux->getGraph();
 
 		currState = path[path.size() - 1];
@@ -668,14 +670,15 @@ void drawSearchPoints(){
 	//}
 
 
+
 	for (int i = 1; i < pathG.size(); i++){
 		glColor3f(0, 0, 1);
 
 		tPosd pathGPrevMapPos = pathG[i - 1]->getPos();
 		tPosd pathGPrevMapSpeed = pathG[i - 1]->getSpeed();
 
-		tPosd pathGMapPos = pathG[i]->getPos();
-		tPosd pathGMapSpeed = pathG[i]->getSpeed();
+		tPosd pathGMapPos = pathG[i]->posRand;
+		tPosd pathGMapSpeed = pathG[i]->speedRand;
 
 
 		tPosd p0, p1, p2, p3;
@@ -687,8 +690,8 @@ void drawSearchPoints(){
 		p1.y = pathGPrevMapPos.y + pathGPrevMapSpeed.y;
 
 
-		p2.x = pathGMapPos.x + pathGMapSpeed.x;
-		p2.y = pathGMapPos.y + pathGMapSpeed.y;
+		p2.x = pathGMapPos.x - pathGMapSpeed.x;
+		p2.y = pathGMapPos.y - pathGMapSpeed.y;
 
 		p3 = pathGMapPos;
 
@@ -699,19 +702,20 @@ void drawSearchPoints(){
 
 		glColor3f(0.9, 0.5, 0);
 		drawCircle(p1, 0.5);
+		glColor3f(0.5, 0.9, 0);
 		drawCircle(p2, 0.5);
 	}
 
 	for (int i = 0; i < pathG.size(); i++){
-		if (pathG[i]->getPathCost() < currStateG.getPathCost()){
+		/*if (pathG[i]->getPathCost() < currStateG.getPathCost()){
 			glColor3f(0, 1, 1);
 			drawCircle(pathG[i]->getPos(), 2);
 		}
-		else{
+		else{*/
 
-			glColor3f(0, 0, 1);
+			glColor3f(0, 0+0.2*i, 1);
 			drawCircle(pathG[i]->getPos(), 2);
-		}
+		//}
 		std::string statePosSeg = std::to_string((double)pathG[i]->getPathCost());
 		printTextInWindow(pathG[i]->getPos().x + 10, (h -pathG[i]->getPos().y) + 10, (char*)statePosSeg.c_str());
 

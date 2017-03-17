@@ -39,7 +39,8 @@ class State
 
 	public:
 
-		
+		tPosd posRand;
+		tPosd speedRand;
 
 
 		CUDA_HOSTDEV State(); //for method initialization purposes only!

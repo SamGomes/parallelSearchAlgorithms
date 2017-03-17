@@ -96,7 +96,7 @@ class Driver {
 		int numberOfIterations = 400;
 		int numberOfRealIterations = numberOfIterations;
 		int numberOfPartialIterations = numberOfIterations / 20;
-		int SEARCH_RECALC_DELAY = 250; //10;
+		int SEARCH_RECALC_DELAY = 100; //10;
 		int SEARCH_SEGMENTS_AHEAD = 30;
 
 

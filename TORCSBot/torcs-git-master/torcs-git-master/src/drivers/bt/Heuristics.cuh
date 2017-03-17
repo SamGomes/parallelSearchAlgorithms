@@ -480,7 +480,7 @@ public:
 
 		float PI = 3.14159265358979323846f;
 
-		float curvePercent = 0.3f;
+		float curvePercent = 0.15f;
 
 		tPosd newPos = tPosd();
 		tPosd newSpeed = tPosd();
@@ -515,9 +515,9 @@ public:
 
 		newPos.z = state->getPos().z;
 
-		double speedAbsX = (parent->getSpeed().x - state->getSpeed().x)*curvePercent;
-		double speedAbsY = (parent->getSpeed().y - state->getSpeed().y)*curvePercent;
-
+		/*double speedAbsX = (state->getSpeed().x - parent->getSpeed().x)*curvePercent;
+		double speedAbsY = (state->getSpeed().y - parent->getSpeed().y)*curvePercent;
+*/
 		tPosd bezierTangent = tPosd();
 
 		//the new speed is given by the derivative of the cubic bezier formula
@@ -530,16 +530,17 @@ public:
 			(6 * curvePercent*curvePercentInverse) * (p2.y - p1.y) +
 			3 * curvePercent*curvePercent* (p3.y - p2.y);
 
-		double tangentAngle = atan2(bezierTangent.y, bezierTangent.x);
+		//double tangentAngle = atan2(bezierTangent.y, bezierTangent.x);
 
 
-		//changed to the tangent normal
-		tangentAngle += PI/2;
+		//tangentAngle += PI;
 
-		newSpeed.x = state->getSpeed().x + cos(tangentAngle)*speedAbsX;
-		newSpeed.y = state->getSpeed().y + sin(tangentAngle)*speedAbsY;
-		newSpeed.z = state->getSpeed().z;
+		newSpeed.x = bezierTangent.x;
+		newSpeed.y = bezierTangent.y;
+		newSpeed.z = parent->getSpeed().z;
 
+		state->posRand = state->getPos();
+		state->speedRand = state->getSpeed();
 
 		state->setCommands(newPos, newSpeed, state->getAcceleration());
 

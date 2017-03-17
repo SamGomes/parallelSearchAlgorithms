@@ -134,14 +134,27 @@ State* SeqRRTStar::randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
 	randPos.y = randPosY;
 	randPos.z = randPosZ;
 
+
+	double biasSteerX = initialState->getSpeed().x;
+	double biasSteerY = initialState->getSpeed().y;
+	double biasSteerZ = initialState->getSpeed().z;
+
+	double influence = 1.0f;
+	double mix = ((double)std::rand() / (double)RAND_MAX)*influence;
+
 	double randSpeedX = speedDelta * ((double)std::rand() / (double)RAND_MAX) + minSpeed;
 	double randSpeedY = speedDelta * ((double)std::rand() / (double)RAND_MAX) + minSpeed;
 	double randSpeedZ = speedDelta * ((double)std::rand() / (double)RAND_MAX) + minSpeed;
+
+	randSpeedX = randSpeedX*(1 - mix) + biasSteerX*mix;
+	randSpeedY = randSpeedY*(1 - mix) + biasSteerY*mix;
+	randSpeedZ = randSpeedZ*(1 - mix) + biasSteerZ*mix;
 
 	tPosd randSpeed;
 	randSpeed.x = randSpeedX;
 	randSpeed.y = randSpeedY;
 	randSpeed.z = randSpeedZ;
+
 
 	double randAccelX = accelDelta * ((double)std::rand() / (double)RAND_MAX) + minAccel;
 	double randAccelY = accelDelta * ((double)std::rand() / (double)RAND_MAX) + minAccel;
