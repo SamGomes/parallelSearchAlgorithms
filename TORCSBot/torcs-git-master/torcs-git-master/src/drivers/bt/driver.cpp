@@ -282,6 +282,8 @@ float Driver::getClutch()
 
 float Driver::getPedalsPos(tPosd targetSpeed)
 {
+
+
 	double targetSpeedMod = std::sqrt(targetSpeed.x*targetSpeed.x + targetSpeed.y*targetSpeed.y);
 	double carSpeedMod = std::sqrt(car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y);
 
@@ -452,7 +454,7 @@ void Driver::plan()
 
 }
 
-
+int oldLaps;
 void Driver::simplePlan() // algorithm test 
 {
 	
@@ -473,40 +475,44 @@ void Driver::simplePlan() // algorithm test
 	}
 	GLUTWindowRedisplay(); //update aux windows
 	
-	if (path.size() == 0)
+	if (path.size() == 0 || delay == SEARCH_RECALC_DELAY)
 	{
-		/*if (GetAsyncKeyState(VK_TAB) & 0x8000)
-		{*/
-			if (RRTStarAux != NULL) {
-				delete RRTStarAux;
-				RRTStarAux = NULL;
-				graphG.clear(); //to avoid having deleted members
-			}
+		delay = 0;
+		if (RRTStarAux != NULL) {
+			delete RRTStarAux;
+			RRTStarAux = NULL;
+			graphG.clear(); //to avoid having deleted members
+		}
 
-			State initialState = State(carDynCg.pos, carDynCg.vel, carDynCg.acc);
-			initialState.setPosSeg(*(car->pub.trkPos.seg));
-			initialState.setInitialState(true); //it is indeed the initial state!
-			RRTStarAux = new SeqRRTStar(initialState, 40000, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
+		State initialState = State(carDynCg.pos, carDynCg.vel, carDynCg.acc);
+		initialState.setPosSeg(*(car->pub.trkPos.seg));
+		initialState.setInitialState(true); //it is indeed the initial state!
+		RRTStarAux = new SeqRRTStar(initialState, 1000, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
 			
-			clock_t searchTimer = clock();
+		clock_t searchTimer = clock();
 			
-			path = RRTStarAux->search();
+		path = RRTStarAux->search();
 			
-			searchTimer = clock() - searchTimer;
-			std::string stats = std::string("search time: ") + std::to_string(double(searchTimer) / (double)CLOCKS_PER_SEC);
+		searchTimer = clock() - searchTimer;
+		std::string stats = std::string(" ") + std::to_string(double(searchTimer) / (double)CLOCKS_PER_SEC);
 			
+		if (car->race.remainingLaps != oldLaps){
+			stats += std::string("; lap time: ") + std::to_string(car->race.lastLapTime);
+			oldLaps = car->race.remainingLaps;
+		}
 
-			if (strcmp(RRTStarAux->getSearchName(), "SequentialRRT")==0){
-				StatsLogWriter::writeToLog("SequentialRRTSearchTimes", stats);
-			}
+		if (strcmp(RRTStarAux->getSearchName(), "SequentialRRT")==0){
+				
+			//StatsLogWriter::writeToLog("SequentialRRTSearchTimes", stats);
+		}
 
-			if (strcmp(RRTStarAux->getSearchName(), "ParallelRRT") == 0){
-				StatsLogWriter::writeToLog("ParallelRRTSearchTimes", stats);
-			}
+		if (strcmp(RRTStarAux->getSearchName(), "ParallelRRT") == 0){
+			//StatsLogWriter::writeToLog("ParallelRRTSearchTimes", stats);
+		}
 
-			pathG = path;
-			graphG = RRTStarAux->getGraph();
-		//}
+		pathG = path;
+		graphG = RRTStarAux->getGraph();
+
 		currState = path[path.size() - 1];
 	}else{
 		if (passedPoint(currState)){
@@ -517,7 +523,8 @@ void Driver::simplePlan() // algorithm test
 			}
 		}
 	}
-	currStateG = *currState;
+	//currStateG = *currState;
+	delay++;
 }
 
 State* firstState;
@@ -546,29 +553,6 @@ void Driver::humanControl(){
 	else{
 		car->_gearCmd = getGear();
 	}
-
-
-	
-	/*if (!CREATEDWINDOW){
-		firstState = new State(car->pub.DynGC.pos, car->pub.DynGC.vel, car->pub.DynGC.acc);
-		firstState->setPosSeg(*car->pub.trkPos.seg);
-		CREATEDWINDOW = true;
-	}*/
-	
-	/*currState = &State(car->pub.DynGC.pos, car->pub.DynGC.vel, car->pub.DynGC.acc);
-	std::cout << "currSegment: " << car->pub.trkPos.seg->name << "::" << car->pub.trkPos.seg->id << std::endl;
-	currState->setPosSeg(*car->pub.trkPos.seg);
-	printf("fritar a pipoca: %f\n", EvalFunctions::evaluatePathCost(trackSegArray, track->nseg, currState, firstState, 150));
-	printf("fritar a pipoca2: %f\n", UtilityMethods::SimpleRtTrackGlobal2Local(trackSegArray, car->pub.trkPos.seg->id, track->nseg, car->pub.DynGC.pos.x, car->pub.DynGC.pos.y, 0).toStart);
-	tTrkLocPos p;
-	RtTrackGlobal2Local(car->pub.trkPos.seg, car->pub.DynGC.pos.x, car->pub.DynGC.pos.y,&p, 0);
-	printf("fritar a pipoca3: %f\n", p.toStart*car->pub.trkPos.seg->radius);
-*/
-	/*if (!ConstraintChecking::validPoint(trackSegArray, track->nseg, currState, 0))
-		printf("asian driver!\n");
-	else
-		printf("normal!\n");*/
-
 }
 //--------------------------------------------------------------------
 // - Main update (calls the planning module and the control module). -
@@ -672,31 +656,61 @@ void drawSearchPoints(){
 
 	drawMap(0, 0, w, h);
 
-	for (int i = 0; i < (graphG).size(); i++){
-		glColor3f(0, 0, 0);
-		drawCircle(*(graphG[i]), 0.5);
-		if (graphG[i]->getMyGraphIndex() == -1)  //still unassigned
-			continue;
-		if (!graphG[i]->getInitialState()){
-			drawLine(graphG[i]->getPos().x, h - graphG[i]->getPos().y, graphG[graphG[i]->getParentGraphIndex()]->getPos().x, h - graphG[graphG[i]->getParentGraphIndex()]->getPos().y);
-		}
+	//for (int i = 0; i < (graphG).size(); i++){
+	//	glColor3f(0, 0, 0);
+	//	drawCircle(*(graphG[i]), 0.5);
+	//	if (graphG[i]->getMyGraphIndex() == -1)  //still unassigned
+	//		continue;
+	//	if (!graphG[i]->getInitialState()){
+	//		drawCubicBezier(graphG[i]->getPos().x, h - graphG[i]->getPos().y, graphG[graphG[i]->getParentGraphIndex()]->getPos().x, h - graphG[graphG[i]->getParentGraphIndex()]->getPos().y);
+	//	}
 
-	}
+	//}
 
-	glColor3f(0, 0, 1);
+
 	for (int i = 1; i < pathG.size(); i++){
-		drawLine(pathG[i]->getPos().x, h -pathG[i]->getPos().y, pathG[i - 1]->getPos().x, h - pathG[i - 1]->getPos().y);
+		glColor3f(0, 0, 1);
+
+		tPosd pathGPrevMapPos = pathG[i - 1]->getPos();
+		tPosd pathGPrevMapSpeed = pathG[i - 1]->getSpeed();
+
+		tPosd pathGMapPos = pathG[i]->getPos();
+		tPosd pathGMapSpeed = pathG[i]->getSpeed();
+
+
+		tPosd p0, p1, p2, p3;
+		p0 = pathGPrevMapPos;
+
+		
+
+		p1.x = pathGPrevMapPos.x + pathGPrevMapSpeed.x;
+		p1.y = pathGPrevMapPos.y + pathGPrevMapSpeed.y;
+
+
+		p2.x = pathGMapPos.x + pathGMapSpeed.x;
+		p2.y = pathGMapPos.y + pathGMapSpeed.y;
+
+		p3 = pathGMapPos;
+
+		/*tPosd aux = { pathGMapPos.x - pathGMapSpeed.x, pathGMapPos.y - pathGMapSpeed.y, 0 };
+		currStateG.setCommands(aux, currStateG.getSpeed(), currStateG.getAcceleration());*/
+		
+		drawCubicBezier(p0, p1, p2, p3, 10);
+
+		glColor3f(0.9, 0.5, 0);
+		drawCircle(p1, 0.5);
+		drawCircle(p2, 0.5);
 	}
 
 	for (int i = 0; i < pathG.size(); i++){
 		if (pathG[i]->getPathCost() < currStateG.getPathCost()){
 			glColor3f(0, 1, 1);
-			drawCircle(*pathG[i], 2);
+			drawCircle(pathG[i]->getPos(), 2);
 		}
 		else{
 
 			glColor3f(0, 0, 1);
-			drawCircle(*pathG[i], 2);
+			drawCircle(pathG[i]->getPos(), 2);
 		}
 		std::string statePosSeg = std::to_string((double)pathG[i]->getPathCost());
 		printTextInWindow(pathG[i]->getPos().x + 10, (h -pathG[i]->getPos().y) + 10, (char*)statePosSeg.c_str());
@@ -704,25 +718,23 @@ void drawSearchPoints(){
 	}
 
 	glColor3f(1, 0, 1);
-	drawCircle(currStateG, 3);
+	drawCircle(currStateG.getPos(), 3);
 
 	glColor3f(1, 0, 0);
 
-	drawCircle(State(carDynCg.pos, carDynCg.vel, carDynCg.acc), 2);
+	drawCircle(carDynCg.pos, 2);
 
 	glPopMatrix();
 	glutSwapBuffers();
 }
 
-void drawCircle(State point, GLfloat radius)
+void drawCircle(tPosd point, GLfloat radius)
 {
-
-
 	int w = glutGet(GLUT_WINDOW_WIDTH);
 	int h = glutGet(GLUT_WINDOW_HEIGHT);
 
-	int x = point.getPos().x;
-	int y = h - point.getPos().y;
+	int x = point.x;
+	int y = h - point.y;
 
 	int i;
 	int triangleAmount = 30;
@@ -740,13 +752,42 @@ void drawCircle(State point, GLfloat radius)
 	glEnd();
 }
 
-void drawLine(double initialPointX, double initialPointY, double finalPointX, double finalPointY)
+void drawCubicBezier(tPosd p0, tPosd p1, tPosd p2, tPosd p3, unsigned int numPartialPoints)
 {
+
+	int h = glutGet(GLUT_WINDOW_HEIGHT);
+
+	tPosd* partialBezierPoints = (tPosd*) malloc(sizeof(tPosd)*numPartialPoints+1);
+	double curvePercent=0.0;
+	int pointsIt=0;
+	while (curvePercent < 1.0){
+		partialBezierPoints[pointsIt].x = ((1 - curvePercent)*(1 - curvePercent)*(1 - curvePercent)) * p0.x +
+			3 * curvePercent* ((1 - curvePercent)*(1 - curvePercent)) * p1.x +
+			3 * curvePercent*curvePercent* (1 - curvePercent) * p2.x +
+			curvePercent*curvePercent*curvePercent* p3.x;
+
+		partialBezierPoints[pointsIt].y = ((1 - curvePercent)*(1 - curvePercent)*(1 - curvePercent)) *p0.y +
+			3 * curvePercent* ((1 - curvePercent)*(1 - curvePercent)) * p1.y +
+			3 * curvePercent*curvePercent* (1 - curvePercent) * p2.y +
+			curvePercent*curvePercent*curvePercent* p3.y;
+
+		curvePercent += (1.0 / numPartialPoints); 
+		pointsIt++;
+	}
+
+
 	glLineWidth(0.5);
-	glBegin(GL_LINES);
-		glVertex2f(initialPointX, initialPointY);
-		glVertex2f(finalPointX, finalPointY);
-	glEnd();
+	for (int i = 1; i < numPartialPoints+1; i++){
+		
+		glBegin(GL_LINES);
+			glVertex2f(partialBezierPoints[i].x, h - partialBezierPoints[i].y);
+			glVertex2f(partialBezierPoints[i - 1].x, h - partialBezierPoints[i - 1].y);
+		glEnd();
+	}
+
+
+	
+	//free(partialBezierPoints);
 
 }
 

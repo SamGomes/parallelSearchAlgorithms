@@ -113,7 +113,7 @@ State* SeqRRTStar::randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
 
 	double trackMapZDelta = trackMapZMax - trackMapZMin;
 
-	double minSpeed = 0;
+	double minSpeed = -60;
 	double maxSpeed = 60;
 
 	double speedDelta = maxSpeed - minSpeed;
@@ -187,7 +187,7 @@ void SeqRRTStar::generateStates(double nIterations){
 		xRand = randomState(&currentSearchSeg, &forwardSearchSeg);
 
 		//the generation didnt work
-		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, xRand, 0)){
+		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, xRand, -3)){
 			delete xRand;
 			continue;
 		}
@@ -201,7 +201,7 @@ void SeqRRTStar::generateStates(double nIterations){
 		DeltaHeuristics::applyDelta(xRand, xNearest, trackSegArray, nTrackSegs, forwardSegments, NEIGHBOR_DELTA_POS, NEIGHBOR_DELTA_SPEED);
 		
 		//the normalization didnt work
-		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, xRand, 0)){
+		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, xRand, 2)){
 			delete xRand;
 			continue;
 		}

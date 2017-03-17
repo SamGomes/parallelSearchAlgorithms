@@ -96,7 +96,7 @@ class Driver {
 		int numberOfIterations = 400;
 		int numberOfRealIterations = numberOfIterations;
 		int numberOfPartialIterations = numberOfIterations / 20;
-		int SEARCH_RECALC_DELAY = 10;
+		int SEARCH_RECALC_DELAY = 250; //10;
 		int SEARCH_SEGMENTS_AHEAD = 30;
 
 
@@ -159,8 +159,8 @@ class Driver {
 void drawSearchPoints();
 void drawCurrStats();
 void drawMap(GLfloat x, GLfloat y, int width, int height);
-void drawCircle(State point, GLfloat radius);
-void drawLine(double initialPointX, double initialPointY, double finalPointX, double finalPointY);
+void drawCircle(tPosd point, GLfloat radius);
+void drawCubicBezier(tPosd p0, tPosd p1, tPosd p2, tPosd p3, unsigned int numPartialPoints);
 GLuint loadTexture(const char * filename);
 void printTextInWindow(int x, int y, char *st);
 #endif

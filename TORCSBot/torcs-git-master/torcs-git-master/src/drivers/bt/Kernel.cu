@@ -42,7 +42,7 @@ __global__ void CUDAProcedure(tTrackSeg* segArray, int nTrackSegs, State* graph,
 
 	double trackMapZDelta = trackMapZMax - trackMapZMin;
 
-	double minSpeed = 0;
+	double minSpeed = -60;
 	double maxSpeed = 60;
 
 	double speedDelta = maxSpeed - minSpeed;
@@ -88,7 +88,7 @@ __global__ void CUDAProcedure(tTrackSeg* segArray, int nTrackSegs, State* graph,
 	//------------------------------find parent--------------------------------------
 
 	//the generation didnt work
-	if (!ConstraintChecking::validPoint(segArray, nTrackSegs, &xRand, 0)){
+	if (!ConstraintChecking::validPoint(segArray, nTrackSegs, &xRand, -2)){
 		return;
 	}
 		
@@ -103,7 +103,7 @@ __global__ void CUDAProcedure(tTrackSeg* segArray, int nTrackSegs, State* graph,
 	//printf("parent out!:%f:%f\n", xRand.getPos().x, xRand.getParent()->getPos().x);
 
 	////the delta application didnt work
-	if (!ConstraintChecking::validPoint(segArray, nTrackSegs, &xRand, 0)){
+	if (!ConstraintChecking::validPoint(segArray, nTrackSegs, &xRand, -3)){
 		return;
 	}
 
@@ -177,7 +177,7 @@ void Kernel::gpuWarmup(){
 	cudaFree(f);
 
 	cudaDeviceSynchronize();
-	std::cout << "kernel error: " << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
+	printf( "kernel error: %s" , cudaGetErrorString(cudaPeekAtLastError()) );
 
 
 	//-----------------------------------------------------------------------------------
@@ -203,13 +203,13 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialSta
 
 	double maxPathCost = 0; //just to mock (was not removed as it can still be needed)
 
-	int NUM_BLOCKS = 20;
+	int NUM_BLOCKS = 4;
 	int NUM_THREADS_EACH_BLOCK = 500;
 	int NUM_THREADS = NUM_BLOCKS*NUM_THREADS_EACH_BLOCK;
 
-	float iterationRatio = numIterations / NUM_THREADS;
+	float iterationRatio = (float) numIterations / (float) NUM_THREADS;
 	int numPartialIterations = 0;
-	numPartialIterations = ceilf(iterationRatio) == iterationRatio ? iterationRatio : iterationRatio + 1;
+	numPartialIterations = ceilf(iterationRatio) == iterationRatio ? (int) iterationRatio : (int) iterationRatio + 1;
 	
 	if (numPartialIterations == 0) numPartialIterations++;
 
@@ -227,7 +227,7 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialSta
 	cudaMalloc(&auxBestState, sizeof(State));
 
 	mallocTimer = clock() - mallocTimer;
-	std::cout << "malloc timer: " << double(mallocTimer) / (double) CLOCKS_PER_SEC << std::endl;
+	printf("malloc timer: %f \n" , double(mallocTimer) / (double)CLOCKS_PER_SEC );
 
 	memcpyTimer1 = clock();
 
@@ -236,7 +236,7 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialSta
 	cudaMemcpy(auxGraph, graph, sizeof(State)*(unsigned int)graphSize, cudaMemcpyHostToDevice);
 
 	memcpyTimer1 = clock() - memcpyTimer1;
-	std::cout << "memcpy1 timer: " << double(memcpyTimer1) / (double) CLOCKS_PER_SEC << std::endl;
+	//std::cout << "memcpy1 timer: " << double(memcpyTimer1) / (double) CLOCKS_PER_SEC << std::endl;
 
 	for (int i = 0; i < numPartialIterations; i++)
 	{
@@ -255,8 +255,8 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialSta
 
 		syncronizeTimer = clock() - syncronizeTimer;
 
-		std::cout << "kernell call timer: " << double(kernelCallTimer) / (double) CLOCKS_PER_SEC << std::endl;
-		std::cout << "sync timer: " << double(syncronizeTimer) / (double) CLOCKS_PER_SEC << std::endl;
+		printf("kernell call timer: %f \n", double(kernelCallTimer) / (double)CLOCKS_PER_SEC);
+		printf("sync timer: %f \n" ,double(syncronizeTimer) / (double)CLOCKS_PER_SEC );
 
 	}
 	
@@ -267,7 +267,7 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialSta
 
 	memcpyTimer2 = clock() - memcpyTimer2;
 
-	std::cout << "memcpyTimer2 timer: " << double(memcpyTimer2) / (double) CLOCKS_PER_SEC << std::endl;
+	printf("memcpyTimer2 timer: %f \n", double(memcpyTimer2) / (double)CLOCKS_PER_SEC);
 
 
 	cudaFree(auxGraph);
@@ -275,7 +275,7 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialSta
 	cudaFree(auxBestState);
 
 	cudaDeviceSynchronize();
-	std::cout << "kernel error: " << cudaGetErrorString(cudaPeekAtLastError()) << std::endl;
+	printf("kernel error: %s" , cudaGetErrorString(cudaPeekAtLastError()) );
 
 
 	
