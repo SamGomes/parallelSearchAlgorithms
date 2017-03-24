@@ -28,8 +28,8 @@ private: //vars
 	double numberOfEmergencyCycles = 20;
 
 	//initialization vars
-	tTrackSeg currentSearchSeg;
-	tTrackSeg forwardSearchSeg;
+	int currentSearchSegIndex;
+	int forwardSearchSegIndex;
 	tTrackSeg* trackSegArray;
 	int nTrackSegs;
 	tCarElt car;
@@ -41,17 +41,16 @@ private: //vars
 
 private: //methods
 
-	State* generateSolution(tTrackSeg* initialSeg, tTrackSeg* finalSeg);
+	State* generateSolution(int initialSegIndex, int finalSegIndex);
 
 
 public:
-	ParRRTStar(State initialState, int nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments);
+	ParRRTStar(State initialState, int nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments, double actionSimDeltaTime);
 	~ParRRTStar();
 
-	void updateCar(tCarElt car); //for multiple search calls
 	std::vector<State*> search();
 
-	std::vector<State*> getGraph(); //for debug purposes
+	std::vector<State> getGraph(); //for debug purposes
 
 	char* getSearchName();
 };

@@ -26,96 +26,107 @@ __global__ void CUDAProcedure(tTrackSeg* segArray, int nTrackSegs, State* graph,
 		&curandState);
 
 
-	double trackMapXMin = minXVertex;
-	double trackMapXMax = maxXVertex;
+	//iteration code ...
 
-	double trackMapXDelta = trackMapXMax - trackMapXMin;
+	//double trackMapXMin = minXVertex;
+	//double trackMapXMax = maxXVertex;
 
-	double trackMapYMin = minYVertex;
-	double trackMapYMax = maxYVertex;
+	//double trackMapXDelta = trackMapXMax - trackMapXMin;
 
-	double trackMapYDelta = trackMapYMax - trackMapYMin;
+	//double trackMapYMin = minYVertex;
+	//double trackMapYMax = maxYVertex;
 
-
-	double trackMapZMin = 0;
-	double trackMapZMax = 20;
-
-	double trackMapZDelta = trackMapZMax - trackMapZMin;
-
-	double minSpeed = -60;
-	double maxSpeed = 60;
-
-	double speedDelta = maxSpeed - minSpeed;
+	//double trackMapYDelta = trackMapYMax - trackMapYMin;
 
 
-	double minAccel = 0;
-	double maxAccel = 10;
+	//double trackMapZMin = 0;
+	//double trackMapZMax = 20;
 
-	double accelDelta = maxAccel - minAccel;
+	//double trackMapZDelta = trackMapZMax - trackMapZMin;
 
+	//double minSpeed = -50;
+	//double maxSpeed = 50;
 
-	//------------------------generate random point --------------------------------
-
-	double randPosX = trackMapXDelta * curand_uniform(&curandState) + trackMapXMin;
-	double randPosY = trackMapYDelta * curand_uniform(&curandState) + trackMapYMin;
-	double randPosZ = trackMapZDelta * curand_uniform(&curandState) + trackMapZMin;
-
-	tPosd randPos;
-	randPos.x = randPosX;
-	randPos.y = randPosY;
-	randPos.z = randPosZ;
-
-	double randSpeedX = speedDelta * curand_uniform(&curandState) + minSpeed;
-	double randSpeedY = speedDelta * curand_uniform(&curandState) + minSpeed;
-	double randSpeedZ = speedDelta * curand_uniform(&curandState) + minSpeed;
-
-	tPosd randSpeed;
-	randSpeed.x = randSpeedX;
-	randSpeed.y = randSpeedY;
-	randSpeed.z = randSpeedZ;
-
-	double randAccelX = accelDelta * curand_uniform(&curandState) + minAccel;
-	double randAccelY = accelDelta * curand_uniform(&curandState) + minAccel;
-	double randAccelZ = accelDelta * curand_uniform(&curandState) + minAccel;
-
-	tPosd randAccel;
-	randAccel.x = randAccelX;
-	randAccel.y = randAccelY;
-	randAccel.z = randAccelZ;
-
-	State xRand = State(randPos, randSpeed, randAccel);
-
-	//------------------------------find parent--------------------------------------
-
-	//the generation didnt work
-	if (!ConstraintChecking::validPoint(segArray, nTrackSegs, &xRand, -2)){
-		return;
-	}
-		
-	State* xNearest = Kernel::nearestNeighbor(&xRand, graph, graphSize, actionSimDeltaTime); //GRAPH ITERATOR FUCKUP!
-	xRand.setParentGraphIndex(xNearest->getMyGraphIndex());
-
-	//------------------------------apply delta--------------------------------------
-
-	DeltaHeuristics::applyDelta(&xRand, xNearest, segArray, nTrackSegs, forwardSegments, neighborDeltaPos, neighborDeltaSpeed);
+	//double speedDelta = maxSpeed - minSpeed;
 
 
-	//printf("parent out!:%f:%f\n", xRand.getPos().x, xRand.getParent()->getPos().x);
+	//double minAccel = 0;
+	//double maxAccel = 10;
 
-	////the delta application didnt work
-	if (!ConstraintChecking::validPoint(segArray, nTrackSegs, &xRand, -3)){
-		return;
-	}
+	//double accelDelta = maxAccel - minAccel;
 
 
-	double cMin = xNearest->getPathCost() + EvalFunctions::evaluatePathCost(segArray, nTrackSegs, xNearest, &xRand, forwardSegments); //redifine path cost for new coords
-	xRand.setPathCost(cMin);
+	////------------------------generate random point --------------------------------
 
-	
+	//double randPosX = trackMapXDelta * curand_uniform(&curandState) + trackMapXMin;
+	//double randPosY = trackMapYDelta * curand_uniform(&curandState) + trackMapYMin;
+	//double randPosZ = trackMapZDelta * curand_uniform(&curandState) + trackMapZMin;
 
-	//------------------------------push to graph--------------------------------------
-	xRand.setMyGraphIndex(offset);
-	graph[offset] = xRand;
+	//tPosd randPos;
+	//randPos.x = randPosX;
+	//randPos.y = randPosY;
+	//randPos.z = randPosZ;
+
+
+	//double biasSteerX = graph[0].getVelocity().x;
+	//double biasSteerY = graph[0].getVelocity().y;
+	//double biasSteerZ = graph[0].getVelocity().z;
+
+	//double influence = 1.0;
+	//double mix = curand_uniform(&curandState)*influence;
+
+	//double randSpeedX = speedDelta * curand_uniform(&curandState) + minSpeed;
+	//double randSpeedY = speedDelta * curand_uniform(&curandState) + minSpeed;
+	//double randSpeedZ = speedDelta * curand_uniform(&curandState) + minSpeed;
+
+	//randSpeedX = randSpeedX*(1 - mix) + biasSteerX*mix;
+	//randSpeedY = randSpeedY*(1 - mix) + biasSteerY*mix;
+	//randSpeedZ = randSpeedZ*(1 - mix) + biasSteerZ*mix;
+
+	//tPosd randSpeed;
+	//randSpeed.x = randSpeedX;
+	//randSpeed.y = randSpeedY;
+	//randSpeed.z = randSpeedZ;
+
+	//double randAccelX = accelDelta * curand_uniform(&curandState) + minAccel;
+	//double randAccelY = accelDelta * curand_uniform(&curandState) + minAccel;
+	//double randAccelZ = accelDelta * curand_uniform(&curandState) + minAccel;
+
+	//tPosd randAccel;
+	//randAccel.x = randAccelX;
+	//randAccel.y = randAccelY;
+	//randAccel.z = randAccelZ;
+
+	//State xRand = State(randPos, randSpeed, randAccel);
+
+	////------------------------------find parent--------------------------------------
+
+	////the generation didnt work
+	//if (!ConstraintChecking::validPoint(segArray, nTrackSegs, &xRand, -3)){
+	//	return;
+	//}
+	//	
+	//State* xNearest = Kernel::nearestNeighbor(&xRand, graph, graphSize, actionSimDeltaTime); //GRAPH ITERATOR FUCKUP!
+	//xRand.setParentGraphIndex(xNearest->getMyGraphIndex());
+
+	////------------------------------apply delta--------------------------------------
+
+	////printf("parent out!:%f:%f\n", xRand.getPos().x, xRand.getParent()->getPos().x);
+
+	////the delta appliance also checks the validity of the point 
+	//if (!DeltaFunctions::applyDelta(&xRand, xNearest, segArray, nTrackSegs, forwardSegments, neighborDeltaPos, neighborDeltaSpeed)){
+	//	return;
+	//}
+
+
+	//double cMin = xNearest->getCost() + EvalFunctions::evaluatePathCost(segArray, nTrackSegs, xNearest, &xRand, forwardSegments); //redifine path cost for new coords
+	//xRand.setCost(cMin);
+
+	//
+
+	////------------------------------push to graph--------------------------------------
+	//xRand.setMyGraphIndex(offset);
+	//graph[offset] = xRand;
 	
 
 
@@ -203,7 +214,7 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialSta
 
 	double maxPathCost = 0; //just to mock (was not removed as it can still be needed)
 
-	int NUM_BLOCKS = 4;
+	int NUM_BLOCKS = 5;
 	int NUM_THREADS_EACH_BLOCK = 500;
 	int NUM_THREADS = NUM_BLOCKS*NUM_THREADS_EACH_BLOCK;
 

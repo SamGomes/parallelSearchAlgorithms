@@ -13,9 +13,8 @@ class RRTStar
 public:
 	RRTStar(){}
 	virtual ~RRTStar(){}
-	virtual void updateCar(tCarElt car) = 0; //for multiple search calls
 	virtual std::vector<State*> search() = 0;
-	virtual std::vector<State*> getGraph() = 0; //for debug purposes
+	virtual std::vector<State> getGraph() = 0; //for debug purposes
 
 	virtual char* getSearchName() = 0; //for debug purposes
 

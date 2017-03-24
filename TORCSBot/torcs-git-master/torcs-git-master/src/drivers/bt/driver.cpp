@@ -35,7 +35,7 @@ int pathsauxWindow;
 int currStatsWindow;
 
 std::vector<State*> pathG;
-std::vector<State*> graphG;
+std::vector<State> graphG;
 bool CREATEDWINDOW = false;
 
 GLuint mapTextureID;
@@ -158,7 +158,7 @@ void Driver::newRace(tCarElt* car, tSituation *s)
 	//create PID controllers 
 
 	//split channels for the pedals
-	gasPidController = PIDController(0.015, 0.005, 0.001);
+	gasPidController = PIDController(0.015, 0.05, 0.001);
 	brakePidController = PIDController(0.030, 0.001, 0.001); //not used currently
 
 	//steerPidController = PIDController(2, 5, 0.0001); 
@@ -218,7 +218,7 @@ int Driver::getGear()
 		return 1;
 	}
 	float gr_up = car->_gearRatio[car->_gear + car->_gearOffset];
-	float omega = (car->_enginerpmRedLine*0.8) / gr_up;
+	float omega = (car->_enginerpmRedLine*1.0) / gr_up;
 	float wr = car->_wheelRadius(2);
 
 	if (omega*wr*SHIFT < car->_speed_x) {
@@ -226,7 +226,7 @@ int Driver::getGear()
 	}
 	else {
 		float gr_down = car->_gearRatio[car->_gear + car->_gearOffset - 1];
-		omega = (car->_enginerpmRedLine*0.7) / gr_down;
+		omega = (car->_enginerpmRedLine*1.0) / gr_down;
 		if (car->_gear > 1 && omega*wr*SHIFT > car->_speed_x + SHIFT_MARGIN) {
 			return car->_gear - 1;
 		}
@@ -321,7 +321,7 @@ bool Driver::control(){
 
 	//--------------- PEDAL CONTROL--------------------------
 
-	float pedalsOutput = getPedalsPos(currState->getSpeed());
+	float pedalsOutput = getPedalsPos(currState->getVelocity());
 	pedalsOutput > 0 ? car->_accelCmd = pedalsOutput : car->_brakeCmd = -1*pedalsOutput;
 
 	return true;
@@ -343,7 +343,7 @@ bool Driver::passedPoint(State* target){
 	tdble targetZ = target->getPos().z;
 
 
-	if (abs(carX - targetX) < 18 && abs(carY - targetY) < 18){
+	if (abs(carX - targetX) < 13 && abs(carY - targetY) < 13){
 		STUCKONAPOINT = true;
 		return true;
 	}
@@ -352,107 +352,6 @@ bool Driver::passedPoint(State* target){
 	return false;
 }
 
-void Driver::recalcPath(State initialState){
-	if (RRTStarAux != NULL) {
-		delete RRTStarAux;
-		RRTStarAux = NULL;
-		graphG.clear(); //to avoid having deleted members
-	}
-	RRTStarAux = new SeqRRTStar(initialState, numberOfPartialIterations, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
-}
-
-void Driver::plan()
-{
-	delay++;
-
-	//------------ producer --------------
-
-	//check if new recalc is needed
-	if (pathIterator<0 && LASTNODE){
-		LASTNODE = false;
-
-		//delocate current path before path recalc
-		for (int i = 0; i < path.size(); i++){
-			delete path[i];
-		}
-		path.clear();
-
-
-		if (pathAhead.size() == 0){
-			State initialState = State(car->pub.DynGCg.pos, car->pub.DynGCg.vel, car->pub.DynGCg.acc);
-			initialState.setPosSeg(*(car->pub.trkPos.seg));
-			initialState.setInitialState(true); //it is indeed the initial state!
-			recalcPath(initialState);
-			path = RRTStarAux->search();
-		}else{
-			path = pathAhead;
-		}
-
-
-		pathIterator = path.size() - 1;
-		pathG = path;
-		currState = path[pathIterator--];
-		
-		searchedPaths.clear(); //clear the paths deleted later
-
-		State* initialStateAux = path[0];
-		initialStateAux->setInitialState(true);
-		recalcPath(*initialStateAux);
-		pathAhead = RRTStarAux->search();
-
-	}else{
-		if (numberOfRealIterations == 0){
-			State initialStateAux = *pathAhead[0];
-			initialStateAux.setInitialState(true);
-			recalcPath(initialStateAux);
-
-			searchedPaths.clear();
-			searchedPaths = pathAhead;
-
-			numberOfRealIterations = numberOfIterations;
-		}
-	}
-
-	//------------ consumer --------------
-	if (this->passedPoint(currState)){
-		gasPidController.resetController();
-		brakePidController.resetController();
-		if (pathIterator<0){
-			LASTNODE = true;
-		}else{
-			currState = path[pathIterator--];
-		}
-	}
-
-	//avoid more than 1 lap in search still not implemented!
-	if (delay == SEARCH_RECALC_DELAY){
-		RRTStarAux->updateCar(*car);
-		pathAhead = RRTStarAux->search();
-		pathAhead.insert(pathAhead.end(), searchedPaths.begin(), searchedPaths.end());
-
-		graphG = RRTStarAux->getGraph(); //update aux window var
-
-		delay = 0;
-		numberOfRealIterations -= numberOfPartialIterations;
-	}
-	
-	//-------------------AUX WINDOW VARS-------------------------------------
-
-	carDynCg = car->pub.DynGCg;
-	trkMinX = track->min.x;
-	trkMinY = track->min.y; 
-	trkMaxX = track->max.x; 
-	trkMaxY = track->max.y; 
-	currStateG = *this->currState;
-
-	//init aux windows
-	if (!CREATEDWINDOW){
-		initGLUTWindow();
-		CREATEDWINDOW = true;
-	}
-	GLUTWindowRedisplay(); //update aux windows
-
-}
 
 int oldLaps;
 void Driver::simplePlan() // algorithm test 
@@ -484,12 +383,11 @@ void Driver::simplePlan() // algorithm test
 			graphG.clear(); //to avoid having deleted members
 		}
 
-		State initialState = State(carDynCg.pos, carDynCg.vel, carDynCg.acc);
-		initialState.setPosSeg(*(car->pub.trkPos.seg));
+		State initialState = State(carDynCg.pos, carDynCg.vel);
+		initialState.setLocalPos(car->pub.trkPos);
 		initialState.setInitialState(true); //it is indeed the initial state!
-		RRTStarAux = new SeqRRTStar(initialState, 1000, *car, trackSegArray, track->nseg, initialState.getPosSeg(), SEARCH_SEGMENTS_AHEAD);
+		RRTStarAux = new SeqRRTStar(initialState, 300, *car, trackSegArray, track->nseg, *initialState.getLocalPos().seg, SEARCH_SEGMENTS_AHEAD, ACTION_SIM_DELTA_TIME);
 			
-
 		clock_t searchTimer = clock();
 			
 		path = RRTStarAux->search();
@@ -512,8 +410,8 @@ void Driver::simplePlan() // algorithm test
 		}
 
 		pathG = path;
-		std::reverse(pathG.begin(), pathG.end());
 		graphG = RRTStarAux->getGraph();
+		std::reverse(pathG.begin(), pathG.end());
 
 		currState = path[path.size() - 1];
 	}else{
@@ -525,20 +423,43 @@ void Driver::simplePlan() // algorithm test
 			}
 		}
 	}
-	//currStateG = *currState;
+	currStateG = *currState;
 	delay++;
 }
 
-State* firstState;
+int flag = 0; State initialState; t3Dd* vertexes;
 void Driver::humanControl(){
+	
+	
+	
 	if (GetAsyncKeyState(VK_UP) & 0x8000)
 	{
 		car->_accelCmd = 0.5;
 	}
+	if (GetAsyncKeyState(VK_TAB) & 0x8000)
+	{
+		if (RRTStarAux != NULL) {
+			delete RRTStarAux;
+			RRTStarAux = NULL;
+			graphG.clear(); //to avoid having deleted members
+		}
 
+		initialState = State(carDynCg.pos, carDynCg.vel);
+		initialState.setLocalPos(car->pub.trkPos);
+		initialState.setInitialState(true); //it is indeed the initial state!
+		RRTStarAux = new SeqRRTStar(initialState, 1000, *car, trackSegArray, track->nseg, *initialState.getLocalPos().seg, SEARCH_SEGMENTS_AHEAD, ACTION_SIM_DELTA_TIME);
+		path = RRTStarAux->search();
+		pathG = path;
+		std::reverse(pathG.begin(), pathG.end());
+		graphG = RRTStarAux->getGraph();
+		
+		currState = &initialState;
+		flag = 1;
+
+	}
 	if (GetAsyncKeyState(VK_DOWN) & 0x8000)
 	{
-		car->_brakeCmd = 0.5;
+		car->_brakeCmd = 0.8;
 	}
 	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
 	{
@@ -551,10 +472,42 @@ void Driver::humanControl(){
 	if (GetAsyncKeyState(VK_SPACE) & 0x8000)
 	{
 		car->_gearCmd = -1;
+		UtilityMethods::getSegmentOf(tTrackSeg(), trackSegArray, track->nseg, car->pub.DynGC.pos.x, car->pub.DynGC.pos.y);
 	}
 	else{
 		car->_gearCmd = getGear();
 	}
+	
+	
+	//-------------------AUX WINDOW VARS-------------------------------------
+
+	//carDynCg = car->pub.DynGCg;
+	//trkMinX = track->min.x;
+	//trkMinY = track->min.y;
+	//trkMaxX = track->max.x;
+	//trkMaxY = track->max.y;
+	//currStateG = State();
+
+	////init aux windows
+	//if (!CREATEDWINDOW){
+	//	initGLUTWindow();
+	//	CREATEDWINDOW = true;
+	//}
+	//GLUTWindowRedisplay(); //update aux windows
+
+	vertexes = car->pub.trkPos.seg->vertex;
+
+	State carState;
+	carState.setPos(car->pub.DynGC.pos);
+	carState.setLocalPos(car->pub.trkPos);
+	if (flag==1)
+	/*printf("carSegId: %d\n", car->pub.trkPos.seg->id);
+
+	tTrackSeg seg;
+	UtilityMethods::getSegmentOf(seg, trackSegArray, track->nseg, car->pub.DynGC.pos.x, car->pub.DynGC.pos.y);*/
+
+	printf("getDistFromStart: %f\n", UtilityMethods::getTrackCenterDistanceBetween(trackSegArray, track->nseg, &carState,&initialState , 200));
+
 }
 //--------------------------------------------------------------------
 // - Main update (calls the planning module and the control module). -
@@ -573,10 +526,9 @@ void Driver::update(tSituation *s)
 		currentsimtime = s->currentTime;
 		cardata->update();
 
-		//this->plan();
 		this->simplePlan();
 		this->control();
-		//this->humanControl();
+		this->humanControl();
 	}
 }
 
@@ -629,10 +581,10 @@ void drawCurrStats(){
 	glOrtho(0.0f, w, h, 0.0f, 0.0f, 1.0f);
 	glPushMatrix();
 		glColor3f(0, 0, 0);
-		std::string currStateGVelInfo = std::string("speed: (") + std::to_string((double)currStateG.getSpeed().x) + std::string(" , ") + std::to_string((double)currStateG.getSpeed().y) + std::string(" ) \n");
-		std::string currStateGAccelInfo = std::string("acceleration: (") + std::to_string((double)currStateG.getAcceleration().x) + std::string(" , ") + std::to_string((double)currStateG.getAcceleration().y) + std::string(" ) \n");
+		std::string currStateGPosInfo = std::string("pos: (") + std::to_string((double)currStateG.getPos().x) + std::string(" , ") + std::to_string((double)currStateG.getPos().y) + std::string(" ) \n");
+		std::string currStateGVelInfo = std::string("speed: (") + std::to_string((double)currStateG.getVelocity().x) + std::string(" , ") + std::to_string((double)currStateG.getVelocity().y) + std::string(" ) \n");
 		printTextInWindow(24, 24, (char*)currStateGVelInfo.c_str());
-		printTextInWindow(24, 40, (char*)currStateGAccelInfo.c_str());
+		printTextInWindow(24, 40, (char*)currStateGPosInfo.c_str());
 	glPopMatrix();
 	glutSwapBuffers();
 }
@@ -658,65 +610,66 @@ void drawSearchPoints(){
 
 	drawMap(0, 0, w, h);
 
-	//for (int i = 0; i < (graphG).size(); i++){
-	//	glColor3f(0, 0, 0);
-	//	drawCircle(*(graphG[i]), 0.5);
-	//	if (graphG[i]->getMyGraphIndex() == -1)  //still unassigned
-	//		continue;
-	//	if (!graphG[i]->getInitialState()){
-	//		drawCubicBezier(graphG[i]->getPos().x, h - graphG[i]->getPos().y, graphG[graphG[i]->getParentGraphIndex()]->getPos().x, h - graphG[graphG[i]->getParentGraphIndex()]->getPos().y);
-	//	}
+	for (int i = 1; i < (graphG).size(); i++){
+		glColor3f(0, 0, 0);
+		drawCircle(graphG[i].getPos(), 0.5);
+		if (graphG[i].getMyGraphIndex() == -1)  //still unassigned
+			continue;
+		if (!graphG[i].getInitialState()){
+			drawLine(graphG[i].getPos().x, graphG[i].getPos().y, graphG[graphG[i].getParentGraphIndex()].getPos().x, graphG[graphG[i].getParentGraphIndex()].getPos().y);
+		}
+		
+	}
 
-	//}
-
+	/*glColor3f(1, 0.5, 0.5);
+	drawCircle({ vertexes[0].x, vertexes[0].y, vertexes[0].z }, 3);
+	drawCircle({ vertexes[1].x, vertexes[1].y, vertexes[1].z }, 3);
+	drawCircle({ vertexes[2].x, vertexes[2].y, vertexes[2].z }, 3);
+	drawCircle({ vertexes[3].x, vertexes[3].y, vertexes[3].z }, 3);*/
 
 
 	for (int i = 1; i < pathG.size(); i++){
-		glColor3f(0, 0, 1);
-
-		tPosd pathGPrevMapPos = pathG[i - 1]->getPos();
-		tPosd pathGPrevMapSpeed = pathG[i - 1]->getSpeed();
-
-		tPosd pathGMapPos = pathG[i]->posRand;
-		tPosd pathGMapSpeed = pathG[i]->speedRand;
-
-
-		tPosd p0, p1, p2, p3;
-		p0 = pathGPrevMapPos;
+		
+		
+		drawLine(pathG[i]->getPos().x, pathG[i]->getPos().y, pathG[i - 1]->getPos().x, pathG[i - 1]->getPos().y);
 
 		
+		//glColor3f(0, 0, 1);
 
-		p1.x = pathGPrevMapPos.x + pathGPrevMapSpeed.x;
-		p1.y = pathGPrevMapPos.y + pathGPrevMapSpeed.y;
+		//tPosd pathGPrevMapPos = pathG[i - 1]->getPos();
+		//tPosd pathGPrevMapSpeed = pathG[i - 1]->getVelocity();
+
+		//tPosd pathGMapPos = pathG[i]->posRand;
+		//tPosd pathGMapSpeed = pathG[i]->speedRand;
 
 
-		p2.x = pathGMapPos.x - pathGMapSpeed.x;
-		p2.y = pathGMapPos.y - pathGMapSpeed.y;
+		//tPosd p0, p1, p2, p3;
+		//p0 = pathGPrevMapPos;
 
-		p3 = pathGMapPos;
+		//
 
-		/*tPosd aux = { pathGMapPos.x - pathGMapSpeed.x, pathGMapPos.y - pathGMapSpeed.y, 0 };
-		currStateG.setCommands(aux, currStateG.getSpeed(), currStateG.getAcceleration());*/
-		
-		drawCubicBezier(p0, p1, p2, p3, 10);
+		//p1.x = pathGPrevMapPos.x + pathGPrevMapSpeed.x;
+		//p1.y = pathGPrevMapPos.y + pathGPrevMapSpeed.y;
 
-		glColor3f(0.9, 0.5, 0);
-		drawCircle(p1, 0.5);
-		glColor3f(0.5, 0.9, 0);
-		drawCircle(p2, 0.5);
+
+		//p2.x = pathGMapPos.x - pathGMapSpeed.x;
+		//p2.y = pathGMapPos.y - pathGMapSpeed.y;
+
+		//p3 = pathGMapPos;
+		//
+		//drawCubicBezier(p0, p1, p2, p3, 10);
+
+		//glColor3f(0.9, 0.5, 0);
+		//drawCircle(p1, 0.5);
+		///*glColor3f(0.5, 0.9, 0);
+		//drawCircle(p2, 0.5);*/
 	}
 
 	for (int i = 0; i < pathG.size(); i++){
-		/*if (pathG[i]->getPathCost() < currStateG.getPathCost()){
-			glColor3f(0, 1, 1);
-			drawCircle(pathG[i]->getPos(), 2);
-		}
-		else{*/
+		glColor3f(0, 0+0.2*i, 1);
+		drawCircle(pathG[i]->getPos(), 2);
 
-			glColor3f(0, 0+0.2*i, 1);
-			drawCircle(pathG[i]->getPos(), 2);
-		//}
-		std::string statePosSeg = std::to_string((double)pathG[i]->getPathCost());
+		std::string statePosSeg = std::to_string((double)pathG[i]->distFromStart);
 		printTextInWindow(pathG[i]->getPos().x + 10, (h -pathG[i]->getPos().y) + 10, (char*)statePosSeg.c_str());
 
 	}
@@ -794,6 +747,19 @@ void drawCubicBezier(tPosd p0, tPosd p1, tPosd p2, tPosd p3, unsigned int numPar
 	//free(partialBezierPoints);
 
 }
+
+void drawLine(double initialPointX, double initialPointY, double finalPointX, double finalPointY)
+{
+	int h = glutGet(GLUT_WINDOW_HEIGHT);
+
+	glLineWidth(0.5);
+	glBegin(GL_LINES);
+		glVertex2f(initialPointX,h - initialPointY);
+		glVertex2f(finalPointX,h - finalPointY);
+	glEnd();
+
+}
+
 
 void drawMap(GLfloat x, GLfloat y, int width, int height)
 {

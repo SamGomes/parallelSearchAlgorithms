@@ -22,30 +22,28 @@ class State
 
 		bool initialState; //to inform the backtrack;
 
-		tTrackSeg posSeg;
+		tTrkLocPos localPos;
 	
-
 		tPosd pos;
-		tPosd speed;
-		tPosd acceleration;
+		tPosd velocity;
 
 		int myGraphIndex; //index of this state
 		int parentGraphIndex; //index of the parent
 		
-
-		double pathCost; //path cost (comulative distance)
-
+		int levelFromStart; //number of nodes to initial node
 
 
 	public:
 
-		tPosd posRand;
-		tPosd speedRand;
+		double distFromStart=0;
+		tPosd posRand; //for debug purposes
+		tPosd speedRand; //for debug purposes
 
 
 		CUDA_HOSTDEV State(); //for method initialization purposes only!
 
-		CUDA_HOSTDEV State(tPosd finalPos, tPosd finalSpeed, tPosd acceleration);
+		CUDA_HOSTDEV State(tPosd velocity);
+		CUDA_HOSTDEV State(tPosd pos, tPosd velocity);
 
 
 		
@@ -55,14 +53,21 @@ class State
 
 
 
-		CUDA_HOSTDEV void setCommands(tPosd finalPos, tPosd finalSpeed, tPosd acceleration);
-		CUDA_HOSTDEV tPosd getSpeed();
+		CUDA_HOSTDEV void setCommands(tPosd pos, tPosd velocity);
+		CUDA_HOSTDEV void setPos(tPosd pos);
+		CUDA_HOSTDEV void setVelocity(tPosd velocity);
+		
+		CUDA_HOSTDEV void setLevelFromStart(int levelFromStart);
+
+
+		CUDA_HOSTDEV tPosd getVelocity();
 		CUDA_HOSTDEV tPosd getPos();
-		CUDA_HOSTDEV tPosd getAcceleration();
+
+		CUDA_HOSTDEV int getLevelFromStart();
 
 
-		CUDA_HOSTDEV void setPosSeg(tTrackSeg posSeg);
-		CUDA_HOSTDEV tTrackSeg getPosSeg();
+		CUDA_HOSTDEV void setLocalPos(tTrkLocPos localPos);
+		CUDA_HOSTDEV tTrkLocPos getLocalPos();
 
 
 		CUDA_HOSTDEV void setMyGraphIndex(int myGraphIndex);
@@ -71,9 +76,6 @@ class State
 		CUDA_HOSTDEV void setParentGraphIndex(int parentGraphIndex);
 		CUDA_HOSTDEV int getParentGraphIndex();
 
-
-		CUDA_HOSTDEV void setPathCost(double pathCost);
-		CUDA_HOSTDEV double getPathCost();
 
 		CUDA_HOST std::string toString();
 

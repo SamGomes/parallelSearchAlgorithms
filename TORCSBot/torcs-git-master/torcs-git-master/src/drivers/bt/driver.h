@@ -93,11 +93,9 @@ class Driver {
 
 		//search tunning vars
 		int delay = 0;
-		int numberOfIterations = 400;
-		int numberOfRealIterations = numberOfIterations;
-		int numberOfPartialIterations = numberOfIterations / 20;
-		int SEARCH_RECALC_DELAY = 100; //10;
+		int SEARCH_RECALC_DELAY = 150;
 		int SEARCH_SEGMENTS_AHEAD = 30;
+		double ACTION_SIM_DELTA_TIME = 1.5;
 
 
 		// Per robot global data.
@@ -124,7 +122,6 @@ class Driver {
 		//------------PLANNING MODULE-----------------
 		bool passedPoint(State* target); //true if its reached target
 		void recalcPath(State initialState);
-		void plan();
 		void simplePlan(); // algorithm test
 		void humanControl();
 		//--------------MAIN UPDATE-------------------
@@ -160,6 +157,7 @@ void drawSearchPoints();
 void drawCurrStats();
 void drawMap(GLfloat x, GLfloat y, int width, int height);
 void drawCircle(tPosd point, GLfloat radius);
+void drawLine(double initialPointX, double initialPointY, double finalPointX, double finalPointY);
 void drawCubicBezier(tPosd p0, tPosd p1, tPosd p2, tPosd p3, unsigned int numPartialPoints);
 GLuint loadTexture(const char * filename);
 void printTextInWindow(int x, int y, char *st);

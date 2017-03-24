@@ -1,18 +1,15 @@
 #include "ParRRTStar.h"
 
 
-ParRRTStar::ParRRTStar(State initialState, int nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments){
-
-	
-	this->currentSearchSeg = currentSearchSeg;
+ParRRTStar::ParRRTStar(State initialState, int nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments, double actionSimDeltaTime){
 
 	this->forwardSegments = forwardSegments;
 
 	int startSegIndex = (currentSearchSeg.id);
 	int finalIndex = (startSegIndex + forwardSegments) % (nTrackSegs - 1);
 
-	this->currentSearchSeg = trackSegArray[startSegIndex];
-	this->forwardSearchSeg = trackSegArray[finalIndex];
+	this->currentSearchSegIndex = startSegIndex;
+	this->forwardSearchSegIndex = finalIndex;
 
 	this->nIterations = nIterations;
 	this->initialState = new State(initialState);
@@ -32,31 +29,44 @@ ParRRTStar::~ParRRTStar(){
 
 
 
-State* ParRRTStar::generateSolution(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
+State* ParRRTStar::generateSolution(int initialSegIndex, int finalSegIndex){
 
 
-	double minXVertex = initialSeg->vertex[0].x;
-	double maxXVertex = finalSeg->vertex[0].x;
+	double minXVertex = DBL_MAX;
+	double maxXVertex = -1 * DBL_MAX;
 
-	double minYVertex = initialSeg->vertex[0].y;
-	double maxYVertex = finalSeg->vertex[0].y;
+	double minYVertex = DBL_MAX;
+	double maxYVertex = -1 * DBL_MAX;
 
-	for (int i = 1; i < 4; i++){
-		if (initialSeg->vertex[i].x < minXVertex){
-			minXVertex = initialSeg->vertex[i].x;
+	/*double minXVertex = trackSegArray[initialSegIndex].vertex[2].x;
+	double maxXVertex = trackSegArray[initialSegIndex].vertex[3].x;
+
+	double minYVertex = trackSegArray[initialSegIndex].vertex[1].y;
+	double maxYVertex = trackSegArray[initialSegIndex].vertex[0].y;*/
+
+	//check if there are lower and higher bounds
+	for (int i = initialSegIndex; i%nTrackSegs != finalSegIndex; i++){
+
+		tTrackSeg currSeg = trackSegArray[i%nTrackSegs];
+
+
+		if (currSeg.vertex[2].x < minXVertex){
+			minXVertex = currSeg.vertex[2].x;
 		}
 
-		if (initialSeg->vertex[i].y < minYVertex){
-			minYVertex = initialSeg->vertex[i].y;
+		if (currSeg.vertex[3].x > maxXVertex){
+			maxXVertex = currSeg.vertex[3].x;
 		}
 
-		if (finalSeg->vertex[i].x > maxXVertex){
-			maxXVertex = finalSeg->vertex[i].x;
+		if (currSeg.vertex[1].y < minYVertex){
+			minYVertex = currSeg.vertex[1].y;
 		}
 
-		if (finalSeg->vertex[i].y > maxYVertex){
-			maxYVertex = finalSeg->vertex[i].y;
+
+		if (currSeg.vertex[0].y > maxYVertex){
+			maxYVertex = currSeg.vertex[0].y;
 		}
+
 
 	}
 
@@ -69,26 +79,24 @@ State* ParRRTStar::generateSolution(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
 //----------------PUBLIC INTERFACE-----------------------------
 //-------------------------------------------------------------
 
-void ParRRTStar::updateCar(tCarElt car){
-	this->car = car;
-}
 std::vector<State*> ParRRTStar::search(){
 
-	 graph = generateSolution(&currentSearchSeg, &forwardSearchSeg);
+	 graph = generateSolution(currentSearchSegIndex, forwardSearchSegIndex);
 
 	 State* bestState = nullptr;
 
-	 //-------------------- calc best node -----------------------------
+	 //-------------------- CALC BEST NODE -----------------------------
 
-	 double maxPathCost = -1 * DBL_MAX; //force a change
+	 double maxCost = -1 * DBL_MAX; //force a change
 
 	 for (int i = 1; i < nIterations+1; i++){
 		 State xRand = graph[i];
-		 if (xRand.getMyGraphIndex() == -1)  //still unassigned
+		 if (xRand.getMyGraphIndex() == -1)  //xRand is still unassigned
 			 continue;
-		 if (xRand.getPathCost() > maxPathCost){
-			 maxPathCost = xRand.getPathCost();
-			 bestState = &graph[i];
+		 double distFromStart = UtilityMethods::SimpleGetDistanceFromStart(xRand.getLocalPos());
+		 if (distFromStart > maxCost){
+			 maxCost = distFromStart;
+			 bestState = &xRand;
 		 }
 	 }
 
@@ -103,20 +111,18 @@ std::vector<State*> ParRRTStar::search(){
 
 	std::vector<State*> path;
 
-
 	//lets put a path copy in the Heap (calling new), separating the path from the graph eliminated after!
 	while (!bestState->getInitialState()){
 		path.push_back(new State(*bestState));
 		bestState = &graph[bestState->getParentGraphIndex()];
 	}
 	return path;
+
 }
-std::vector<State*> ParRRTStar::getGraph(){
-	std::vector<State*>  graphVector; //= std::vector<State>(graph, &graph[graphIterator - 1]);
-	/*for (int i = 0; i < nIterations + 1; i++){
-		State xRand = graph[i];
-		graphVector.push_back(&graph[i]);
-	}*/
+
+
+std::vector<State> ParRRTStar::getGraph(){
+	std::vector<State>  graphVector = std::vector<State>(graph, &graph[nIterations - 1]);
 	return graphVector;
 }
 

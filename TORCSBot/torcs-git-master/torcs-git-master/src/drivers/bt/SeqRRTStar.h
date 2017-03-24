@@ -23,25 +23,25 @@ private: //vars
 	int NEIGHBOR_SAMPLE_BOUNDARY = 4;
 	int NEIGHBOR_DELTA_POS = 30;
 	int NEIGHBOR_DELTA_SPEED = 10;
-	double actionSimDeltaTime = 0.02 * 100; // assuming 100 game ticks action simulation
+	double actionSimDeltaTime; // assuming 100 game ticks action simulation
 	double numberOfEmergencyCycles = 20;
 
 	//initialization vars
-	tTrackSeg currentSearchSeg;
-	tTrackSeg forwardSearchSeg;
+	int startSegIndex;
+	int finalIndex;
 	tTrackSeg* trackSegArray;
 	int nTrackSegs;
 	tCarElt car;
 	int nIterations;
-	State* initialState;
+	State initialState;
 	int forwardSegments;
 	//Opponent *opponent;		// The array of opponents.
 
 	//aux vars
-	double maxPathCost;
-	State* bestState;
+	double maxCost;
+	State bestState;
 
-	State** graph; // the RRT itself!
+	State* graph; // the RRT itself!
 	unsigned int graphSize;
 	int graphIterator;
 
@@ -51,27 +51,23 @@ private: //methods
 	void initGraph();
 	void resizeGraph(unsigned int newSize);
 	void deleteGraph();
-	void pushBackToGraph(State* element);
-
-	State* randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg);
+	void pushBackToGraph(State &element);
 
 	//selection operations
-	State* nearestNeighbor(State* state, State** graph);
-	//State** nearestNeighbors(State* state, std::vector<State*> graph);
+	State nearestNeighbor(State state, State* graph);
 
 
 	//main loop procedure
 	void generateStates(double nIterations);
-	State* generateRRT();
+	State generateRRT();
 
 public:
-	SeqRRTStar(State initialState, int nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments);
+	SeqRRTStar(State initialState, int nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments, double actionSimDeltaTime);
 	~SeqRRTStar();
 
-	void updateCar(tCarElt car); //for multiple search calls
 	std::vector<State*> search();
 
-	std::vector<State*>  getGraph(); //for debug purposes
+	std::vector<State>  getGraph(); //for debug purposes
 
 	char* getSearchName();
 

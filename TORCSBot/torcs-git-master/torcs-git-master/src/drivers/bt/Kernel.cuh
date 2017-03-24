@@ -53,7 +53,7 @@ public:
 			State* i = &graph[j];
 			if (i->getMyGraphIndex() == -1 || i==state)  //still unassigned
 				continue;
-			double currCost = EvalFunctions::evaluateStateCost(i, state, actionSimDeltaTime);
+			double currCost = 0;
 			if (minCost > currCost){
 				minCost = currCost;
 				closestState = i;

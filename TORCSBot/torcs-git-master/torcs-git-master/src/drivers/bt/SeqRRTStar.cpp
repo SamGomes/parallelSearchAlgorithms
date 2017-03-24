@@ -1,21 +1,21 @@
 #include "SeqRRTStar.h"
 
 
-SeqRRTStar::SeqRRTStar(State initialState, int nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments){
+SeqRRTStar::SeqRRTStar(State initialState, int nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments, double actionSimDeltaTime){
 
-	this->maxPathCost = -1 * DBL_MAX; //force a change
-	this->bestState = nullptr;
+	this->maxCost = -1 * DBL_MAX; //force a change
+	this->bestState = State();
 
 	this->forwardSegments = forwardSegments;
 
 	int startSegIndex = (currentSearchSeg.id);
 	int finalIndex = (startSegIndex + forwardSegments) % (nTrackSegs - 1);
 
-	this->currentSearchSeg = trackSegArray[startSegIndex];
-	this->forwardSearchSeg = trackSegArray[finalIndex];
+	this->startSegIndex = startSegIndex;
+	this->finalIndex = finalIndex;
 
 	this->nIterations = nIterations;
-	this->initialState = new State(initialState);
+	this->initialState = initialState;
 
 	initGraph();
 	pushBackToGraph(this->initialState);
@@ -24,6 +24,8 @@ SeqRRTStar::SeqRRTStar(State initialState, int nIterations, tCarElt car, tTrackS
 	this->trackSegArray = trackSegArray;
 	this->nTrackSegs = nTrackSegs;
 	this->car = car;
+
+	this->actionSimDeltaTime = actionSimDeltaTime;
 
 }
 SeqRRTStar::~SeqRRTStar(){
@@ -34,12 +36,12 @@ SeqRRTStar::~SeqRRTStar(){
 
 void SeqRRTStar::initGraph(){
 	graphSize = (unsigned int)nIterations + 1;
-	graph = new State*[graphSize]; //upper bound removes useless resizes
+	graph = new State[graphSize]; //upper bound removes useless resizes
 	graphIterator = 0;
 }
 
 void SeqRRTStar::resizeGraph(unsigned int newSize){
-	State** newGraph = new State*[newSize];
+	State* newGraph = new State[newSize];
 	graphSize = newSize;
 
 	for (int i = 0; i < graphIterator; i++){
@@ -49,137 +51,106 @@ void SeqRRTStar::resizeGraph(unsigned int newSize){
 	graph = newGraph;
 }
 void SeqRRTStar::deleteGraph(){
-	for (int i = 0; i < graphIterator; i++){
-		delete graph[i];
-	}
-
 	delete[] graph;
 }
 
 
-void SeqRRTStar::pushBackToGraph(State* element){
+void SeqRRTStar::pushBackToGraph(State &element){
 	if (graphIterator == graphSize){
 		//graph limited exceeded, resize the graph
 		resizeGraph(graphSize + (unsigned int)nIterations);
 	}
-	element->setMyGraphIndex(graphIterator); //sets the element index
+	element.setMyGraphIndex(graphIterator); //sets the element index
 	graph[graphIterator] = element;
 	graphIterator++;
 }
 
-State* SeqRRTStar::randomState(tTrackSeg* initialSeg, tTrackSeg* finalSeg){
 
+/*2nd approach (uncomment to activate)*/ 
+//the nearest point is the one in which its finalPos prediction ajusts to the current pos and random speed
+State SeqRRTStar::nearestNeighbor(State state, State* graph){
 
-	double minXVertex = initialSeg->vertex[0].x;
-	double maxXVertex = finalSeg->vertex[0].x;
+	State closestState;
+	double minDist = DBL_MAX;
+	for (int i = 0; i < graphIterator; i++){
 
-	double minYVertex = initialSeg->vertex[0].y;
-	double maxYVertex = finalSeg->vertex[0].y;
-
-	for (int i = 1; i < 4; i++){
-		if (initialSeg->vertex[i].x < minXVertex){
-			minXVertex = initialSeg->vertex[i].x;
-		}
-
-		if (initialSeg->vertex[i].y < minYVertex){
-			minYVertex = initialSeg->vertex[i].y;
-		}
-
-		if (finalSeg->vertex[i].x > maxXVertex){
-			maxXVertex = finalSeg->vertex[i].x;
-		}
-
-		if (finalSeg->vertex[i].y > maxYVertex){
-			maxYVertex = finalSeg->vertex[i].y;
+		double dist = UtilityMethods::getEuclideanQuadranceBetween(state.getVelocity(), graph[i].getVelocity());
+		if (dist < minDist){
+			minDist = dist;
+			closestState = graph[i];
 		}
 
 	}
 
 
 
-	double trackMapXMin = minXVertex;
-	double trackMapXMax = maxXVertex;
+	return closestState;
 
-	double trackMapXDelta = trackMapXMax - trackMapXMin;
-
-	double trackMapYMin = minYVertex;
-	double trackMapYMax = maxYVertex;
-
-	double trackMapYDelta = trackMapYMax - trackMapYMin;
-
-
-	double trackMapZMin = 0;
-	double trackMapZMax = 20;
-
-	double trackMapZDelta = trackMapZMax - trackMapZMin;
-
-	double minSpeed = -60;
-	double maxSpeed = 60;
-
-	double speedDelta = maxSpeed - minSpeed;
-
-
-	double minAccel = 0;
-	double maxAccel = 10;
-
-	double accelDelta = maxAccel - minAccel;
-
-
-	double randPosX = trackMapXDelta * ((double)std::rand() / (double)RAND_MAX) + trackMapXMin;
-	double randPosY = trackMapYDelta * ((double)std::rand() / (double)RAND_MAX) + trackMapYMin;
-	double randPosZ = trackMapZDelta * ((double)std::rand() / (double)RAND_MAX) + trackMapZMin;
-
-	tPosd randPos;
-	randPos.x = randPosX;
-	randPos.y = randPosY;
-	randPos.z = randPosZ;
-
-
-	double biasSteerX = initialState->getSpeed().x;
-	double biasSteerY = initialState->getSpeed().y;
-	double biasSteerZ = initialState->getSpeed().z;
-
-	double influence = 1.0f;
-	double mix = ((double)std::rand() / (double)RAND_MAX)*influence;
-
-	double randSpeedX = speedDelta * ((double)std::rand() / (double)RAND_MAX) + minSpeed;
-	double randSpeedY = speedDelta * ((double)std::rand() / (double)RAND_MAX) + minSpeed;
-	double randSpeedZ = speedDelta * ((double)std::rand() / (double)RAND_MAX) + minSpeed;
-
-	randSpeedX = randSpeedX*(1 - mix) + biasSteerX*mix;
-	randSpeedY = randSpeedY*(1 - mix) + biasSteerY*mix;
-	randSpeedZ = randSpeedZ*(1 - mix) + biasSteerZ*mix;
-
-	tPosd randSpeed;
-	randSpeed.x = randSpeedX;
-	randSpeed.y = randSpeedY;
-	randSpeed.z = randSpeedZ;
-
-
-	double randAccelX = accelDelta * ((double)std::rand() / (double)RAND_MAX) + minAccel;
-	double randAccelY = accelDelta * ((double)std::rand() / (double)RAND_MAX) + minAccel;
-	double randAccelZ = accelDelta * ((double)std::rand() / (double)RAND_MAX) + minAccel;
-
-	tPosd randAccel;
-	randAccel.x = randAccelX;
-	randAccel.y = randAccelY;
-	randAccel.z = randAccelZ;
-
-
-
-	return new State(randPos, randSpeed, randAccel);
 }
 
-//the nearest point is the one in which its finalPos prediction ajusts to the current pos
-State* SeqRRTStar::nearestNeighbor(State* state, State** graph){
 
-	State* closestState = initialState;
-	double minCost = DBL_MAX;
+void SeqRRTStar::generateStates(double nIterations){
+
+	State xRand;
+
+	double velAngleBias = atan2f(initialState.getVelocity().y , initialState.getVelocity().x);
+	double velIntensityBias = sqrt(initialState.getVelocity().x*initialState.getVelocity().x + initialState.getVelocity().y*initialState.getVelocity().y);
+
+	for (int k = 0; k < nIterations; k++){
+
+		xRand = RandomStateGenerators::uniformRandomState(trackSegArray, nTrackSegs, startSegIndex, finalIndex);
+		//xRand = RandomStateGenerators::gaussianRandomState(trackSegArray, nTrackSegs, startSegIndex, finalIndex, velAngleBias, velIntensityBias);
+
+
+		State xNearest = nearestNeighbor(xRand, graph);
+		xRand.setParentGraphIndex(xNearest.getMyGraphIndex());
+		xRand.setLevelFromStart(xNearest.getLevelFromStart() + 1);
+
+		tPosd iPos = xNearest.getPos();
+		tPosd iVel = xNearest.getVelocity();
+		tPosd tempPos = { iPos.x + actionSimDeltaTime*iVel.x, iPos.y + actionSimDeltaTime*iVel.y, 0 };
+		xRand.setPos(tempPos);
+
+
+		//the normalization didnt work
+		if (!DeltaFunctions::applyDelta(xRand, xNearest, trackSegArray, nTrackSegs, actionSimDeltaTime)){
+			continue;
+		}
+	
+		//the best state is the one that is furthest from the start lane
+		//double distFromStart = UtilityMethods::getTrackCenterDistanceBetween(trackSegArray, nTrackSegs, &xRand, &initialState, 200);
+		tTrkLocPos xRandLocalPos;
+		UtilityMethods::SimpleRtTrackGlobal2Local(xRandLocalPos, trackSegArray, nTrackSegs, xRand.getPos().x, xRand.getPos().y, 0);
+		xRand.setLocalPos(xRandLocalPos);
+		//double distFromStart = UtilityMethods::SimpleGetDistanceFromStart(xRand.getLocalPos()); // / xRand.getLevelFromStart();
+		double distFromStart = UtilityMethods::getTrackCenterDistanceBetween(trackSegArray, nTrackSegs, &xRand, &initialState, 500); // / xRand.getLevelFromStart();
+		xRand.distFromStart = distFromStart;
+		pushBackToGraph(xRand);		
+
+		if (distFromStart > maxCost){
+			maxCost = distFromStart;
+			bestState = xRand;
+		}
+
+	}
+	
+
+}
+
+/**/
+
+
+/*1st approach (uncomment to activate)* /
+//the nearest point is the one in which its finalPos prediction ajusts to the current pos
+State SeqRRTStar::nearestNeighbor(State state, State* graph){
+
+	State closestState = initialState;
+	double minDist = DBL_MAX;
 	for (int j = 0; j < graphIterator; j++){
-		State* i = graph[j];
-		double currCost = EvalFunctions::evaluateStateCost(i, state, this->actionSimDeltaTime);
-		if (minCost > currCost){
-			minCost = currCost;
+		State i = graph[j];
+		double dist = UtilityMethods::getEuclideanQuadranceBetween(state.getPos(), i.getPos());
+		if (dist < minDist){
+			minDist = dist;
 			closestState = i;
 		}
 	}
@@ -192,68 +163,62 @@ State* SeqRRTStar::nearestNeighbor(State* state, State** graph){
 
 void SeqRRTStar::generateStates(double nIterations){
 
-	State* xRand = nullptr;
-	
+	State xRand;
+
+	double velAngleBias = acos(initialState.getVelocity().x / initialState.getVelocity().x);
+	double velIntensityBias = sqrt(initialState.getVelocity().x*initialState.getVelocity().x + initialState.getVelocity().y*initialState.getVelocity().y);
 
 	for (int k = 0; k < nIterations; k++){
 
-		xRand = randomState(&currentSearchSeg, &forwardSearchSeg);
+		//xRand = RandomStateGenerators::uniformRandomState(trackSegArray, nTrackSegs, startSegIndex, finalIndex);
+		xRand = RandomStateGenerators::gaussianRandomState(trackSegArray, nTrackSegs, startSegIndex, finalIndex, velAngleBias, velIntensityBias);
 
 		//the generation didnt work
-		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, xRand, -3)){
-			delete xRand;
+		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, &xRand)){
 			continue;
 		}
 
 
-		State* xNearest = nearestNeighbor(xRand, graph);
-		xRand->setParentGraphIndex(xNearest->getMyGraphIndex());
+		State xNearest = nearestNeighbor(xRand, graph);
+		xRand.setParentGraphIndex(xNearest.getMyGraphIndex());
 
 		//--------------------------------------------------------------------------------------------------------------------------------
 
-		DeltaHeuristics::applyDelta(xRand, xNearest, trackSegArray, nTrackSegs, forwardSegments, NEIGHBOR_DELTA_POS, NEIGHBOR_DELTA_SPEED);
-		
 		//the normalization didnt work
-		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, xRand, 2)){
-			delete xRand;
+		if (!DeltaFunctions::applyDelta(xRand, xNearest, trackSegArray, nTrackSegs, actionSimDeltaTime)){
 			continue;
 		}
 
-		double cMin = xNearest->getPathCost() + EvalFunctions::evaluatePathCost(trackSegArray, nTrackSegs, xNearest, xRand, this->forwardSegments); //redifine path cost for new coords
-		//double cMin = xNearest->getPathCost() + EvalFunctions::oldEvaluatePathCost( xNearest, xRand, this->forwardSegments);
-		xRand->setPathCost(cMin);
-
-
-		if (xRand->getPathCost() >= maxPathCost){
-			maxPathCost = xRand->getPathCost();
-			bestState = xRand;
-		}
-		
+		tTrkLocPos xRandLocalPos;
+		UtilityMethods::SimpleRtTrackGlobal2Local(xRandLocalPos, trackSegArray, nTrackSegs, xRand.getPos().x, xRand.getPos().y, 0);
+		xRand.setLocalPos(xRandLocalPos);
+		double distFromStart = UtilityMethods::SimpleGetDistanceFromStart(xRand.getLocalPos()) / xRand.getLevelFromStart();
+		xRand.distFromStart = distFromStart;
 		pushBackToGraph(xRand);
 
+		if (distFromStart > maxCost){
+			maxCost = distFromStart;
+			bestState = xRand;
+		}
+
 	}
-	
+
 
 }
+/**/
 
-State* SeqRRTStar::generateRRT(){
+State SeqRRTStar::generateRRT(){
 
 	this->generateStates(nIterations);
 
 	//if no path can be found just do emergency cycles! ;)
-	if (bestState == nullptr){
+	if (bestState.getMyGraphIndex() == -1){
+		State initialStateCopy = State(initialState);
+		initialStateCopy.setInitialState(false);
+		initialStateCopy.setParentGraphIndex(initialState.getMyGraphIndex());
+		bestState = initialStateCopy;
 
-		this->generateStates(this->numberOfEmergencyCycles);
-
-		if (bestState == nullptr){
-			State* initialStateCopy = new State(*initialState);
-			initialStateCopy->setInitialState(false);
-			initialStateCopy->setParentGraphIndex(initialState->getMyGraphIndex());
-			bestState = initialStateCopy;
-
-			pushBackToGraph(initialStateCopy);
-		}
-
+		pushBackToGraph(initialStateCopy);
 	}
 
 	return bestState;
@@ -263,27 +228,22 @@ State* SeqRRTStar::generateRRT(){
 //----------------PUBLIC INTERFACE-----------------------------
 //-------------------------------------------------------------
 
-void SeqRRTStar::updateCar(tCarElt car){
-	this->car = car;
-}
 std::vector<State*> SeqRRTStar::search(){
 
 	std::vector<State*> path;
-
-	State* bestState = this->generateRRT(); //local pointer
-
+	State bestState = this->generateRRT(); //local pointer
 
 	//lets put a path copy in the Heap (calling new), separating the path from the graph eliminated after!
-	while (!bestState->getInitialState()){
-		path.push_back(new State(*bestState));
-		bestState = graph[bestState->getParentGraphIndex()];
+	while (!bestState.getInitialState()){
+		path.push_back(new State(bestState));
+		bestState = graph[bestState.getParentGraphIndex()];
 	}
 
 	return path;
 }
-std::vector<State*> SeqRRTStar::getGraph(){
-	std::vector<State*>  graphVector = std::vector<State*>(graph, &graph[graphIterator - 1]);
 
+std::vector<State> SeqRRTStar::getGraph(){
+	std::vector<State>  graphVector = std::vector<State>(graph, &graph[graphIterator - 1]);
 	return graphVector;
 }
 
