@@ -6,8 +6,10 @@ State::State(){
 
 	this->initialState = false;
 
-	this->velocity = tPosd();
+	this->velocity = tPolarVel();
+	
 	this->pos = tPosd();
+	
 	this->myGraphIndex = -1;
 	this->parentGraphIndex = -1;
 	this->localPos = tTrkLocPos();
@@ -16,11 +18,13 @@ State::State(){
 
 
 CUDA_HOSTDEV
-State::State(tPosd velocity){
-
+State::State(tPolarVel velocity){
 	this->initialState = false;
 
 	this->velocity = velocity;
+
+	this->pos = tPosd();
+
 	this->myGraphIndex = -1;
 	this->parentGraphIndex = -1;
 	this->localPos = tTrkLocPos();
@@ -28,18 +32,18 @@ State::State(tPosd velocity){
 }
 
 CUDA_HOSTDEV
-State::State(tPosd pos, tPosd velocity){
-
+State::State(tPosd pos, tPolarVel velocity){
 	this->initialState = false;
 
 	this->velocity = velocity;
+
 	this->pos = pos;
+
 	this->myGraphIndex = -1;
 	this->parentGraphIndex = -1;
 	this->localPos = tTrkLocPos();
 	this->levelFromStart = 1;
 }
-
 
 
 CUDA_HOSTDEV 
@@ -58,8 +62,8 @@ bool State::getInitialState(){
 CUDA_HOSTDEV void State::setPos(tPosd pos){
 	this->pos = pos;
 }
-CUDA_HOSTDEV void State::setVelocity(tPosd velocity){
-	this->velocity = velocity;
+CUDA_HOSTDEV void State::setVelocity(tPolarVel velocity){
+	this->velocity=velocity;
 }
 
 CUDA_HOSTDEV void State::setLevelFromStart(int levelFromStart){
@@ -68,18 +72,12 @@ CUDA_HOSTDEV void State::setLevelFromStart(int levelFromStart){
 
 
 CUDA_HOSTDEV
-void State::setCommands(tPosd pos, tPosd velocity){
-	this->pos = pos;
-	this->velocity = velocity;
-}
-
-CUDA_HOSTDEV
 tPosd  State::getPos(){
 	return this->pos;
 }
 
 CUDA_HOSTDEV
-tPosd  State::getVelocity(){
+tPolarVel  State::getVelocity(){
 	return this->velocity;
 }
 
@@ -133,5 +131,5 @@ std::string State::toString(){
 		std::string("parentIndex: ") + std::to_string((int)this->parentGraphIndex) + std::string("\n") +
 		std::string("- - - - - - - - - -\n") +
 		std::string("pos: (") + std::to_string((double)this->pos.x) + std::string(" , ") + std::to_string((double)this->pos.y) + std::string(" ) \n") +
-		std::string("velocity: (") + std::to_string((double)this->velocity.x) + std::string(" , ") + std::to_string((double)this->velocity.y) + std::string(" ) \n");
+		std::string("velocity: (intensity: ") + std::to_string((double)this->velocity.intensity) + std::string(" ,angle: ") + std::to_string((double)this->velocity.angle) + std::string(" ) \n");
 }

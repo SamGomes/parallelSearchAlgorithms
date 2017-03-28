@@ -20,7 +20,7 @@ SeqRRTStar::SeqRRTStar(State initialState, int nIterations, tCarElt car, tTrackS
 	initGraph();
 	pushBackToGraph(this->initialState);
 
-	std::srand(time(NULL));
+	std::srand(clock());
 	this->trackSegArray = trackSegArray;
 	this->nTrackSegs = nTrackSegs;
 	this->car = car;
@@ -74,8 +74,8 @@ State SeqRRTStar::nearestNeighbor(State state, State* graph){
 	double minDist = DBL_MAX;
 	for (int i = 0; i < graphIterator; i++){
 
-		double dist = UtilityMethods::getEuclideanQuadranceBetween(state.getVelocity(), graph[i].getVelocity());
-		if (dist < minDist){
+		double dist = UtilityMethods::getPolarQuadranceBetween(state.getVelocity(), graph[i].getVelocity());
+		if (dist <= minDist){
 			minDist = dist;
 			closestState = graph[i];
 		}
@@ -93,37 +93,48 @@ void SeqRRTStar::generateStates(double nIterations){
 
 	State xRand;
 
-	double velAngleBias = atan2f(initialState.getVelocity().y , initialState.getVelocity().x);
-	double velIntensityBias = sqrt(initialState.getVelocity().x*initialState.getVelocity().x + initialState.getVelocity().y*initialState.getVelocity().y);
+
+	double maxAa = 5;
+	double maxAl = 5;
+
+	double maxDeltaAngle = maxAa*actionSimDeltaTime;
+	double maxDeltaIntensity = maxAl*actionSimDeltaTime;
+
+	if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, &initialState)){
+		return;
+	}
 
 	for (int k = 0; k < nIterations; k++){
 
-		xRand = RandomStateGenerators::uniformRandomState(trackSegArray, nTrackSegs, startSegIndex, finalIndex);
-		//xRand = RandomStateGenerators::gaussianRandomState(trackSegArray, nTrackSegs, startSegIndex, finalIndex, velAngleBias, velIntensityBias);
+		//--------------------------------------- generate random sample -----------------------------------------------
 
+		xRand = RandomStateGenerators::uniformRandomState(trackSegArray, nTrackSegs, startSegIndex, finalIndex);
+		//xRand = RandomStateGenerators::gaussianRandomState(trackSegArray, nTrackSegs, startSegIndex, finalIndex, initialState.getVelocity());
+
+		//---------------------------------------- select neighbor ----------------------------------------------------
 
 		State xNearest = nearestNeighbor(xRand, graph);
 		xRand.setParentGraphIndex(xNearest.getMyGraphIndex());
 		xRand.setLevelFromStart(xNearest.getLevelFromStart() + 1);
 
-		tPosd iPos = xNearest.getPos();
-		tPosd iVel = xNearest.getVelocity();
-		tPosd tempPos = { iPos.x + actionSimDeltaTime*iVel.x, iPos.y + actionSimDeltaTime*iVel.y, 0 };
-		xRand.setPos(tempPos);
+		//----------------------------------------- constraint checking ------------------------------------------------
 
+		if (abs(xRand.getVelocity().angle- xNearest.getVelocity().angle) > maxDeltaAngle || abs(xRand.getVelocity().intensity-xNearest.getVelocity().intensity) > maxDeltaIntensity*maxDeltaIntensity){
+			continue;
+		}
 
-		//the normalization didnt work
+		//the delta application also checks if the trajectory is valid
 		if (!DeltaFunctions::applyDelta(xRand, xNearest, trackSegArray, nTrackSegs, actionSimDeltaTime)){
 			continue;
 		}
+
+		//---------------------------------------- calculate best path --------------------------------------------------
 	
 		//the best state is the one that is furthest from the start lane
-		//double distFromStart = UtilityMethods::getTrackCenterDistanceBetween(trackSegArray, nTrackSegs, &xRand, &initialState, 200);
 		tTrkLocPos xRandLocalPos;
 		UtilityMethods::SimpleRtTrackGlobal2Local(xRandLocalPos, trackSegArray, nTrackSegs, xRand.getPos().x, xRand.getPos().y, 0);
 		xRand.setLocalPos(xRandLocalPos);
-		//double distFromStart = UtilityMethods::SimpleGetDistanceFromStart(xRand.getLocalPos()); // / xRand.getLevelFromStart();
-		double distFromStart = UtilityMethods::getTrackCenterDistanceBetween(trackSegArray, nTrackSegs, &xRand, &initialState, 500); // / xRand.getLevelFromStart();
+		double distFromStart = UtilityMethods::getTrackCenterDistanceBetween(trackSegArray, nTrackSegs, &xRand, &initialState, 500) / xRand.getLevelFromStart();
 		xRand.distFromStart = distFromStart;
 		pushBackToGraph(xRand);		
 
@@ -170,8 +181,8 @@ void SeqRRTStar::generateStates(double nIterations){
 
 	for (int k = 0; k < nIterations; k++){
 
-		//xRand = RandomStateGenerators::uniformRandomState(trackSegArray, nTrackSegs, startSegIndex, finalIndex);
-		xRand = RandomStateGenerators::gaussianRandomState(trackSegArray, nTrackSegs, startSegIndex, finalIndex, velAngleBias, velIntensityBias);
+		xRand = RandomStateGenerators::uniformRandomState(trackSegArray, nTrackSegs, startSegIndex, finalIndex);
+		//xRand = RandomStateGenerators::gaussianRandomState(trackSegArray, nTrackSegs, startSegIndex, finalIndex, velAngleBias, velIntensityBias);
 
 		//the generation didnt work
 		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, &xRand)){

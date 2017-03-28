@@ -95,7 +95,7 @@ class Driver {
 		int delay = 0;
 		int SEARCH_RECALC_DELAY = 150;
 		int SEARCH_SEGMENTS_AHEAD = 30;
-		double ACTION_SIM_DELTA_TIME = 1.5;
+		double ACTION_SIM_DELTA_TIME = 2.5;
 
 
 		// Per robot global data.
@@ -113,7 +113,7 @@ class Driver {
 
 		//------------CONTROLLER MODULE-----------------
 		void computeRadius(float *radius);
-		float getPedalsPos(tPosd targetSpeed);
+		float getPedalsPos(double targetSpeed);
 		int getGear();
 		float getSteer(tPosd target);
 		float getClutch();

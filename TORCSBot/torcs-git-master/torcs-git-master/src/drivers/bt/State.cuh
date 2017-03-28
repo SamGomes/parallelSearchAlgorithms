@@ -25,7 +25,8 @@ class State
 		tTrkLocPos localPos;
 	
 		tPosd pos;
-		tPosd velocity;
+		
+		tPolarVel velocity;
 
 		int myGraphIndex; //index of this state
 		int parentGraphIndex; //index of the parent
@@ -42,25 +43,21 @@ class State
 
 		CUDA_HOSTDEV State(); //for method initialization purposes only!
 
-		CUDA_HOSTDEV State(tPosd velocity);
-		CUDA_HOSTDEV State(tPosd pos, tPosd velocity);
+		CUDA_HOSTDEV State(tPolarVel velocity);
+		CUDA_HOSTDEV State(tPosd pos,tPolarVel velocity);
 
-
-		
 		CUDA_HOSTDEV void setInitialState(bool initialState);
 
 		CUDA_HOSTDEV bool getInitialState();
 
 
-
-		CUDA_HOSTDEV void setCommands(tPosd pos, tPosd velocity);
 		CUDA_HOSTDEV void setPos(tPosd pos);
-		CUDA_HOSTDEV void setVelocity(tPosd velocity);
+		CUDA_HOSTDEV void setVelocity(tPolarVel velocity);
 		
 		CUDA_HOSTDEV void setLevelFromStart(int levelFromStart);
 
 
-		CUDA_HOSTDEV tPosd getVelocity();
+		CUDA_HOSTDEV tPolarVel getVelocity();
 		CUDA_HOSTDEV tPosd getPos();
 
 		CUDA_HOSTDEV int getLevelFromStart();

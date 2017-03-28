@@ -158,7 +158,7 @@ void Driver::newRace(tCarElt* car, tSituation *s)
 	//create PID controllers 
 
 	//split channels for the pedals
-	gasPidController = PIDController(0.015, 0.05, 0.001);
+	gasPidController = PIDController(0.005, 0.008, 0.001);
 	brakePidController = PIDController(0.030, 0.001, 0.001); //not used currently
 
 	//steerPidController = PIDController(2, 5, 0.0001); 
@@ -280,18 +280,17 @@ float Driver::getClutch()
 	}
 }
 
-float Driver::getPedalsPos(tPosd targetSpeed)
+float Driver::getPedalsPos(double targetSpeed)
 {
 
 
-	double targetSpeedMod = std::sqrt(targetSpeed.x*targetSpeed.x + targetSpeed.y*targetSpeed.y);
 	double carSpeedMod = std::sqrt(car->pub.DynGC.vel.x*car->pub.DynGC.vel.x + car->pub.DynGC.vel.y*car->pub.DynGC.vel.y);
 
 
 	double output = 0;
 
 	//if (targetSpeedMod >= carSpeedMod){
-		output = gasPidController.getOutput(targetSpeedMod, carSpeedMod, 0.02);
+		output = gasPidController.getOutput(targetSpeed, carSpeedMod, 0.02);
 		/*brakePidController.equalizeOutput(output);
 		brakePidController.getOutput(targetSpeedMod, carSpeedMod, 0.02);
 
@@ -321,7 +320,9 @@ bool Driver::control(){
 
 	//--------------- PEDAL CONTROL--------------------------
 
-	float pedalsOutput = getPedalsPos(currState->getVelocity());
+
+
+	float pedalsOutput = getPedalsPos(currState->getVelocity().intensity);
 	pedalsOutput > 0 ? car->_accelCmd = pedalsOutput : car->_brakeCmd = -1*pedalsOutput;
 
 	return true;
@@ -343,7 +344,7 @@ bool Driver::passedPoint(State* target){
 	tdble targetZ = target->getPos().z;
 
 
-	if (abs(carX - targetX) < 13 && abs(carY - targetY) < 13){
+	if (abs(carX - targetX) < 8 && abs(carY - targetY) < 8){
 		STUCKONAPOINT = true;
 		return true;
 	}
@@ -383,7 +384,14 @@ void Driver::simplePlan() // algorithm test
 			graphG.clear(); //to avoid having deleted members
 		}
 
-		State initialState = State(carDynCg.pos, carDynCg.vel);
+		double initialStateVelAngle = atan2(carDynCg.vel.y, carDynCg.vel.x);
+		double initialStateVelIntensity = sqrt(carDynCg.vel.x*carDynCg.vel.x + carDynCg.vel.y*carDynCg.vel.y);
+
+		tPolarVel carVel;
+		carVel.angle = initialStateVelAngle;
+		carVel.intensity = initialStateVelIntensity;
+
+		State initialState = State(carDynCg.pos, carVel);
 		initialState.setLocalPos(car->pub.trkPos);
 		initialState.setInitialState(true); //it is indeed the initial state!
 		RRTStarAux = new SeqRRTStar(initialState, 300, *car, trackSegArray, track->nseg, *initialState.getLocalPos().seg, SEARCH_SEGMENTS_AHEAD, ACTION_SIM_DELTA_TIME);
@@ -427,14 +435,15 @@ void Driver::simplePlan() // algorithm test
 	delay++;
 }
 
-int flag = 0; State initialState; t3Dd* vertexes;
+int flag = 0; State initialState; trackSeg* segmentArrayG; int nsegsG;
 void Driver::humanControl(){
 	
-	
+	segmentArrayG = trackSegArray;	
+	nsegsG = track->nseg;
 	
 	if (GetAsyncKeyState(VK_UP) & 0x8000)
 	{
-		car->_accelCmd = 0.5;
+		car->_accelCmd = 1.0;
 	}
 	if (GetAsyncKeyState(VK_TAB) & 0x8000)
 	{
@@ -444,15 +453,25 @@ void Driver::humanControl(){
 			graphG.clear(); //to avoid having deleted members
 		}
 
-		initialState = State(carDynCg.pos, carDynCg.vel);
+
+		double initialStateVelAngle = atan2(carDynCg.vel.y, carDynCg.vel.x);
+		double initialStateVelIntensity = sqrt(carDynCg.vel.x*carDynCg.vel.x + carDynCg.vel.y*carDynCg.vel.y);
+
+		tPolarVel carVel;
+		carVel.angle = initialStateVelAngle;
+		carVel.intensity = initialStateVelIntensity;
+
+		initialState = State(carDynCg.pos,carVel);
 		initialState.setLocalPos(car->pub.trkPos);
 		initialState.setInitialState(true); //it is indeed the initial state!
-		RRTStarAux = new SeqRRTStar(initialState, 1000, *car, trackSegArray, track->nseg, *initialState.getLocalPos().seg, SEARCH_SEGMENTS_AHEAD, ACTION_SIM_DELTA_TIME);
+		RRTStarAux = new SeqRRTStar(initialState, 500, *car, trackSegArray, track->nseg, *initialState.getLocalPos().seg, SEARCH_SEGMENTS_AHEAD, ACTION_SIM_DELTA_TIME);
 		path = RRTStarAux->search();
 		pathG = path;
 		std::reverse(pathG.begin(), pathG.end());
 		graphG = RRTStarAux->getGraph();
 		
+
+
 		currState = &initialState;
 		flag = 1;
 
@@ -481,33 +500,40 @@ void Driver::humanControl(){
 	
 	//-------------------AUX WINDOW VARS-------------------------------------
 
-	//carDynCg = car->pub.DynGCg;
-	//trkMinX = track->min.x;
-	//trkMinY = track->min.y;
-	//trkMaxX = track->max.x;
-	//trkMaxY = track->max.y;
+	carDynCg = car->pub.DynGCg;
+	trkMinX = track->min.x;
+	trkMinY = track->min.y;
+	trkMaxX = track->max.x;
+	trkMaxY = track->max.y;
 	//currStateG = State();
 
-	////init aux windows
-	//if (!CREATEDWINDOW){
-	//	initGLUTWindow();
-	//	CREATEDWINDOW = true;
-	//}
-	//GLUTWindowRedisplay(); //update aux windows
+	//init aux windows
+	if (!CREATEDWINDOW){
+		initGLUTWindow();
+		CREATEDWINDOW = true;
+	}
+	GLUTWindowRedisplay(); //update aux windows
 
-	vertexes = car->pub.trkPos.seg->vertex;
 
 	State carState;
 	carState.setPos(car->pub.DynGC.pos);
 	carState.setLocalPos(car->pub.trkPos);
-	if (flag==1)
-	/*printf("carSegId: %d\n", car->pub.trkPos.seg->id);
+	if (flag == 1){
+	
+		tTrackSeg seg;
+		UtilityMethods::getSegmentOf(seg, trackSegArray, track->nseg, car->pub.DynGC.pos.x, car->pub.DynGC.pos.y);
 
-	tTrackSeg seg;
-	UtilityMethods::getSegmentOf(seg, trackSegArray, track->nseg, car->pub.DynGC.pos.x, car->pub.DynGC.pos.y);*/
+		double correctDist = UtilityMethods::getTrackCenterDistanceBetween(trackSegArray, track->nseg, &carState, &initialState, 200);
 
-	printf("getDistFromStart: %f\n", UtilityMethods::getTrackCenterDistanceBetween(trackSegArray, track->nseg, &carState,&initialState , 200));
+		tTrkLocPos p;
+		UtilityMethods::SimpleRtTrackGlobal2Local(p,trackSegArray, track->nseg, car->pub.DynGC.pos.x, car->pub.DynGC.pos.y,0);
+		carState.setLocalPos(p);
 
+		printf("\vel: %f, %f\n", car->pub.DynGCg.vel.x, car->pub.DynGCg.vel.y);
+		//printf("\rcarSegId: %d\n", car->pub.trkPos.seg->id);
+
+		//printf("\rgetDistFromStart: %f : %d, getBeforeDistFromStart: %f : %d                 ", UtilityMethods::getTrackCenterDistanceBetween(trackSegArray, track->nseg, &carState,&initialState , 200),p.seg->id,correctDist,car->pub.trkPos.seg->id);
+	}
 }
 //--------------------------------------------------------------------
 // - Main update (calls the planning module and the control module). -
@@ -582,8 +608,8 @@ void drawCurrStats(){
 	glPushMatrix();
 		glColor3f(0, 0, 0);
 		std::string currStateGPosInfo = std::string("pos: (") + std::to_string((double)currStateG.getPos().x) + std::string(" , ") + std::to_string((double)currStateG.getPos().y) + std::string(" ) \n");
-		std::string currStateGVelInfo = std::string("speed: (") + std::to_string((double)currStateG.getVelocity().x) + std::string(" , ") + std::to_string((double)currStateG.getVelocity().y) + std::string(" ) \n");
-		printTextInWindow(24, 24, (char*)currStateGVelInfo.c_str());
+		//std::string currStateGVelInfo = std::string("speed: (") + std::to_string((double)currStateG.getVelocity().x) + std::string(" , ") + std::to_string((double)currStateG.getVelocity().y) + std::string(" ) \n");
+		//printTextInWindow(24, 24, (char*)currStateGVelInfo.c_str());
 		printTextInWindow(24, 40, (char*)currStateGPosInfo.c_str());
 	glPopMatrix();
 	glutSwapBuffers();
@@ -620,13 +646,7 @@ void drawSearchPoints(){
 		}
 		
 	}
-
-	/*glColor3f(1, 0.5, 0.5);
-	drawCircle({ vertexes[0].x, vertexes[0].y, vertexes[0].z }, 3);
-	drawCircle({ vertexes[1].x, vertexes[1].y, vertexes[1].z }, 3);
-	drawCircle({ vertexes[2].x, vertexes[2].y, vertexes[2].z }, 3);
-	drawCircle({ vertexes[3].x, vertexes[3].y, vertexes[3].z }, 3);*/
-
+	
 
 	for (int i = 1; i < pathG.size(); i++){
 		
@@ -680,6 +700,19 @@ void drawSearchPoints(){
 	glColor3f(1, 0, 0);
 
 	drawCircle(carDynCg.pos, 2);
+
+
+	glColor3f(0.8, 0.2, 0);
+	t3Dd* vertexes = segmentArrayG[0].vertex;
+	int j = 0;
+	while (j < nsegsG){
+		vertexes = segmentArrayG[j].vertex;
+		drawCircle({ vertexes[0].x, vertexes[0].y, vertexes[0].z }, 1);
+		drawCircle({ vertexes[1].x, vertexes[1].y, vertexes[1].z }, 1);
+		drawCircle({ vertexes[2].x, vertexes[2].y, vertexes[2].z }, 1);
+		drawCircle({ vertexes[3].x, vertexes[3].y, vertexes[3].z }, 1);
+		j++;
+	}
 
 	glPopMatrix();
 	glutSwapBuffers();
