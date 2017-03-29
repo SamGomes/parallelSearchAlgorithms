@@ -19,22 +19,15 @@
 class SeqRRTStar : public RRTStar{
 private: //vars
 
-	//config vars
-	int NEIGHBOR_SAMPLE_BOUNDARY = 4;
-	int NEIGHBOR_DELTA_POS = 30;
-	int NEIGHBOR_DELTA_SPEED = 10;
-	double actionSimDeltaTime; // assuming 100 game ticks action simulation
-	double numberOfEmergencyCycles = 20;
-
 	//initialization vars
+	tPolarVel maxCarAcceleration;
+	double actionSimDeltaTime; 
 	int startSegIndex;
 	int finalIndex;
 	tTrackSeg* trackSegArray;
 	int nTrackSegs;
-	tCarElt car;
 	int nIterations;
 	State initialState;
-	int forwardSegments;
 	//Opponent *opponent;		// The array of opponents.
 
 	//aux vars
@@ -53,20 +46,15 @@ private: //methods
 	void deleteGraph();
 	void pushBackToGraph(State &element);
 
-	//selection operations
-	State nearestNeighbor(State state, State* graph);
-
-
 	//main loop procedure
 	void generateStates(double nIterations);
 	State generateRRT();
 
 public:
-	SeqRRTStar(State initialState, int nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments, double actionSimDeltaTime);
+	SeqRRTStar(State initialState, int nIterations, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration);
 	~SeqRRTStar();
 
 	std::vector<State*> search();
-
 	std::vector<State>  getGraph(); //for debug purposes
 
 	char* getSearchName();

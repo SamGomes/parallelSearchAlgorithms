@@ -5,7 +5,8 @@
 
 #include "State.cuh"
 #include <robottools.h>
-
+#include <curand.h>
+#include <curand_kernel.h>
 #define MAX_CAR_SPEED_CONSIDERED 80
 
 //(for CUDA)
@@ -14,53 +15,74 @@
 class UtilityMethods{
 public:
 
+	CUDA_HOSTDEV //the nearest point is the one in which its finalPos prediction ajusts to the current pos
+	static State nearestNeighbor(State state, State* graph, int graphSize){
+
+		State closestState;
+		double minDist = DBL_MAX;
+
+		
+		for (int i = 0; i < graphSize; i++){
+			State currState = graph[i];
+			if (currState.getMyGraphIndex() == -1 || state.getMyGraphIndex()==i)  //still unassigned
+				continue;
+			double dist = UtilityMethods::getPolarQuadranceBetween(state.getVelocity(), graph[i].getVelocity());
+			if (dist <= minDist){
+				minDist = dist;
+				closestState = currState;
+			}
+		}
+		return closestState;
+	}
+
+
 	CUDA_HOSTDEV
-	static bool SimpleRtTrackGlobal2Local(tTrkLocPos &p, tTrackSeg* segmentArray, int nTrackSegs, tdble X, tdble Y, int type)
+	static bool SimpleRtTrackGlobal2Local(tTrkLocPos* p, tTrackSeg* segmentArray, int nTrackSegs, tdble X, tdble Y, int type)
 	{
 
 		int 	segnotfound = 1;
 		float 	x, y;
 
-		tTrackSeg 	seg;
+		tTrackSeg* 	seg = getSegmentOf(segmentArray, nTrackSegs, X, Y);
 		
-		if (!getSegmentOf(seg, segmentArray, nTrackSegs, X, Y)){
+		if (seg==nullptr){
 			return false;
 		}
 
-		int segArrayIterator = seg.id;
+		int segArrayIterator = seg->id;
 		float 	theta, a2;
 		int 	depl = 0;
-		p.type = type;
-		p.seg = &segmentArray[seg.id];
+		p->type = type;
+		p->seg = &segmentArray[seg->id];
 
 
 
 		while (segnotfound) {
 
-			switch (seg.type) {
+			switch (seg->type) {
 				case 3:
 					/* rotation */
 					float sine, cosine;
 					float ts;
-					sine = sin(seg.angle[0]);
-					cosine = cos(seg.angle[0]);
-					x = X - seg.vertex[1].x;
-					y = Y - seg.vertex[1].y;
+					sine = sin(seg->angle[0]);
+					cosine = cos(seg->angle[0]);
+					x = X - seg->vertex[1].x;
+					y = Y - seg->vertex[1].y;
 					ts = x * cosine + y * sine;
-					p.seg = &segmentArray[segArrayIterator];
-					p.toStart = ts;
-					p.toRight = y * cosine - x * sine;
+					p->seg = &segmentArray[segArrayIterator];
+					p->toStart = ts;
+					p->toRight = y * cosine - x * sine;
 					if ((ts < 0) && (depl < 1)) {
 						/* get back */
 						segArrayIterator--;
 						segArrayIterator = (segArrayIterator <0) ? nTrackSegs - 1 : segArrayIterator;
-						seg = segmentArray[segArrayIterator];
+						seg = &segmentArray[segArrayIterator];
 						depl = -1;
 					}
-					else if ((ts > seg.length) && (depl > -1)) {
+					else if ((ts > seg->length) && (depl > -1)) {
 						segArrayIterator++;
 						segArrayIterator = (segArrayIterator >(nTrackSegs - 1)) ? 0 : segArrayIterator;
-						seg = segmentArray[segArrayIterator];
+						seg = &segmentArray[segArrayIterator];
 						depl = 1;
 					}
 					else {
@@ -70,25 +92,25 @@ public:
 
 				case 2:
 					/* rectangular to polar */
-					x = X - seg.center.x;
-					y = Y - seg.center.y;
-					a2 = seg.arc / 2.0;
-					theta = atan2(y, x) - (seg.angle[6] + a2);
+					x = X - seg->center.x;
+					y = Y - seg->center.y;
+					a2 = seg->arc / 2.0;
+					theta = atan2(y, x) - (seg->angle[6] + a2);
 					theta = normPI_PI(theta);
-					p.seg = &segmentArray[segArrayIterator];
-					p.toStart = theta + a2;
-					p.toRight = seg.radiusr - sqrt(x*x + y*y);
+					p->seg = &segmentArray[segArrayIterator];
+					p->toStart = theta + a2;
+					p->toRight = seg->radiusr - sqrt(x*x + y*y);
 					
 					if ((theta < -a2) && (depl < 1)) {
 						segArrayIterator--;
 						segArrayIterator = (segArrayIterator <0) ? nTrackSegs - 1 : segArrayIterator;
-						seg = segmentArray[segArrayIterator];
+						seg = &segmentArray[segArrayIterator];
 						depl = -1;
 					}
 					else if ((theta > a2) && (depl > -1)) {
 						segArrayIterator++;
 						segArrayIterator = (segArrayIterator >(nTrackSegs - 1)) ? 0 : segArrayIterator;
-						seg = segmentArray[segArrayIterator];
+						seg = &segmentArray[segArrayIterator];
 						depl = 1;
 					}
 					else {
@@ -98,25 +120,25 @@ public:
 
 				case 1:
 					/* rectangular to polar */
-					x = X - seg.center.x;
-					y = Y - seg.center.y;
-					a2 = seg.arc / 2.0;
-					theta = seg.angle[6] - a2 - atan2(y, x);
+					x = X - seg->center.x;
+					y = Y - seg->center.y;
+					a2 = seg->arc / 2.0;
+					theta = seg->angle[6] - a2 - atan2(y, x);
 					theta = normPI_PI(theta);
-					p.seg = &segmentArray[segArrayIterator];
-					p.toStart = theta + a2;
-					p.toRight = sqrt(x*x + y*y) - seg.radiusr;
+					p->seg = &segmentArray[segArrayIterator];
+					p->toStart = theta + a2;
+					p->toRight = sqrt(x*x + y*y) - seg->radiusr;
 					
 					if ((theta < -a2) && (depl < 1)) {
 						segArrayIterator--;
 						segArrayIterator = (segArrayIterator <0) ? nTrackSegs - 1 : segArrayIterator;
-						seg = segmentArray[segArrayIterator];
+						seg = &segmentArray[segArrayIterator];
 						depl = -1;
 					}
 					else if ((theta > a2) && (depl > -1)) {
 						segArrayIterator++;
 						segArrayIterator = (segArrayIterator >(nTrackSegs - 1)) ? 0 : segArrayIterator;
-						seg = segmentArray[segArrayIterator];
+						seg = &segmentArray[segArrayIterator];
 						depl = 1;
 					}
 					else {
@@ -129,18 +151,18 @@ public:
 
 		/* The track is of constant width */
 		/* This is subject to change */
-		p.toMiddle = p.toRight - seg.width / 2.0;
-		p.toLeft = seg.width - p.toRight;
+		p->toMiddle = p->toRight - seg->width / 2.0;
+		p->toLeft = seg->width - p->toRight;
 
 		return true;
 
 	}
 
 
-	//this returns a close approximation of the current segment that can be used to find the local pos
+	//this returns a close approximation of the current segment that can be used to find the local pos (because of the floating point errors)
 	CUDA_HOSTDEV
-	static bool getSegmentOf(tTrackSeg& seg, tTrackSeg* segmentArray, int nTrackSegs, tdble x, tdble y){
-		
+	static tTrackSeg* getSegmentOf(tTrackSeg* segmentArray, int nTrackSegs, tdble x, tdble y){
+		tTrackSeg* seg = nullptr;
 		
 		for (int i = 0; i <= nTrackSegs; i++){
 
@@ -161,12 +183,10 @@ public:
 
 			
 			if ((a1<1) && (a2<1) && (a3<1) && (a4<1)){
-				seg = segmentArray[i];
-				//std::cout << "tou dentro!" << seg.id << std::endl;
-				return true;
+				seg = &segmentArray[i];
 			}
 		}
-		return false;
+		return seg;
 	}
 
 	CUDA_HOSTDEV
@@ -303,23 +323,18 @@ public:
 
 	CUDA_HOSTDEV
 	static double normPI_PI(double angle){
-
-
 		while ((angle) > PI) { (angle) -= 2 * PI; }
 		while ((angle) < -PI) { (angle) += 2 * PI; }
-
 		return angle;
 	}
 
-
 	CUDA_HOSTDEV
 	static double mod(double num){
-		return num > 0 ? num : -1 * num;
+		return num > 0 ? num : -num;
 	}
 
 	CUDA_HOSTDEV
-	static double norm0_2PI(double num) {				
-					
+	static double norm0_2PI(double num) {									
 		while ((num) > 2 * PI) {
 			(num) -= 2 * PI; 
 		}
@@ -327,9 +342,10 @@ public:
 			(num) += 2 * PI; 
 		}
 		return num;
-
 	}
 
+
+	//calculates the minimal signed rotation angle between arbitrary angles
 	CUDA_HOSTDEV
 	static double rotationBetween(double first, double second)
 	{
@@ -346,19 +362,18 @@ public:
 	}
 
 
-
 	//calculates euclidean distance between points
 	CUDA_HOSTDEV
-		static double getEuclideanQuadranceBetween(tPosd p1, tPosd p2){
+	static double getEuclideanQuadranceBetween(tPosd p1, tPosd p2){
 		return (p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y);
 	}
 
 	//calculates polar distance between points
 	CUDA_HOSTDEV
-		static double getPolarQuadranceBetween(tPolarVel p1, tPolarVel p2){
+	static double getPolarQuadranceBetween(tPolarVel p1, tPolarVel p2){
 
-		double w1 = 0.5;
-		double w2 = 0.5;
+	/*	double w1 = 0.5;
+		double w2 = 0.5;*/
 
 		//get shortest angle
 
@@ -369,33 +384,44 @@ public:
 		double deltaAngle = rotationBetween(p1.angle, p2.angle);
 
 
-		double deltaIntesity = p2.intensity - p1.intensity;
+		//double deltaIntesity = p2.intensity - p1.intensity;
 		return deltaAngle/PI;
 	}
 
 	CUDA_HOSTDEV
-		static double getDotBetween(tPosd p1, tPosd p2){
+	static double getDotBetween(tPosd p1, tPosd p2){
 		return p1.x*p2.x + p1.y*p2.y;
 	}
 
 };
 
+
 class RandomStateGenerators{
 
 public:
-	CUDA_HOST
-	static double randToNormalRand(double mean, double stddev)
+	CUDA_HOSTDEV
+	static double generateRandomNumber0_1(void* curandState){
+		#ifdef __CUDA_ARCH__
+			return curand_uniform((curandState_t*) curandState);
+		#else
+			return (double)std::rand() / (double)RAND_MAX;
+		#endif
+	}
+
+
+	CUDA_HOSTDEV
+	static double randToNormalRand(double mean, double stddev, void* curandState)
 	{   
 		//Box muller method
-		static double n2 = 0.0;
-		static int n2_cached = 0;
+		double n2 = 0.0;
+		int n2_cached = 0;
 		if (!n2_cached)
 		{
 			double x, y, r;
 			do
 			{
-				x = 2.0*rand() / RAND_MAX - 1;
-				y = 2.0*rand() / RAND_MAX - 1;
+				x = 2.0*generateRandomNumber0_1(curandState) - 1;
+				y = 2.0*generateRandomNumber0_1(curandState) - 1;
 
 				r = x*x + y*y;
 			} while (r == 0.0 || r > 1.0);
@@ -415,8 +441,8 @@ public:
 		}
 	}
 
-	CUDA_HOST
-	static State uniformRandomState(tTrackSeg* trackSegArray, int nTrackSegs, int initialSegIndex, int finalSegIndex){
+	CUDA_HOSTDEV
+	static State uniformRandomState(tTrackSeg* trackSegArray, int nTrackSegs, void* curandState){
 
 		//-------------------- random velocity calculation --------------------
 
@@ -430,8 +456,8 @@ public:
 		double speedDelta = maxSpeed - minSpeed;
 		double angleDelta = maxAngle - minAngle;
 
-		double randAngle = angleDelta*((double)std::rand() / (double)RAND_MAX) + minAngle;
-		double randIntensity = speedDelta * ((double)std::rand() / (double)RAND_MAX) + minSpeed;
+		double randAngle = angleDelta*generateRandomNumber0_1(curandState) + minAngle;
+		double randIntensity = speedDelta * generateRandomNumber0_1(curandState) + minSpeed;
 
 		tPolarVel randVelocity;
 		randVelocity.angle = randAngle;
@@ -440,8 +466,8 @@ public:
 		return State(randVelocity);
 	}
 	
-	CUDA_HOST
-	static State gaussianRandomState(tTrackSeg* trackSegArray, int nTrackSegs, int initialSegIndex, int finalSegIndex, tPolarVel velAngleBias){
+	CUDA_HOSTDEV
+	static State gaussianRandomState(tTrackSeg* trackSegArray, int nTrackSegs, tPolarVel velAngleBias, void* curandState){
 
 
 		//-------------------- random velocity calculation --------------------
@@ -450,15 +476,14 @@ public:
 		double minSpeed = 0;
 		double maxSpeed = 100;
 
-		double minAngle = 0;
-		double maxAngle = 2*PI;
+		/*double minAngle = 0;
+		double maxAngle = 2*PI;*/
 
 		double speedDelta = maxSpeed - minSpeed;
-		double angleDelta = maxAngle - minAngle;
 
-		double randAngle = randToNormalRand(velAngleBias.angle, 10);
+		double randAngle = randToNormalRand(velAngleBias.angle, 10, curandState);
 		//double randIntensity = randToNormalRand(velIntensityBias, 1);
-		double randIntensity = speedDelta * ((double)std::rand() / (double)RAND_MAX) + minSpeed;
+		double randIntensity = speedDelta * generateRandomNumber0_1(curandState) + minSpeed;
 
 
 		tPolarVel randVelocity;
@@ -474,7 +499,7 @@ class ConstraintChecking{
 public:
 	CUDA_HOSTDEV
 	static	bool validPoint(tTrackSeg* segArray, int nTrackSegs, State* target){
-		return UtilityMethods::getSegmentOf(tTrackSeg(), segArray, nTrackSegs, target->getPos().x, target->getPos().y);
+		return (UtilityMethods::getSegmentOf(segArray, nTrackSegs, target->getPos().x, target->getPos().y)!=nullptr);
 	}
 };
 
@@ -531,6 +556,8 @@ public:
 class DeltaFunctions{
 
 public:
+	//-------------bezier based forward model (for future work maybe)----------------------
+
 	CUDA_HOSTDEV
 	static double calcBezierLengthApprox(tPosd p0, tPosd p1, tPosd p2, tPosd p3, int nSamples){
 		double length = 0;
@@ -561,41 +588,40 @@ public:
 
 	}
 
-	//wrapper
 	CUDA_HOSTDEV
-	static bool applyBezierDelta(State& state, State& parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
+	static bool applyBezierDelta(State* state, State* parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
 	
 		tPosd newPos = tPosd();
 		tPolarVel newSpeed = tPolarVel();
 
 
 		tPosd cartesianStateVel;
-		cartesianStateVel.x = state.getVelocity().intensity*cos(state.getVelocity().angle);
-		cartesianStateVel.y = state.getVelocity().intensity*sin(state.getVelocity().angle);
+		cartesianStateVel.x = state->getVelocity().intensity*cos(state->getVelocity().angle);
+		cartesianStateVel.y = state->getVelocity().intensity*sin(state->getVelocity().angle);
 
 		tPosd cartesianParentVel;
-		cartesianParentVel.x = parent.getVelocity().intensity*cos(parent.getVelocity().angle);
-		cartesianParentVel.y = parent.getVelocity().intensity*sin(parent.getVelocity().angle);
+		cartesianParentVel.x = parent->getVelocity().intensity*cos(parent->getVelocity().angle);
+		cartesianParentVel.y = parent->getVelocity().intensity*sin(parent->getVelocity().angle);
 
 
-		tPosd p0 = parent.getPos();
+		tPosd p0 = parent->getPos();
 
 
 		tPosd p1;
-		p1.x = (parent.getPos().x + actionSimDeltaTime*cartesianParentVel.x);
-		p1.y = (parent.getPos().y + actionSimDeltaTime*cartesianParentVel.y);
+		p1.x = (parent->getPos().x + actionSimDeltaTime*cartesianParentVel.x);
+		p1.y = (parent->getPos().y + actionSimDeltaTime*cartesianParentVel.y);
 		State p1State = State();
 		p1State.setPos(p1);
 
 
 		tPosd p2;
-		p2.x = (state.getPos().x - actionSimDeltaTime*cartesianStateVel.x);
-		p2.y = (state.getPos().y - actionSimDeltaTime*cartesianStateVel.y);
+		p2.x = (state->getPos().x - actionSimDeltaTime*cartesianStateVel.x);
+		p2.y = (state->getPos().y - actionSimDeltaTime*cartesianStateVel.y);
 		State p2State = State();
 		p2State.setPos(p2);
 
 
-		tPosd p3 = state.getPos();
+		tPosd p3 = state->getPos();
 
 		//the bezier lies outside of the track
 		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, &p1State) ||
@@ -627,7 +653,7 @@ public:
 			3 * curvePercent*curvePercent*curvePercentInverse * p2.y +
 			curvePercent*curvePercent*curvePercent* p3.y;
 
-		newPos.z = state.getPos().z;
+		newPos.z = state->getPos().z;
 
 		tPosd bezierTangent = tPosd();
 
@@ -644,14 +670,14 @@ public:
 		newSpeed.angle = atan2(bezierTangent.y,bezierTangent.x);
 		newSpeed.intensity = sqrt(bezierTangent.x*bezierTangent.x + bezierTangent.y*bezierTangent.y);
 
-		state.posRand = state.getPos();
-		state.speedRand = cartesianStateVel;
+		state->posRand = state->getPos();
+		state->speedRand = cartesianStateVel;
 
-		state.setPos(newPos);
-		state.setVelocity(newSpeed);
+		state->setPos(newPos);
+		state->setVelocity(newSpeed);
 
 		//if the control points are inside but the middle point is out (that can supposidely happen)
-		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, &state)){
+		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, state)){
 			return false;
 		}
 
@@ -659,16 +685,19 @@ public:
 
 	}
 
+
+	//--------------------used physics based forward model----------------------------------
+
 	CUDA_HOSTDEV
-	static bool applyPhysicsDelta(State& state, State& parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
+	static bool applyPhysicsDelta(State* state, State* parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
 		
-		double angle0 = parent.getVelocity().angle;
-		double angleF = state.getVelocity().angle;
+		double angle0 = parent->getVelocity().angle;
+		double angleF = state->getVelocity().angle;
 
-		double intensity0 = parent.getVelocity().intensity;
-		double intensityF = state.getVelocity().intensity;
+		double intensity0 = parent->getVelocity().intensity;
+		double intensityF = state->getVelocity().intensity;
 
-		tPosd p_i_1 = parent.getPos();
+		tPosd p_i_1 = parent->getPos();
 		tPosd p_i;
 
 		tPosd pDelta;
@@ -679,13 +708,11 @@ public:
 
 		double inc = (double) 1.0 / k;
 
-		//ver qual e o caminho mais perto e escolher essa direcao
+		//divide the pathe between the two states and pick the state on the delta variation
 		for (int i = 0; i < k; i ++){
 				
 			double angle_i = Interpolations::angleLinearInterpolation(angle0, angleF, inc);
 			double intensity_i = Interpolations::logaritmicInterpolation(intensity0, intensityF, inc,0.03);
-
-			printf("\rangle: %f         ", angle_i);
 
 			tPolarVel v_i;
 			v_i.angle = angle_i;
@@ -699,6 +726,8 @@ public:
 			p_i.y = p_i_1.y + cartesianV_i.y*inc*actionSimDeltaTime;
 
 			State aux = State(p_i, v_i);
+
+			//if one point in the path is not valid, the path is discarded
 			if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, &aux)){
 				return false;
 			}
@@ -708,14 +737,15 @@ public:
 				vDelta = v_i;
 			}
 		}
-		state.setPos(pDelta);
-		state.setVelocity(vDelta);
+		state->setPos(pDelta);
+		state->setVelocity(vDelta);
+
 		return true;
 	}
 
-
+	//--------------------------------wrapper--------------------------------
 	CUDA_HOSTDEV
-	static bool applyDelta(State& state, State& parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
+	static bool applyDelta(State* state, State* parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
 		return applyPhysicsDelta(state, parent, trackSegArray, nTrackSegs, actionSimDeltaTime);
 	}
 

@@ -1,15 +1,9 @@
 #include "SeqRRTStar.h"
 
 
-SeqRRTStar::SeqRRTStar(State initialState, int nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments, double actionSimDeltaTime){
-
+SeqRRTStar::SeqRRTStar(State initialState, int nIterations, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration){
 	this->maxCost = -1 * DBL_MAX; //force a change
 	this->bestState = State();
-
-	this->forwardSegments = forwardSegments;
-
-	int startSegIndex = (currentSearchSeg.id);
-	int finalIndex = (startSegIndex + forwardSegments) % (nTrackSegs - 1);
 
 	this->startSegIndex = startSegIndex;
 	this->finalIndex = finalIndex;
@@ -23,13 +17,10 @@ SeqRRTStar::SeqRRTStar(State initialState, int nIterations, tCarElt car, tTrackS
 	std::srand(clock());
 	this->trackSegArray = trackSegArray;
 	this->nTrackSegs = nTrackSegs;
-	this->car = car;
 
 	this->actionSimDeltaTime = actionSimDeltaTime;
-
 }
 SeqRRTStar::~SeqRRTStar(){
-
 	//as we do not need the graph anymore we just delete it! (commented because it is used on driver.cpp  for debug purposes)
 	deleteGraph();
 }
@@ -66,65 +57,41 @@ void SeqRRTStar::pushBackToGraph(State &element){
 }
 
 
-/*2nd approach (uncomment to activate)*/ 
-//the nearest point is the one in which its finalPos prediction ajusts to the current pos and random speed
-State SeqRRTStar::nearestNeighbor(State state, State* graph){
-
-	State closestState;
-	double minDist = DBL_MAX;
-	for (int i = 0; i < graphIterator; i++){
-
-		double dist = UtilityMethods::getPolarQuadranceBetween(state.getVelocity(), graph[i].getVelocity());
-		if (dist <= minDist){
-			minDist = dist;
-			closestState = graph[i];
-		}
-
-	}
-
-
-
-	return closestState;
-
-}
-
-
 void SeqRRTStar::generateStates(double nIterations){
 
 	State xRand;
 
-
-	double maxAa = 5;
-	double maxAl = 5;
-
-	double maxDeltaAngle = maxAa*actionSimDeltaTime;
-	double maxDeltaIntensity = maxAl*actionSimDeltaTime;
-
+	//if initialState is outside the track put the point on track;
 	if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, &initialState)){
+		/*t3Dd* segVertexes = initialState.getLocalPos().seg->vertex;
+		initialState.setPos({ (segVertexes[0].x + segVertexes[3].x) / 2, (segVertexes[0].y + segVertexes[3].y) / 2, 0 });
+		initialState.setVelocity(tPolarVel());*/
 		return;
+
 	}
 
 	for (int k = 0; k < nIterations; k++){
 
 		//--------------------------------------- generate random sample -----------------------------------------------
 
-		xRand = RandomStateGenerators::uniformRandomState(trackSegArray, nTrackSegs, startSegIndex, finalIndex);
-		//xRand = RandomStateGenerators::gaussianRandomState(trackSegArray, nTrackSegs, startSegIndex, finalIndex, initialState.getVelocity());
+		xRand = RandomStateGenerators::uniformRandomState(trackSegArray, nTrackSegs,nullptr);
+		//xRand = RandomStateGenerators::gaussianRandomState(trackSegArray, nTrackSegs, initialState.getVelocity());
 
 		//---------------------------------------- select neighbor ----------------------------------------------------
 
-		State xNearest = nearestNeighbor(xRand, graph);
+		State xNearest = UtilityMethods::nearestNeighbor(xRand, graph,graphIterator);
 		xRand.setParentGraphIndex(xNearest.getMyGraphIndex());
 		xRand.setLevelFromStart(xNearest.getLevelFromStart() + 1);
 
 		//----------------------------------------- constraint checking ------------------------------------------------
 
-		if (abs(xRand.getVelocity().angle- xNearest.getVelocity().angle) > maxDeltaAngle || abs(xRand.getVelocity().intensity-xNearest.getVelocity().intensity) > maxDeltaIntensity*maxDeltaIntensity){
+		//if the acceleration is too much for the car to handle, prune the state
+		/*if (abs(xRand.getVelocity().angle- xNearest.getVelocity().angle) > maxCarAcceleration.angle || abs(xRand.getVelocity().intensity-xNearest.getVelocity().intensity) > maxCarAcceleration.intensity){
 			continue;
-		}
+		}*/
 
 		//the delta application also checks if the trajectory is valid
-		if (!DeltaFunctions::applyDelta(xRand, xNearest, trackSegArray, nTrackSegs, actionSimDeltaTime)){
+		if (!DeltaFunctions::applyDelta(&xRand, &xNearest, trackSegArray, nTrackSegs, actionSimDeltaTime)){
 			continue;
 		}
 
@@ -132,7 +99,7 @@ void SeqRRTStar::generateStates(double nIterations){
 	
 		//the best state is the one that is furthest from the start lane
 		tTrkLocPos xRandLocalPos;
-		UtilityMethods::SimpleRtTrackGlobal2Local(xRandLocalPos, trackSegArray, nTrackSegs, xRand.getPos().x, xRand.getPos().y, 0);
+		UtilityMethods::SimpleRtTrackGlobal2Local(&xRandLocalPos, trackSegArray, nTrackSegs, xRand.getPos().x, xRand.getPos().y, 0);
 		xRand.setLocalPos(xRandLocalPos);
 		double distFromStart = UtilityMethods::getTrackCenterDistanceBetween(trackSegArray, nTrackSegs, &xRand, &initialState, 500) / xRand.getLevelFromStart();
 		xRand.distFromStart = distFromStart;
@@ -147,76 +114,6 @@ void SeqRRTStar::generateStates(double nIterations){
 	
 
 }
-
-/**/
-
-
-/*1st approach (uncomment to activate)* /
-//the nearest point is the one in which its finalPos prediction ajusts to the current pos
-State SeqRRTStar::nearestNeighbor(State state, State* graph){
-
-	State closestState = initialState;
-	double minDist = DBL_MAX;
-	for (int j = 0; j < graphIterator; j++){
-		State i = graph[j];
-		double dist = UtilityMethods::getEuclideanQuadranceBetween(state.getPos(), i.getPos());
-		if (dist < minDist){
-			minDist = dist;
-			closestState = i;
-		}
-	}
-
-
-	return closestState;
-
-}
-
-
-void SeqRRTStar::generateStates(double nIterations){
-
-	State xRand;
-
-	double velAngleBias = acos(initialState.getVelocity().x / initialState.getVelocity().x);
-	double velIntensityBias = sqrt(initialState.getVelocity().x*initialState.getVelocity().x + initialState.getVelocity().y*initialState.getVelocity().y);
-
-	for (int k = 0; k < nIterations; k++){
-
-		xRand = RandomStateGenerators::uniformRandomState(trackSegArray, nTrackSegs, startSegIndex, finalIndex);
-		//xRand = RandomStateGenerators::gaussianRandomState(trackSegArray, nTrackSegs, startSegIndex, finalIndex, velAngleBias, velIntensityBias);
-
-		//the generation didnt work
-		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, &xRand)){
-			continue;
-		}
-
-
-		State xNearest = nearestNeighbor(xRand, graph);
-		xRand.setParentGraphIndex(xNearest.getMyGraphIndex());
-
-		//--------------------------------------------------------------------------------------------------------------------------------
-
-		//the normalization didnt work
-		if (!DeltaFunctions::applyDelta(xRand, xNearest, trackSegArray, nTrackSegs, actionSimDeltaTime)){
-			continue;
-		}
-
-		tTrkLocPos xRandLocalPos;
-		UtilityMethods::SimpleRtTrackGlobal2Local(xRandLocalPos, trackSegArray, nTrackSegs, xRand.getPos().x, xRand.getPos().y, 0);
-		xRand.setLocalPos(xRandLocalPos);
-		double distFromStart = UtilityMethods::SimpleGetDistanceFromStart(xRand.getLocalPos()) / xRand.getLevelFromStart();
-		xRand.distFromStart = distFromStart;
-		pushBackToGraph(xRand);
-
-		if (distFromStart > maxCost){
-			maxCost = distFromStart;
-			bestState = xRand;
-		}
-
-	}
-
-
-}
-/**/
 
 State SeqRRTStar::generateRRT(){
 

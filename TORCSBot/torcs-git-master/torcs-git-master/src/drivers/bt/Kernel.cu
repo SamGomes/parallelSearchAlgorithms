@@ -2,15 +2,15 @@
 #include "Kernel.cuh"
 
 
-__global__ void warmStart(int* f)
+CUDA_GLOBAL
+void warmStart(int* f)
 {
 	*f = 0;
 }
 
-__global__ void CUDAProcedure(tTrackSeg* segArray, int nTrackSegs, State* graph, int stateIterator, 
-	double minXVertex, double maxXVertex, double minYVertex, double maxYVertex, 
-	int numThreads, int graphSize, double maxPathCost, State* bestState,
-	int forwardSegments, double neighborDeltaPos, double neighborDeltaSpeed, double actionSimDeltaTime){
+CUDA_GLOBAL
+void CUDAProcedure(tTrackSeg* trackSegArray, int nTrackSegs, State* graph, int stateIterator,
+	int numThreads, int graphSize, double maxCost, double actionSimDeltaTime){
 
 	int idx = threadIdx.x + blockDim.x*blockIdx.x;
 
@@ -26,111 +26,38 @@ __global__ void CUDAProcedure(tTrackSeg* segArray, int nTrackSegs, State* graph,
 		&curandState);
 
 
-	//iteration code ...
+	State initialState = graph[0];
 
-	//double trackMapXMin = minXVertex;
-	//double trackMapXMax = maxXVertex;
+	State xRand;
 
-	//double trackMapXDelta = trackMapXMax - trackMapXMin;
+	//--------------------------------------- generate random sample -----------------------------------------------
 
-	//double trackMapYMin = minYVertex;
-	//double trackMapYMax = maxYVertex;
-
-	//double trackMapYDelta = trackMapYMax - trackMapYMin;
+	xRand = RandomStateGenerators::uniformRandomState(trackSegArray, nTrackSegs, &curandState);
+	//xRand = RandomStateGenerators::gaussianRandomState(trackSegArray, nTrackSegs, startSegIndex, finalIndex, initialState.getVelocity());
 
 
-	//double trackMapZMin = 0;
-	//double trackMapZMax = 20;
+	//---------------------------------------- select neighbor ----------------------------------------------------
 
-	//double trackMapZDelta = trackMapZMax - trackMapZMin;
+	State xNearest = UtilityMethods::nearestNeighbor(xRand, graph, graphSize);
+	xRand.setParentGraphIndex(xNearest.getMyGraphIndex());
+	xRand.setLevelFromStart(xNearest.getLevelFromStart() + 1);
 
-	//double minSpeed = -50;
-	//double maxSpeed = 50;
+	////----------------------------------------- constraint checking ------------------------------------------------
 
-	//double speedDelta = maxSpeed - minSpeed;
-
-
-	//double minAccel = 0;
-	//double maxAccel = 10;
-
-	//double accelDelta = maxAccel - minAccel;
-
-
-	////------------------------generate random point --------------------------------
-
-	//double randPosX = trackMapXDelta * curand_uniform(&curandState) + trackMapXMin;
-	//double randPosY = trackMapYDelta * curand_uniform(&curandState) + trackMapYMin;
-	//double randPosZ = trackMapZDelta * curand_uniform(&curandState) + trackMapZMin;
-
-	//tPosd randPos;
-	//randPos.x = randPosX;
-	//randPos.y = randPosY;
-	//randPos.z = randPosZ;
-
-
-	//double biasSteerX = graph[0].getVelocity().x;
-	//double biasSteerY = graph[0].getVelocity().y;
-	//double biasSteerZ = graph[0].getVelocity().z;
-
-	//double influence = 1.0;
-	//double mix = curand_uniform(&curandState)*influence;
-
-	//double randSpeedX = speedDelta * curand_uniform(&curandState) + minSpeed;
-	//double randSpeedY = speedDelta * curand_uniform(&curandState) + minSpeed;
-	//double randSpeedZ = speedDelta * curand_uniform(&curandState) + minSpeed;
-
-	//randSpeedX = randSpeedX*(1 - mix) + biasSteerX*mix;
-	//randSpeedY = randSpeedY*(1 - mix) + biasSteerY*mix;
-	//randSpeedZ = randSpeedZ*(1 - mix) + biasSteerZ*mix;
-
-	//tPosd randSpeed;
-	//randSpeed.x = randSpeedX;
-	//randSpeed.y = randSpeedY;
-	//randSpeed.z = randSpeedZ;
-
-	//double randAccelX = accelDelta * curand_uniform(&curandState) + minAccel;
-	//double randAccelY = accelDelta * curand_uniform(&curandState) + minAccel;
-	//double randAccelZ = accelDelta * curand_uniform(&curandState) + minAccel;
-
-	//tPosd randAccel;
-	//randAccel.x = randAccelX;
-	//randAccel.y = randAccelY;
-	//randAccel.z = randAccelZ;
-
-	//State xRand = State(randPos, randSpeed, randAccel);
-
-	////------------------------------find parent--------------------------------------
-
-	////the generation didnt work
-	//if (!ConstraintChecking::validPoint(segArray, nTrackSegs, &xRand, -3)){
+	////if the acceleration is too much for the car to handle, prune the state
+	///*if (abs(xRand.getVelocity().angle- xNearest.getVelocity().angle) > maxCarAcceleration.angle || abs(xRand.getVelocity().intensity-xNearest.getVelocity().intensity) > maxCarAcceleration.intensity){
 	//	return;
-	//}
-	//	
-	//State* xNearest = Kernel::nearestNeighbor(&xRand, graph, graphSize, actionSimDeltaTime); //GRAPH ITERATOR FUCKUP!
-	//xRand.setParentGraphIndex(xNearest->getMyGraphIndex());
+	//}*/
 
-	////------------------------------apply delta--------------------------------------
+	//the delta application also checks if the trajectory is valid
+	if (!DeltaFunctions::applyDelta(&xRand, &xNearest, trackSegArray, nTrackSegs, actionSimDeltaTime)){
+		return;
+	}
 
-	////printf("parent out!:%f:%f\n", xRand.getPos().x, xRand.getParent()->getPos().x);
-
-	////the delta appliance also checks the validity of the point 
-	//if (!DeltaFunctions::applyDelta(&xRand, xNearest, segArray, nTrackSegs, forwardSegments, neighborDeltaPos, neighborDeltaSpeed)){
-	//	return;
-	//}
+	xRand.setMyGraphIndex(offset);
+	graph[offset]= xRand;
 
 
-	//double cMin = xNearest->getCost() + EvalFunctions::evaluatePathCost(segArray, nTrackSegs, xNearest, &xRand, forwardSegments); //redifine path cost for new coords
-	//xRand.setCost(cMin);
-
-	//
-
-	////------------------------------push to graph--------------------------------------
-	//xRand.setMyGraphIndex(offset);
-	//graph[offset] = xRand;
-	
-
-
-	
 }
 
 //This method takes off the CUDA initialization delay on first call during real-time
@@ -147,7 +74,7 @@ void Kernel::gpuWarmup(){
 
 		cudaGetDeviceProperties(&prop, i);
 
-		printf("--- General Information for device %d ---\n", i);
+		printf("---General  Information for device %d---\n", i);
 		printf("Name: %s\n", prop.name);
 		printf("Compute capability: %d.%d\n", prop.major, prop.minor);
 		printf("Clock rate: %d\n", prop.clockRate);
@@ -158,7 +85,7 @@ void Kernel::gpuWarmup(){
 		if (prop.kernelExecTimeoutEnabled) printf("Enabled\n");
 		else printf("Disabled\n");
 
-		printf("--- Memory Information for device %d ---\n", i);
+		printf("---  Memory Information for device %d ---\n", i);
 		printf("Total global mem: %ld\n", prop.totalGlobalMem);
 		printf("Total constant mem: %ld\n", prop.totalConstMem);
 		printf("Max mem pitch: %ld\n", prop.memPitch);
@@ -188,19 +115,14 @@ void Kernel::gpuWarmup(){
 	cudaFree(f);
 
 	cudaDeviceSynchronize();
-	printf( "kernel error: %s" , cudaGetErrorString(cudaPeekAtLastError()) );
+	printf( "kernel error : %s" , cudaGetErrorString(cudaPeekAtLastError()) );
 
 
 	//-----------------------------------------------------------------------------------
 
 }
 
-State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialState,
-	double minXVertex, double maxXVertex, double minYVertex, double maxYVertex,
-	int numIterations,
-	int forwardSegments, double neighborDeltaPos, double neighborDeltaSpeed, double actionSimDeltaTime){
-
-	State* auxBestState;
+State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialState, int numIterations, double actionSimDeltaTime){
 
 	int graphSize = numIterations + 1;
 
@@ -214,8 +136,8 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialSta
 
 	double maxPathCost = 0; //just to mock (was not removed as it can still be needed)
 
-	int NUM_BLOCKS = 5;
-	int NUM_THREADS_EACH_BLOCK = 500;
+	int NUM_BLOCKS = 1;
+	int NUM_THREADS_EACH_BLOCK = 100;
 	int NUM_THREADS = NUM_BLOCKS*NUM_THREADS_EACH_BLOCK;
 
 	float iterationRatio = (float) numIterations / (float) NUM_THREADS;
@@ -235,7 +157,6 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialSta
 
 	cudaMalloc(&auxGraph, sizeof(State)*(unsigned int)graphSize);
 	cudaMalloc(&auxSegArray, sizeof(tTrackSeg)*(unsigned int)nTrackSegs);
-	cudaMalloc(&auxBestState, sizeof(State));
 
 	mallocTimer = clock() - mallocTimer;
 	printf("malloc timer: %f \n" , double(mallocTimer) / (double)CLOCKS_PER_SEC );
@@ -254,9 +175,7 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialSta
 		kernelCallTimer = clock();
 
 		CUDAProcedure << < NUM_BLOCKS, NUM_THREADS_EACH_BLOCK >> > (auxSegArray, nTrackSegs, auxGraph, i,
-			minXVertex, maxXVertex, minYVertex, maxYVertex,
-			NUM_THREADS, graphSize, maxPathCost, auxBestState,
-			forwardSegments, neighborDeltaPos, neighborDeltaSpeed, actionSimDeltaTime);
+			NUM_THREADS, graphSize, maxPathCost, actionSimDeltaTime);
 
 		kernelCallTimer = clock() - kernelCallTimer;
 
@@ -283,7 +202,6 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialSta
 
 	cudaFree(auxGraph);
 	cudaFree(auxSegArray);
-	cudaFree(auxBestState);
 
 	cudaDeviceSynchronize();
 	printf("kernel error: %s" , cudaGetErrorString(cudaPeekAtLastError()) );

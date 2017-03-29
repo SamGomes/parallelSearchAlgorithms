@@ -163,7 +163,8 @@ void Driver::newRace(tCarElt* car, tSituation *s)
 
 	//steerPidController = PIDController(2, 5, 0.0001); 
 
-
+	maxCarAcceleration.angle = car->_steerLock;
+	maxCarAcceleration.intensity = 5;
 }
 
 
@@ -394,7 +395,7 @@ void Driver::simplePlan() // algorithm test
 		State initialState = State(carDynCg.pos, carVel);
 		initialState.setLocalPos(car->pub.trkPos);
 		initialState.setInitialState(true); //it is indeed the initial state!
-		RRTStarAux = new SeqRRTStar(initialState, 300, *car, trackSegArray, track->nseg, *initialState.getLocalPos().seg, SEARCH_SEGMENTS_AHEAD, ACTION_SIM_DELTA_TIME);
+		RRTStarAux = new ParRRTStar(initialState, 500, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
 			
 		clock_t searchTimer = clock();
 			
@@ -464,7 +465,9 @@ void Driver::humanControl(){
 		initialState = State(carDynCg.pos,carVel);
 		initialState.setLocalPos(car->pub.trkPos);
 		initialState.setInitialState(true); //it is indeed the initial state!
-		RRTStarAux = new SeqRRTStar(initialState, 500, *car, trackSegArray, track->nseg, *initialState.getLocalPos().seg, SEARCH_SEGMENTS_AHEAD, ACTION_SIM_DELTA_TIME);
+
+		
+		RRTStarAux = new ParRRTStar(initialState, 500, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
 		path = RRTStarAux->search();
 		pathG = path;
 		std::reverse(pathG.begin(), pathG.end());
@@ -491,7 +494,6 @@ void Driver::humanControl(){
 	if (GetAsyncKeyState(VK_SPACE) & 0x8000)
 	{
 		car->_gearCmd = -1;
-		UtilityMethods::getSegmentOf(tTrackSeg(), trackSegArray, track->nseg, car->pub.DynGC.pos.x, car->pub.DynGC.pos.y);
 	}
 	else{
 		car->_gearCmd = getGear();
@@ -520,16 +522,16 @@ void Driver::humanControl(){
 	carState.setLocalPos(car->pub.trkPos);
 	if (flag == 1){
 	
-		tTrackSeg seg;
-		UtilityMethods::getSegmentOf(seg, trackSegArray, track->nseg, car->pub.DynGC.pos.x, car->pub.DynGC.pos.y);
+		/*tTrackSeg seg;
+		UtilityMethods::getSegmentOf(&seg, trackSegArray, track->nseg, car->pub.DynGC.pos.x, car->pub.DynGC.pos.y);
 
 		double correctDist = UtilityMethods::getTrackCenterDistanceBetween(trackSegArray, track->nseg, &carState, &initialState, 200);
 
 		tTrkLocPos p;
-		UtilityMethods::SimpleRtTrackGlobal2Local(p,trackSegArray, track->nseg, car->pub.DynGC.pos.x, car->pub.DynGC.pos.y,0);
-		carState.setLocalPos(p);
+		UtilityMethods::SimpleRtTrackGlobal2Local(&p,trackSegArray, track->nseg, car->pub.DynGC.pos.x, car->pub.DynGC.pos.y,0);
+		carState.setLocalPos(p);*/
 
-		printf("\vel: %f, %f\n", car->pub.DynGCg.vel.x, car->pub.DynGCg.vel.y);
+		//printf("vel: %f, %f\n", car->pub.DynGCg.vel.x, car->pub.DynGCg.vel.y);
 		//printf("\rcarSegId: %d\n", car->pub.trkPos.seg->id);
 
 		//printf("\rgetDistFromStart: %f : %d, getBeforeDistFromStart: %f : %d                 ", UtilityMethods::getTrackCenterDistanceBetween(trackSegArray, track->nseg, &carState,&initialState , 200),p.seg->id,correctDist,car->pub.trkPos.seg->id);

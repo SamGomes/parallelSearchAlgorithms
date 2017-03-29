@@ -77,6 +77,8 @@ class Driver {
 		float clutchtime;
 		float *radius;
 
+		tPolarVel maxCarAcceleration;
+
 		PIDController gasPidController;
 		PIDController brakePidController;
 		PIDController steerPidController;

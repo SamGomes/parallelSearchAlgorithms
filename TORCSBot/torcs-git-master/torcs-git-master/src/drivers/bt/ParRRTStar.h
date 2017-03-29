@@ -20,32 +20,21 @@
 class ParRRTStar : public RRTStar{
 private: //vars
 
-	//config vars
-	int NEIGHBOR_SAMPLE_BOUNDARY = 4;
-	int NEIGHBOR_DELTA_POS = 30;
-	int NEIGHBOR_DELTA_SPEED = 10;
-	double actionSimDeltaTime = 0.02 * 100; // assuming 100 game ticks action simulation
-	double numberOfEmergencyCycles = 20;
-
 	//initialization vars
+	tPolarVel maxCarAcceleration;
+	double actionSimDeltaTime;
 	int currentSearchSegIndex;
 	int forwardSearchSegIndex;
 	tTrackSeg* trackSegArray;
 	int nTrackSegs;
-	tCarElt car;
 	int nIterations;
 	State* initialState;
 	int forwardSegments;
 
 	State* graph;
 
-private: //methods
-
-	State* generateSolution(int initialSegIndex, int finalSegIndex);
-
-
 public:
-	ParRRTStar(State initialState, int nIterations, tCarElt car, tTrackSeg* trackSegArray, int nTrackSegs, tTrackSeg currentSearchSeg, int forwardSegments, double actionSimDeltaTime);
+	ParRRTStar(State initialState, int nIterations, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration);
 	~ParRRTStar();
 
 	std::vector<State*> search();

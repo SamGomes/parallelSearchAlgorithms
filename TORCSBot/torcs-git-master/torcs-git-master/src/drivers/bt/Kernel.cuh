@@ -33,41 +33,16 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort =
 	}
 }
 
-
-
-
-__global__ void CUDAProcedure(tTrackSeg* segArray, int nTrackSegs, State* graph, int stateIterator,
-								double minXVertex, double maxXVertex, double minYVertex, double maxYVertex,
-								int numThreads, int graphSize, double maxPathCost, State* bestState,
-								int forwardSegments, double neighborDeltaPos, double neighborDeltaSpeed, double actionSimDeltaTime);
+CUDA_GLOBAL void CUDAProcedure(tTrackSeg* trackSegArray, int nTrackSegs, State* graph, int stateIterator,
+							  int numThreads, int graphSize, double maxCost, State* bestState, double actionSimDeltaTime);
 
 class Kernel{
 public:
 
-	CUDA_HOSTDEV //the nearest point is the one in which its finalPos prediction ajusts to the current pos
-	static State* nearestNeighbor(State* state, State* graph, int graphIterator, double actionSimDeltaTime){
-
-		State* closestState = &graph[0];
-		double minCost = DBL_MAX;
-		for (int j = 0; j < graphIterator; j++){
-			State* i = &graph[j];
-			if (i->getMyGraphIndex() == -1 || i==state)  //still unassigned
-				continue;
-			double currCost = 0;
-			if (minCost > currCost){
-				minCost = currCost;
-				closestState = i;
-			}
-		}
-		return closestState;
-	}
 
 	static void gpuWarmup();
 
-	static	State*  callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialState,
-							double minXVertex, double maxXVertex, double minYVertex, double maxYVertex,
-							int numIterations, 
-							int forwardSegments, double neighborDeltaPos, double neighborDeltaSpeed, double actionSimDeltaTime);
+	static	State* callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialState, int numIterations, double actionSimDeltaTime);
 
 };
 
