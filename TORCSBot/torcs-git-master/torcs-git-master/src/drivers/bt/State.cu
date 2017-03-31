@@ -12,7 +12,7 @@ State::State(){
 	
 	this->myGraphIndex = -1;
 	this->parentGraphIndex = -1;
-	this->localPos = tTrkLocPos();
+	this->localPos = tStateRelPos();
 	this->levelFromStart = 1;
 }
 
@@ -27,7 +27,7 @@ State::State(tPolarVel velocity){
 
 	this->myGraphIndex = -1;
 	this->parentGraphIndex = -1;
-	this->localPos = tTrkLocPos();
+	this->localPos = tStateRelPos();
 	this->levelFromStart = 1;
 }
 
@@ -41,7 +41,7 @@ State::State(tPosd pos, tPolarVel velocity){
 
 	this->myGraphIndex = -1;
 	this->parentGraphIndex = -1;
-	this->localPos = tTrkLocPos();
+	this->localPos = tStateRelPos();
 	this->levelFromStart = 1;
 }
 
@@ -113,12 +113,12 @@ int State::getMyGraphIndex(){
 
 
 CUDA_HOSTDEV
-tTrkLocPos State::getLocalPos(){
+tStateRelPos State::getLocalPos(){
 	return this->localPos;
 }
 
 CUDA_HOSTDEV
-void State::setLocalPos(tTrkLocPos posSeg){
+void State::setLocalPos(tStateRelPos posSeg){
 	this->localPos = posSeg;
 }
 

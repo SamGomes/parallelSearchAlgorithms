@@ -37,13 +37,13 @@ public:
 
 
 	CUDA_HOSTDEV
-	static bool SimpleRtTrackGlobal2Local(tTrkLocPos* p, tTrackSeg* segmentArray, int nTrackSegs, tdble X, tdble Y, int type)
+	static bool SimpleRtTrackGlobal2Local(tStateRelPos* p, tTrackSeg* segmentArray, int nTrackSegs, tdble X, tdble Y, int type)
 	{
 
 		int 	segnotfound = 1;
 		float 	x, y;
 
-		tTrackSeg* 	seg = getSegmentOf(segmentArray, nTrackSegs, X, Y);
+		tTrackSeg* seg = getSegmentOf(segmentArray, nTrackSegs, X, Y);
 		
 		if (seg==nullptr){
 			return false;
@@ -53,7 +53,7 @@ public:
 		float 	theta, a2;
 		int 	depl = 0;
 		p->type = type;
-		p->seg = &segmentArray[seg->id];
+		p->segId = segArrayIterator;
 
 
 
@@ -69,7 +69,7 @@ public:
 					x = X - seg->vertex[1].x;
 					y = Y - seg->vertex[1].y;
 					ts = x * cosine + y * sine;
-					p->seg = &segmentArray[segArrayIterator];
+					p->segId = segArrayIterator;
 					p->toStart = ts;
 					p->toRight = y * cosine - x * sine;
 					if ((ts < 0) && (depl < 1)) {
@@ -97,7 +97,7 @@ public:
 					a2 = seg->arc / 2.0;
 					theta = atan2(y, x) - (seg->angle[6] + a2);
 					theta = normPI_PI(theta);
-					p->seg = &segmentArray[segArrayIterator];
+					p->segId = segArrayIterator;
 					p->toStart = theta + a2;
 					p->toRight = seg->radiusr - sqrt(x*x + y*y);
 					
@@ -125,7 +125,7 @@ public:
 					a2 = seg->arc / 2.0;
 					theta = seg->angle[6] - a2 - atan2(y, x);
 					theta = normPI_PI(theta);
-					p->seg = &segmentArray[segArrayIterator];
+					p->segId = segArrayIterator;
 					p->toStart = theta + a2;
 					p->toRight = sqrt(x*x + y*y) - seg->radiusr;
 					
@@ -192,14 +192,14 @@ public:
 	CUDA_HOSTDEV
 	static double getTrackCenterDistanceBetween(tTrackSeg* segmentArray, int nTrackSegs, State* s2, State* s1, int fwdLimit){
 
-		tTrkLocPos l1, l2;
+		tStateRelPos l1, l2;
 
 		l1 = s1->getLocalPos();
 		l2 = s2->getLocalPos();
 
 
-		tTrackSeg	l1Seg = *l1.seg;
-		tTrackSeg	l2Seg = *l2.seg;
+		tTrackSeg	l1Seg = segmentArray[l1.segId];
+		tTrackSeg	l2Seg = segmentArray[l2.segId];
 
 
 		double totalCost = 0;

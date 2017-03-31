@@ -14,7 +14,6 @@
 
 
 
-
 class State
 {
 
@@ -22,7 +21,7 @@ class State
 
 		bool initialState; //to inform the backtrack;
 
-		tTrkLocPos localPos;
+		tStateRelPos localPos;
 	
 		tPosd pos;
 		
@@ -63,8 +62,8 @@ class State
 		CUDA_HOSTDEV int getLevelFromStart();
 
 
-		CUDA_HOSTDEV void setLocalPos(tTrkLocPos localPos);
-		CUDA_HOSTDEV tTrkLocPos getLocalPos();
+		CUDA_HOSTDEV void setLocalPos(tStateRelPos localPos);
+		CUDA_HOSTDEV tStateRelPos getLocalPos();
 
 
 		CUDA_HOSTDEV void setMyGraphIndex(int myGraphIndex);

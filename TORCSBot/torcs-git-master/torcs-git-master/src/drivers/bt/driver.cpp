@@ -165,6 +165,10 @@ void Driver::newRace(tCarElt* car, tSituation *s)
 
 	maxCarAcceleration.angle = car->_steerLock;
 	maxCarAcceleration.intensity = 5;
+
+	//to get a good start
+	car->_accelCmd = 1.0;
+
 }
 
 
@@ -358,8 +362,6 @@ bool Driver::passedPoint(State* target){
 int oldLaps;
 void Driver::simplePlan() // algorithm test 
 {
-	
-
 	//-------------------AUX WINDOW VARS-------------------------------------
 
 	carDynCg = car->pub.DynGCg;
@@ -392,10 +394,18 @@ void Driver::simplePlan() // algorithm test
 		carVel.angle = initialStateVelAngle;
 		carVel.intensity = initialStateVelIntensity;
 
+		tStateRelPos carLocPos;
+		carLocPos.segId = car->pub.trkPos.seg->id;
+		carLocPos.toLeft = car->pub.trkPos.toLeft;
+		carLocPos.toMiddle = car->pub.trkPos.toMiddle;
+		carLocPos.toRight = car->pub.trkPos.toRight;
+		carLocPos.toStart = car->pub.trkPos.toStart;
+
+
 		State initialState = State(carDynCg.pos, carVel);
-		initialState.setLocalPos(car->pub.trkPos);
+		initialState.setLocalPos(carLocPos);
 		initialState.setInitialState(true); //it is indeed the initial state!
-		RRTStarAux = new ParRRTStar(initialState, 500, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
+		RRTStarAux = new ParRRTStar(initialState, 1600, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
 			
 		clock_t searchTimer = clock();
 			
@@ -411,11 +421,11 @@ void Driver::simplePlan() // algorithm test
 
 		if (strcmp(RRTStarAux->getSearchName(), "SequentialRRT")==0){
 				
-			//StatsLogWriter::writeToLog("SequentialRRTSearchTimes", stats);
+			StatsLogWriter::writeToLog("SequentialRRTSearchTimes", stats);
 		}
 
 		if (strcmp(RRTStarAux->getSearchName(), "ParallelRRT") == 0){
-			//StatsLogWriter::writeToLog("ParallelRRTSearchTimes", stats);
+			StatsLogWriter::writeToLog("ParallelRRTSearchTimes", stats);
 		}
 
 		pathG = path;
@@ -462,8 +472,16 @@ void Driver::humanControl(){
 		carVel.angle = initialStateVelAngle;
 		carVel.intensity = initialStateVelIntensity;
 
+		tStateRelPos carLocPos;
+		carLocPos.segId = car->pub.trkPos.seg->id;
+		carLocPos.toLeft = car->pub.trkPos.toLeft;
+		carLocPos.toMiddle = car->pub.trkPos.toMiddle;
+		carLocPos.toRight = car->pub.trkPos.toRight;
+		carLocPos.toStart= car->pub.trkPos.toStart;
+
+
 		initialState = State(carDynCg.pos,carVel);
-		initialState.setLocalPos(car->pub.trkPos);
+		initialState.setLocalPos(carLocPos);
 		initialState.setInitialState(true); //it is indeed the initial state!
 
 		
@@ -519,7 +537,15 @@ void Driver::humanControl(){
 
 	State carState;
 	carState.setPos(car->pub.DynGC.pos);
-	carState.setLocalPos(car->pub.trkPos);
+	tStateRelPos carLocPos;
+	carLocPos.segId = car->pub.trkPos.seg->id;
+	carLocPos.toLeft = car->pub.trkPos.toLeft;
+	carLocPos.toMiddle = car->pub.trkPos.toMiddle;
+	carLocPos.toRight = car->pub.trkPos.toRight;
+	carLocPos.toStart = car->pub.trkPos.toStart;
+
+
+	carState.setLocalPos(carLocPos);
 	if (flag == 1){
 	
 		/*tTrackSeg seg;

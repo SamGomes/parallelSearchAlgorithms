@@ -54,6 +54,15 @@ void CUDAProcedure(tTrackSeg* trackSegArray, int nTrackSegs, State* graph, int s
 		return;
 	}
 
+
+	//the best state is the one that is furthest from the start lane
+	tStateRelPos xRandLocalPos;
+	UtilityMethods::SimpleRtTrackGlobal2Local(&xRandLocalPos, trackSegArray, nTrackSegs, xRand.getPos().x, xRand.getPos().y, 0);
+	xRand.setLocalPos(xRandLocalPos);
+	//double distFromStart = UtilityMethods::SimpleGetDistanceFromStart(xRandLocalPos); // / xRand.getLevelFromStart();
+	double distFromStart = UtilityMethods::getTrackCenterDistanceBetween(trackSegArray, nTrackSegs, &xRand, &initialState, 500) / xRand.getLevelFromStart();
+	xRand.distFromStart = distFromStart;
+
 	xRand.setMyGraphIndex(offset);
 	graph[offset]= xRand;
 
@@ -130,14 +139,13 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialSta
 	initialState->setMyGraphIndex(0);
 	graph[0] = *initialState;
 
-
 	State* auxGraph;
 	tTrackSeg* auxSegArray;
 
 	double maxPathCost = 0; //just to mock (was not removed as it can still be needed)
 
 	int NUM_BLOCKS = 1;
-	int NUM_THREADS_EACH_BLOCK = 100;
+	int NUM_THREADS_EACH_BLOCK = 200;
 	int NUM_THREADS = NUM_BLOCKS*NUM_THREADS_EACH_BLOCK;
 
 	float iterationRatio = (float) numIterations / (float) NUM_THREADS;
@@ -147,67 +155,25 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialSta
 	if (numPartialIterations == 0) numPartialIterations++;
 
 
-	clock_t mallocTimer;
-	clock_t memcpyTimer1;
-	clock_t kernelCallTimer;
-	clock_t syncronizeTimer;
-	clock_t memcpyTimer2;
-
-	mallocTimer = clock();
-
 	cudaMalloc(&auxGraph, sizeof(State)*(unsigned int)graphSize);
 	cudaMalloc(&auxSegArray, sizeof(tTrackSeg)*(unsigned int)nTrackSegs);
 
-	mallocTimer = clock() - mallocTimer;
-	printf("malloc timer: %f \n" , double(mallocTimer) / (double)CLOCKS_PER_SEC );
-
-	memcpyTimer1 = clock();
-
-	//cudaMemcpy(auxBestPath, bestPath, sizeof(State)*(unsigned int)numIterations, cudaMemcpyHostToDevice);
 	cudaMemcpy(auxSegArray, segArray, sizeof(tTrackSeg)*(unsigned int)nTrackSegs, cudaMemcpyHostToDevice);
 	cudaMemcpy(auxGraph, graph, sizeof(State)*(unsigned int)graphSize, cudaMemcpyHostToDevice);
 
-	memcpyTimer1 = clock() - memcpyTimer1;
-	//std::cout << "memcpy1 timer: " << double(memcpyTimer1) / (double) CLOCKS_PER_SEC << std::endl;
-
 	for (int i = 0; i < numPartialIterations; i++)
 	{
-		kernelCallTimer = clock();
-
 		CUDAProcedure << < NUM_BLOCKS, NUM_THREADS_EACH_BLOCK >> > (auxSegArray, nTrackSegs, auxGraph, i,
 			NUM_THREADS, graphSize, maxPathCost, actionSimDeltaTime);
-
-		kernelCallTimer = clock() - kernelCallTimer;
-
-		syncronizeTimer = clock();
-
 		cudaDeviceSynchronize();
-
-		syncronizeTimer = clock() - syncronizeTimer;
-
-		printf("kernell call timer: %f \n", double(kernelCallTimer) / (double)CLOCKS_PER_SEC);
-		printf("sync timer: %f \n" ,double(syncronizeTimer) / (double)CLOCKS_PER_SEC );
-
+		printf("kernel error: %s\n----------\n", cudaGetErrorString(cudaPeekAtLastError()));
 	}
 	
-	memcpyTimer2 = clock();
-
 	cudaMemcpy(graph, auxGraph, sizeof(State)*(unsigned int)graphSize, cudaMemcpyDeviceToHost);
-	//cudaMemcpy(bestState, auxBestState, sizeof(State)*(unsigned int)numIterations, cudaMemcpyDeviceToHost);
-
-	memcpyTimer2 = clock() - memcpyTimer2;
-
-	printf("memcpyTimer2 timer: %f \n", double(memcpyTimer2) / (double)CLOCKS_PER_SEC);
-
 
 	cudaFree(auxGraph);
 	cudaFree(auxSegArray);
 
 	cudaDeviceSynchronize();
-	printf("kernel error: %s" , cudaGetErrorString(cudaPeekAtLastError()) );
-
-
-	
-
 	return graph;
 }

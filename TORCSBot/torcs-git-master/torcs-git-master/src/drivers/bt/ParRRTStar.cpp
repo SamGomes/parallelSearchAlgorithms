@@ -26,47 +26,39 @@ ParRRTStar::~ParRRTStar(){
 //-------------------------------------------------------------
 
 std::vector<State*> ParRRTStar::search(){
+ 
+	State bestState;
 
-	 graph = Kernel::callKernel(trackSegArray, nTrackSegs, initialState, nIterations, actionSimDeltaTime);
+	graph = Kernel::callKernel(trackSegArray, nTrackSegs, initialState, nIterations, actionSimDeltaTime);
 
-	 State bestState;
+	//-------------------- CALC BEST NODE -----------------------------
 
-	 //-------------------- CALC BEST NODE -----------------------------
-
-	 double maxCost = -1 * DBL_MAX; //force a change
+	double maxCost = -1 * DBL_MAX; //force a change
 
 	 
-	 for (int i = 1; i < nIterations+1; i++){
-		 State currentState = graph[i];
-		
+	for (int i = 1; i < nIterations+1; i++){
+		State currentState = graph[i];
+		if (currentState.getMyGraphIndex() == -1)  //xRand is still unassigned
+			continue;
 
-		 if (currentState.getMyGraphIndex() == -1)  //xRand is still unassigned
-			 continue;
+		double distFromStart = currentState.distFromStart;
+
+		if (distFromStart > maxCost){
+			maxCost = distFromStart;
+			bestState = currentState;
+		}
+	}
+	
+
+	if (bestState.getMyGraphIndex() == -1){
+		State initialStateCopy = State(*initialState);
+		initialStateCopy.setInitialState(false);
+		initialStateCopy.setParentGraphIndex(initialState->getMyGraphIndex());
+		bestState = initialStateCopy;
+	}
 
 
-		 ////the best state is the one that is furthest from the start lane
-		 tTrkLocPos xRandLocalPos;
-		 UtilityMethods::SimpleRtTrackGlobal2Local(&xRandLocalPos, trackSegArray, nTrackSegs, currentState.getPos().x, currentState.getPos().y, 0);
-		 currentState.setLocalPos(xRandLocalPos);
-		 //double distFromStart = UtilityMethods::SimpleGetDistanceFromStart(xRandLocalPos); // / xRand.getLevelFromStart();
-		 double distFromStart = UtilityMethods::getTrackCenterDistanceBetween(trackSegArray, nTrackSegs, &currentState, initialState, 500) / currentState.getLevelFromStart();
-		 //currentState.distFromStart = distFromStart;
-
-
-		 if (distFromStart > maxCost){
-			 maxCost = distFromStart;
-			 bestState = currentState;
-		 }
-	 }
-
- 	 if (bestState.getMyGraphIndex() == -1){
-		 State initialStateCopy = State(*initialState);
-		 initialStateCopy.setInitialState(false);
-		 initialStateCopy.setParentGraphIndex(initialState->getMyGraphIndex());
-		 bestState = initialStateCopy;
-	 }
 	//---------------------- BACKTRACKING ----------------------------------
-
 
 	std::vector<State*> path;
 

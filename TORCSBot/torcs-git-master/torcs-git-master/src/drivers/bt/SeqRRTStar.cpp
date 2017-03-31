@@ -61,15 +61,6 @@ void SeqRRTStar::generateStates(double nIterations){
 
 	State xRand;
 
-	//if initialState is outside the track put the point on track;
-	if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, &initialState)){
-		/*t3Dd* segVertexes = initialState.getLocalPos().seg->vertex;
-		initialState.setPos({ (segVertexes[0].x + segVertexes[3].x) / 2, (segVertexes[0].y + segVertexes[3].y) / 2, 0 });
-		initialState.setVelocity(tPolarVel());*/
-		return;
-
-	}
-
 	for (int k = 0; k < nIterations; k++){
 
 		//--------------------------------------- generate random sample -----------------------------------------------
@@ -98,7 +89,7 @@ void SeqRRTStar::generateStates(double nIterations){
 		//---------------------------------------- calculate best path --------------------------------------------------
 	
 		//the best state is the one that is furthest from the start lane
-		tTrkLocPos xRandLocalPos;
+		tStateRelPos xRandLocalPos;
 		UtilityMethods::SimpleRtTrackGlobal2Local(&xRandLocalPos, trackSegArray, nTrackSegs, xRand.getPos().x, xRand.getPos().y, 0);
 		xRand.setLocalPos(xRandLocalPos);
 		double distFromStart = UtilityMethods::getTrackCenterDistanceBetween(trackSegArray, nTrackSegs, &xRand, &initialState, 500) / xRand.getLevelFromStart();
