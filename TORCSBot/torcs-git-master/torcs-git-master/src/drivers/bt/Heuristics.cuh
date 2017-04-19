@@ -556,6 +556,7 @@ public:
 class DeltaFunctions{
 
 public:
+
 	//-------------bezier based forward model (for future work maybe)----------------------
 
 	CUDA_HOSTDEV

@@ -31,6 +31,9 @@ double trkMaxX;
 double trkMaxY;
 State currStateG;
 
+trackSeg* segmentArrayG;
+int nsegsG;
+
 int pathsauxWindow;
 int currStatsWindow;
 
@@ -119,6 +122,10 @@ void Driver::initTrack(tTrack* t, void *carHandle, void **carParmHandle, tSituat
 		currSeg = currSeg->next;
 		trackSegIterator++;
 	}
+
+	segmentArrayG = trackSegArray;
+	nsegsG = track->nseg;
+
 
 	for (int i = 0; i < track->nseg; i++){
 		printf("segId:%d\n", trackSegArray[i].id);
@@ -405,7 +412,7 @@ void Driver::simplePlan() // algorithm test
 		State initialState = State(carDynCg.pos, carVel);
 		initialState.setLocalPos(carLocPos);
 		initialState.setInitialState(true); //it is indeed the initial state!
-		RRTStarAux = new ParRRTStar(initialState, 1600, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
+		RRTStarAux = new ParRRTStar(initialState, 400, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
 			
 		clock_t searchTimer = clock();
 			
@@ -446,11 +453,8 @@ void Driver::simplePlan() // algorithm test
 	delay++;
 }
 
-int flag = 0; State initialState; trackSeg* segmentArrayG; int nsegsG;
+int flag = 0; State initialState; 
 void Driver::humanControl(){
-	
-	segmentArrayG = trackSegArray;	
-	nsegsG = track->nseg;
 	
 	if (GetAsyncKeyState(VK_UP) & 0x8000)
 	{
@@ -485,7 +489,7 @@ void Driver::humanControl(){
 		initialState.setInitialState(true); //it is indeed the initial state!
 
 		
-		RRTStarAux = new ParRRTStar(initialState, 500, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
+		RRTStarAux = new SeqRRTStar(initialState, 500, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
 		path = RRTStarAux->search();
 		pathG = path;
 		std::reverse(pathG.begin(), pathG.end());
@@ -582,7 +586,7 @@ void Driver::update(tSituation *s)
 
 		this->simplePlan();
 		this->control();
-		this->humanControl();
+		//this->humanControl();
 	}
 }
 
@@ -605,7 +609,6 @@ void Driver::initGLUTWindow(){
 	glutDisplayFunc(drawSearchPoints);
 
 	glutSetWindow(pathsauxWindow);
-	mapTextureID = loadTexture("auxWindow/g-track-1.bmp");
 	
 }
 
@@ -646,7 +649,7 @@ void drawCurrStats(){
 void drawSearchPoints(){
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(1, 1, 1, 1);
+	glClearColor(0.7, 0.7, 0.7, 0.7);
 
 	int w = glutGet(GLUT_WINDOW_WIDTH);
 	int h = glutGet(GLUT_WINDOW_HEIGHT);
@@ -660,57 +663,37 @@ void drawSearchPoints(){
 	glLoadIdentity();
 	glPushMatrix();
 
-
-
-	drawMap(0, 0, w, h);
+	
 
 	for (int i = 1; i < (graphG).size(); i++){
+		
 		glColor3f(0, 0, 0);
-		drawCircle(graphG[i].getPos(), 0.5);
 		if (graphG[i].getMyGraphIndex() == -1)  //still unassigned
 			continue;
+
+		tPosd pointCartesianVelocity;
+		/*pointCartesianVelocity.x = graphG[i].getVelocity().intensity*cos(graphG[i].getVelocity().angle);
+		pointCartesianVelocity.y = graphG[i].getVelocity().intensity*sin(graphG[i].getVelocity().angle);*/
+		pointCartesianVelocity.x = graphG[i].getPos().x;
+		pointCartesianVelocity.y = graphG[i].getPos().y;
+
+
+		tPosd parentCartesianVelocity;
+		/*parentCartesianVelocity.x = graphG[graphG[i].getParentGraphIndex()].getVelocity().intensity*cos(graphG[graphG[i].getParentGraphIndex()].getVelocity().angle);
+		parentCartesianVelocity.y = graphG[graphG[i].getParentGraphIndex()].getVelocity().intensity*sin(graphG[graphG[i].getParentGraphIndex()].getVelocity().angle);*/
+		parentCartesianVelocity.x = graphG[graphG[i].getParentGraphIndex()].getPos().x;
+		parentCartesianVelocity.y = graphG[graphG[i].getParentGraphIndex()].getPos().y;
+		
+		drawCircle(pointCartesianVelocity, 0.5);
 		if (!graphG[i].getInitialState()){
-			drawLine(graphG[i].getPos().x, graphG[i].getPos().y, graphG[graphG[i].getParentGraphIndex()].getPos().x, graphG[graphG[i].getParentGraphIndex()].getPos().y);
+			drawLine(pointCartesianVelocity.x, pointCartesianVelocity.y, parentCartesianVelocity.x, parentCartesianVelocity.y);
 		}
 		
 	}
 	
 
 	for (int i = 1; i < pathG.size(); i++){
-		
-		
 		drawLine(pathG[i]->getPos().x, pathG[i]->getPos().y, pathG[i - 1]->getPos().x, pathG[i - 1]->getPos().y);
-
-		
-		//glColor3f(0, 0, 1);
-
-		//tPosd pathGPrevMapPos = pathG[i - 1]->getPos();
-		//tPosd pathGPrevMapSpeed = pathG[i - 1]->getVelocity();
-
-		//tPosd pathGMapPos = pathG[i]->posRand;
-		//tPosd pathGMapSpeed = pathG[i]->speedRand;
-
-
-		//tPosd p0, p1, p2, p3;
-		//p0 = pathGPrevMapPos;
-
-		//
-
-		//p1.x = pathGPrevMapPos.x + pathGPrevMapSpeed.x;
-		//p1.y = pathGPrevMapPos.y + pathGPrevMapSpeed.y;
-
-
-		//p2.x = pathGMapPos.x - pathGMapSpeed.x;
-		//p2.y = pathGMapPos.y - pathGMapSpeed.y;
-
-		//p3 = pathGMapPos;
-		//
-		//drawCubicBezier(p0, p1, p2, p3, 10);
-
-		//glColor3f(0.9, 0.5, 0);
-		//drawCircle(p1, 0.5);
-		///*glColor3f(0.5, 0.9, 0);
-		//drawCircle(p2, 0.5);*/
 	}
 
 	for (int i = 0; i < pathG.size(); i++){
@@ -729,18 +712,7 @@ void drawSearchPoints(){
 
 	drawCircle(carDynCg.pos, 2);
 
-
-	glColor3f(0.8, 0.2, 0);
-	t3Dd* vertexes = segmentArrayG[0].vertex;
-	int j = 0;
-	while (j < nsegsG){
-		vertexes = segmentArrayG[j].vertex;
-		drawCircle({ vertexes[0].x, vertexes[0].y, vertexes[0].z }, 1);
-		drawCircle({ vertexes[1].x, vertexes[1].y, vertexes[1].z }, 1);
-		drawCircle({ vertexes[2].x, vertexes[2].y, vertexes[2].z }, 1);
-		drawCircle({ vertexes[3].x, vertexes[3].y, vertexes[3].z }, 1);
-		j++;
-	}
+	drawMapSegments();
 
 	glPopMatrix();
 	glutSwapBuffers();
@@ -822,20 +794,19 @@ void drawLine(double initialPointX, double initialPointY, double finalPointX, do
 }
 
 
-void drawMap(GLfloat x, GLfloat y, int width, int height)
+void drawMapSegments()
 {
-	glEnable(GL_TEXTURE_2D);
-	glPushMatrix();
-	glLoadIdentity();
-	glBindTexture(GL_TEXTURE_2D, mapTextureID);
-	glBegin(GL_QUADS);
-	glTexCoord2d(0.0, 1.0); glVertex2f(x, y);
-	glTexCoord2d(1.0, 1.0); glVertex2f(x + width, y);
-	glTexCoord2d(1.0, 0.0); glVertex2f(x + width, y + height);
-	glTexCoord2d(0.0, 0.0); glVertex2f(x, y + height);
-	glEnd();
-	glPopMatrix();
-	glDisable(GL_TEXTURE_2D);
+	glColor3f(0.8, 0.2, 0);
+	t3Dd* vertexes = segmentArrayG[0].vertex;
+	int j = 0;
+	while (j < nsegsG){
+		vertexes = segmentArrayG[j].vertex;
+		drawCircle({ vertexes[0].x, vertexes[0].y, vertexes[0].z }, 1);
+		drawCircle({ vertexes[1].x, vertexes[1].y, vertexes[1].z }, 1);
+		drawCircle({ vertexes[2].x, vertexes[2].y, vertexes[2].z }, 1);
+		drawCircle({ vertexes[3].x, vertexes[3].y, vertexes[3].z }, 1);
+		j++;
+	}
 
 }
 

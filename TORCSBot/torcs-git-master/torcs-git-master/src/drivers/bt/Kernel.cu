@@ -42,7 +42,7 @@ void CUDAProcedure(tTrackSeg* trackSegArray, int nTrackSegs, State* graph, int s
 	xRand.setParentGraphIndex(xNearest.getMyGraphIndex());
 	xRand.setLevelFromStart(xNearest.getLevelFromStart() + 1);
 
-	////----------------------------------------- constraint checking ------------------------------------------------
+	//----------------------------------------- constraint checking ------------------------------------------------
 
 	////if the acceleration is too much for the car to handle, prune the state
 	///*if (abs(xRand.getVelocity().angle- xNearest.getVelocity().angle) > maxCarAcceleration.angle || abs(xRand.getVelocity().intensity-xNearest.getVelocity().intensity) > maxCarAcceleration.intensity){
@@ -145,7 +145,7 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialSta
 	double maxPathCost = 0; //just to mock (was not removed as it can still be needed)
 
 	int NUM_BLOCKS = 1;
-	int NUM_THREADS_EACH_BLOCK = 200;
+	int NUM_THREADS_EACH_BLOCK = 100;
 	int NUM_THREADS = NUM_BLOCKS*NUM_THREADS_EACH_BLOCK;
 
 	float iterationRatio = (float) numIterations / (float) NUM_THREADS;

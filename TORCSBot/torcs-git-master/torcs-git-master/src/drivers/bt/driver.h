@@ -1,21 +1,3 @@
-/***************************************************************************
-
-    file                 : driver.h
-    created              : Thu Dec 20 01:20:19 CET 2002
-    copyright            : (C) 2002-2004 Bernhard Wymann
-    email                : berniw@bluewin.ch
-    version              : $Id: driver.h,v 1.12.2.1 2008/11/09 17:50:19 berniw Exp $
-
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
 
 #ifndef _DRIVER_H_
 #define _DRIVER_H_
@@ -157,7 +139,7 @@ class Driver {
 //display related global procedures
 void drawSearchPoints();
 void drawCurrStats();
-void drawMap(GLfloat x, GLfloat y, int width, int height);
+void drawMapSegments();
 void drawCircle(tPosd point, GLfloat radius);
 void drawLine(double initialPointX, double initialPointY, double finalPointX, double finalPointY);
 void drawCubicBezier(tPosd p0, tPosd p1, tPosd p2, tPosd p3, unsigned int numPartialPoints);
