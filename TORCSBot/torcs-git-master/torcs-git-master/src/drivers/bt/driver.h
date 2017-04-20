@@ -138,6 +138,7 @@ class Driver {
 
 //display related global procedures
 void drawSearchPoints();
+void draw2DProjectedSearchPoints(); //for printing projected state space
 void drawCurrStats();
 void drawMapSegments();
 void drawCircle(tPosd point, GLfloat radius);

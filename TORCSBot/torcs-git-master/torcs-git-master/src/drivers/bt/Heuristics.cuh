@@ -26,6 +26,7 @@ public:
 			State currState = graph[i];
 			if (currState.getMyGraphIndex() == -1 || state.getMyGraphIndex()==i)  //still unassigned
 				continue;
+			
 			double dist = UtilityMethods::getPolarQuadranceBetween(state.getVelocity(), graph[i].getVelocity());
 			if (dist <= minDist){
 				minDist = dist;
@@ -368,6 +369,21 @@ public:
 		return (p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y);
 	}
 
+
+	CUDA_HOSTDEV
+	static double getMockedQuadranceBetween(tPolarVel p1, tPolarVel p2){
+
+		tPosd stateMockedPos = tPosd();
+		stateMockedPos.x = p1.intensity;
+		stateMockedPos.y = p1.angle;
+
+		tPosd currMockedPos = tPosd();
+		currMockedPos.x = p2.intensity;
+		currMockedPos.y = p2.angle;
+
+		return UtilityMethods::getEuclideanQuadranceBetween(stateMockedPos, currMockedPos);
+	}
+
 	//calculates polar distance between points
 	CUDA_HOSTDEV
 	static double getPolarQuadranceBetween(tPolarVel p1, tPolarVel p2){
@@ -445,7 +461,6 @@ public:
 	static State uniformRandomState(tTrackSeg* trackSegArray, int nTrackSegs, void* curandState){
 
 		//-------------------- random velocity calculation --------------------
-
 
 		double minSpeed = 0;
 		double maxSpeed = 80;
@@ -744,10 +759,33 @@ public:
 		return true;
 	}
 
+
+	CUDA_HOSTDEV
+	static bool applyMockedDelta(State* state, State* parent){
+
+		double diffIntensity = (state->getVelocity().intensity - parent->getVelocity().intensity);
+		double diffAngle = (state->getVelocity().angle - parent->getVelocity().angle);
+
+		tPolarVel velDir = tPolarVel();
+		double velDirNorm = (sqrt(diffIntensity*diffIntensity + diffAngle*diffAngle));
+		velDir.intensity = diffIntensity / velDirNorm;
+		velDir.angle = diffAngle / velDirNorm;
+
+		tPolarVel newVel = tPolarVel();
+		newVel.intensity = parent->getVelocity().intensity + velDir.intensity*3;
+		newVel.angle = parent->getVelocity().angle + velDir.angle*3;
+		
+		state->setVelocity(newVel);
+
+		return true;
+	}
+
+
 	//--------------------------------wrapper--------------------------------
 	CUDA_HOSTDEV
 	static bool applyDelta(State* state, State* parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
 		return applyPhysicsDelta(state, parent, trackSegArray, nTrackSegs, actionSimDeltaTime);
+		//return applyMockedDelta(state, parent);
 	}
 
 };

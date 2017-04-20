@@ -412,7 +412,7 @@ void Driver::simplePlan() // algorithm test
 		State initialState = State(carDynCg.pos, carVel);
 		initialState.setLocalPos(carLocPos);
 		initialState.setInitialState(true); //it is indeed the initial state!
-		RRTStarAux = new ParRRTStar(initialState, 400, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
+		RRTStarAux = new SeqRRTStar(initialState, 400, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
 			
 		clock_t searchTimer = clock();
 			
@@ -489,7 +489,7 @@ void Driver::humanControl(){
 		initialState.setInitialState(true); //it is indeed the initial state!
 
 		
-		RRTStarAux = new SeqRRTStar(initialState, 500, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
+		RRTStarAux = new SeqRRTStar(initialState, 800, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
 		path = RRTStarAux->search();
 		pathG = path;
 		std::reverse(pathG.begin(), pathG.end());
@@ -663,45 +663,41 @@ void drawSearchPoints(){
 	glLoadIdentity();
 	glPushMatrix();
 
-	
+
 
 	for (int i = 1; i < (graphG).size(); i++){
-		
+
 		glColor3f(0, 0, 0);
 		if (graphG[i].getMyGraphIndex() == -1)  //still unassigned
 			continue;
 
 		tPosd pointCartesianVelocity;
-		/*pointCartesianVelocity.x = graphG[i].getVelocity().intensity*cos(graphG[i].getVelocity().angle);
-		pointCartesianVelocity.y = graphG[i].getVelocity().intensity*sin(graphG[i].getVelocity().angle);*/
 		pointCartesianVelocity.x = graphG[i].getPos().x;
 		pointCartesianVelocity.y = graphG[i].getPos().y;
 
 
 		tPosd parentCartesianVelocity;
-		/*parentCartesianVelocity.x = graphG[graphG[i].getParentGraphIndex()].getVelocity().intensity*cos(graphG[graphG[i].getParentGraphIndex()].getVelocity().angle);
-		parentCartesianVelocity.y = graphG[graphG[i].getParentGraphIndex()].getVelocity().intensity*sin(graphG[graphG[i].getParentGraphIndex()].getVelocity().angle);*/
 		parentCartesianVelocity.x = graphG[graphG[i].getParentGraphIndex()].getPos().x;
 		parentCartesianVelocity.y = graphG[graphG[i].getParentGraphIndex()].getPos().y;
-		
+
 		drawCircle(pointCartesianVelocity, 0.5);
 		if (!graphG[i].getInitialState()){
 			drawLine(pointCartesianVelocity.x, pointCartesianVelocity.y, parentCartesianVelocity.x, parentCartesianVelocity.y);
 		}
-		
+
 	}
-	
+
 
 	for (int i = 1; i < pathG.size(); i++){
 		drawLine(pathG[i]->getPos().x, pathG[i]->getPos().y, pathG[i - 1]->getPos().x, pathG[i - 1]->getPos().y);
 	}
 
 	for (int i = 0; i < pathG.size(); i++){
-		glColor3f(0, 0+0.2*i, 1);
+		glColor3f(0, 0 + 0.2*i, 1);
 		drawCircle(pathG[i]->getPos(), 2);
 
 		std::string statePosSeg = std::to_string((double)pathG[i]->distFromStart);
-		printTextInWindow(pathG[i]->getPos().x + 10, (h -pathG[i]->getPos().y) + 10, (char*)statePosSeg.c_str());
+		printTextInWindow(pathG[i]->getPos().x + 10, (h - pathG[i]->getPos().y) + 10, (char*)statePosSeg.c_str());
 
 	}
 
@@ -714,6 +710,59 @@ void drawSearchPoints(){
 
 	drawMapSegments();
 
+	glPopMatrix();
+	glutSwapBuffers();
+}
+
+void draw2DProjectedSearchPoints(){
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.7, 0.7, 0.7, 0.7);
+
+	int w = glutGet(GLUT_WINDOW_WIDTH);
+	int h = glutGet(GLUT_WINDOW_HEIGHT);
+
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0.0f, w, h, 0.0f, 0.0f, 1.0f);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glPushMatrix();
+
+	
+	glColor3f(0, 0, 0);
+	for (int i = 1; i < (graphG).size(); i++){
+		
+		
+		if (graphG[i].getMyGraphIndex() == -1)  //still unassigned
+			continue;
+
+		tPosd pointCartesianVelocity;
+		/*pointCartesianVelocity.x = graphG[i].getVelocity().intensity*cos(graphG[i].getVelocity().angle);
+		pointCartesianVelocity.y = graphG[i].getVelocity().intensity*sin(graphG[i].getVelocity().angle);*/
+		pointCartesianVelocity.x = 300 + graphG[i].getVelocity().intensity *(500 / 80);
+		pointCartesianVelocity.y = 300 + graphG[i].getVelocity().angle *(500 / 80);
+
+
+		tPosd parentCartesianVelocity;
+		/*parentCartesianVelocity.x = graphG[graphG[i].getParentGraphIndex()].getVelocity().intensity*cos(graphG[graphG[i].getParentGraphIndex()].getVelocity().angle);
+		parentCartesianVelocity.y = graphG[graphG[i].getParentGraphIndex()].getVelocity().intensity*sin(graphG[graphG[i].getParentGraphIndex()].getVelocity().angle);*/
+		parentCartesianVelocity.x = 300 + graphG[graphG[i].getParentGraphIndex()].getVelocity().intensity *(500 / 80);
+		parentCartesianVelocity.y = 300 + graphG[graphG[i].getParentGraphIndex()].getVelocity().angle *(500 / 80);
+		
+		drawCircle(pointCartesianVelocity, 0.05);
+		if (!graphG[i].getInitialState()){
+			drawLine(pointCartesianVelocity.x, pointCartesianVelocity.y, parentCartesianVelocity.x, parentCartesianVelocity.y);
+		}
+		
+	}
+	glColor3f(1, 0, 0);
+	if (graphG.size() > 0){
+		tPosd initialState = { 300 + graphG[0].getVelocity().intensity *(500 / 80), 300 + graphG[0].getVelocity().angle *(500 / 80) };
+		drawCircle(initialState, 0.05);
+	}
 	glPopMatrix();
 	glutSwapBuffers();
 }
@@ -867,45 +916,4 @@ void printTextInWindow(int x, int y, char *st)
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//   tTrkLocPos otherLoc;
-
-//tPosd otherPos;
-
-//otherPos.x = opponent->getCarPtr()->pub.trkPos.seg->vertex[0].x;
-//otherPos.y = opponent->getCarPtr()->pub.trkPos.seg->vertex[0].y;
-//otherPos.z = opponent->getCarPtr()->pub.DynGC.pos.z;
-//
-////RtTrackGlobal2Local(opponent->getCarPtr()->pub.trkPos.seg, otherPos.x, otherPos.y, &otherLoc, TR_LPOS_MAIN);
-////std::cout << "(" << opponent->getCarPtr()->pub.trkPos.seg->name << ")" << std::endl;
-//std::cout << opponent->getCarPtr()->pub.trkPos.seg->id<<" : " << std::endl;
-//std::cout << "0(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[0].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[0].y << ")" << std::endl;
-//std::cout << "1(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[1].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[1].y << ")" << std::endl;
-//std::cout << "2(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[2].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[2].y << ")" << std::endl;
-//std::cout << "3(" << opponent->getCarPtr()->pub.trkPos.seg->vertex[3].x << "," << opponent->getCarPtr()->pub.trkPos.seg->vertex[3].y << ")" << std::endl;
 

@@ -145,7 +145,7 @@ State* Kernel::callKernel(tTrackSeg* segArray, int nTrackSegs, State* initialSta
 	double maxPathCost = 0; //just to mock (was not removed as it can still be needed)
 
 	int NUM_BLOCKS = 1;
-	int NUM_THREADS_EACH_BLOCK = 100;
+	int NUM_THREADS_EACH_BLOCK = 200;
 	int NUM_THREADS = NUM_BLOCKS*NUM_THREADS_EACH_BLOCK;
 
 	float iterationRatio = (float) numIterations / (float) NUM_THREADS;

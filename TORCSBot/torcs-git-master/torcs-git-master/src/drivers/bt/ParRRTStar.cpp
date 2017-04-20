@@ -73,7 +73,7 @@ std::vector<State*> ParRRTStar::search(){
 
 
 std::vector<State> ParRRTStar::getGraph(){
-	std::vector<State>  graphVector = std::vector<State>(graph, &graph[nIterations - 1]);
+	std::vector<State>  graphVector = std::vector<State>(graph, &graph[nIterations + 1]);
 	return graphVector;
 }
 
