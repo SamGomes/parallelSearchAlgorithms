@@ -6,7 +6,6 @@
 
 class PIDController{
 private:
-
 	double Ki;
 	double Kp;
 	double Kd;

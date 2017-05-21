@@ -1,7 +1,7 @@
-#include "SeqRRTStar.h"
+#include "SeqRRT.h"
 
 
-SeqRRTStar::SeqRRTStar(State initialState, int nIterations, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration){
+SeqRRT::SeqRRT(State initialState, int nIterations, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration){
 	this->maxCost = -1 * DBL_MAX; //force a change
 	this->bestState = State();
 
@@ -20,18 +20,18 @@ SeqRRTStar::SeqRRTStar(State initialState, int nIterations, tTrackSeg* trackSegA
 
 	this->actionSimDeltaTime = actionSimDeltaTime;
 }
-SeqRRTStar::~SeqRRTStar(){
+SeqRRT::~SeqRRT(){
 	//as we do not need the graph anymore we just delete it! (commented because it is used on driver.cpp  for debug purposes)
 	deleteGraph();
 }
 
-void SeqRRTStar::initGraph(){
+void SeqRRT::initGraph(){
 	graphSize = (unsigned int)nIterations + 1;
 	graph = new State[graphSize]; //upper bound removes useless resizes
 	graphIterator = 0;
 }
 
-void SeqRRTStar::resizeGraph(unsigned int newSize){
+void SeqRRT::resizeGraph(unsigned int newSize){ //can be more usefull for partial searches (maybe future work)
 	State* newGraph = new State[newSize];
 	graphSize = newSize;
 
@@ -41,12 +41,12 @@ void SeqRRTStar::resizeGraph(unsigned int newSize){
 	delete[] graph;
 	graph = newGraph;
 }
-void SeqRRTStar::deleteGraph(){
+void SeqRRT::deleteGraph(){
 	delete[] graph;
 }
 
 
-void SeqRRTStar::pushBackToGraph(State &element){
+void SeqRRT::pushBackToGraph(State &element){
 	if (graphIterator == graphSize){
 		//graph limited exceeded, resize the graph
 		resizeGraph(graphSize + (unsigned int)nIterations);
@@ -57,37 +57,28 @@ void SeqRRTStar::pushBackToGraph(State &element){
 }
 
 
-void SeqRRTStar::generateStates(double nIterations){
+void SeqRRT::generateStates(double nIterations){
 
 	State xRand;
 
 	for (int k = 0; k < nIterations; k++){
 
 		//--------------------------------------- generate random sample -----------------------------------------------
-
 		xRand = RandomStateGenerators::uniformRandomState(trackSegArray, nTrackSegs,nullptr);
 		//xRand = RandomStateGenerators::gaussianRandomState(trackSegArray, nTrackSegs, initialState.getVelocity());
 
 		//---------------------------------------- select neighbor ----------------------------------------------------
-
 		State xNearest = UtilityMethods::nearestNeighbor(xRand, graph,graphIterator);
 		xRand.setParentGraphIndex(xNearest.getMyGraphIndex());
 		xRand.setLevelFromStart(xNearest.getLevelFromStart() + 1);
 
 		//----------------------------------------- constraint checking ------------------------------------------------
-
-		//if the acceleration is too much for the car to handle, prune the state
-		/*if (abs(xRand.getVelocity().angle- xNearest.getVelocity().angle) > maxCarAcceleration.angle || abs(xRand.getVelocity().intensity-xNearest.getVelocity().intensity) > maxCarAcceleration.intensity){
-			continue;
-		}*/
-
 		//the delta application also checks if the trajectory is valid
 		if (!DeltaFunctions::applyDelta(&xRand, &xNearest, trackSegArray, nTrackSegs, actionSimDeltaTime)){
 			continue;
 		}
 
 		//---------------------------------------- calculate best path --------------------------------------------------
-	
 		//the best state is the one that is furthest from the start lane
 		tStateRelPos xRandLocalPos;
 		UtilityMethods::SimpleRtTrackGlobal2Local(&xRandLocalPos, trackSegArray, nTrackSegs, xRand.getPos().x, xRand.getPos().y, 0);
@@ -100,17 +91,12 @@ void SeqRRTStar::generateStates(double nIterations){
 			maxCost = distFromStart;
 			bestState = xRand;
 		}
-
 	}
-	
-
 }
 
-State SeqRRTStar::generateRRT(){
-
+State SeqRRT::generateRRT(){
 	this->generateStates(nIterations);
-
-	//if no path can be found just do emergency cycles! ;)
+	//if no path can be found just return a copy of the initial state! ;)
 	if (bestState.getMyGraphIndex() == -1){
 		State initialStateCopy = State(initialState);
 		initialStateCopy.setInitialState(false);
@@ -119,7 +105,6 @@ State SeqRRTStar::generateRRT(){
 
 		pushBackToGraph(initialStateCopy);
 	}
-
 	return bestState;
 }
 
@@ -127,26 +112,26 @@ State SeqRRTStar::generateRRT(){
 //----------------PUBLIC INTERFACE-----------------------------
 //-------------------------------------------------------------
 
-std::vector<State*> SeqRRTStar::search(){
-
+std::vector<State*> SeqRRT::search(){
 	std::vector<State*> path;
-	State bestState = this->generateRRT(); //local pointer
+	State bestState = this->generateRRT();
 
+	//---------------------- BACKTRACKING ----------------------------------
+	
 	//lets put a path copy in the Heap (calling new), separating the path from the graph eliminated after!
 	while (!bestState.getInitialState()){
 		path.push_back(new State(bestState));
 		bestState = graph[bestState.getParentGraphIndex()];
 	}
-
 	return path;
 }
 
-std::vector<State> SeqRRTStar::getGraph(){
+std::vector<State> SeqRRT::getGraph(){
 	std::vector<State>  graphVector = std::vector<State>(graph, &graph[graphIterator - 1]);
 	return graphVector;
 }
 
 
-char* SeqRRTStar::getSearchName(){
+char* SeqRRT::getSearchName(){
 	return "SequentialRRT";
 }

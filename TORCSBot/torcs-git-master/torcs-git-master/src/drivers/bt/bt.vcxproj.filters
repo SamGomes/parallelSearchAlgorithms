@@ -42,9 +42,6 @@
     <Filter Include="Header Files\PlanningModule\Heuristics">
       <UniqueIdentifier>{3d647828-90ff-43ed-a79a-45ef2f9ac418}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\PlanningModule\Heuristics">
-      <UniqueIdentifier>{98911466-7da8-409c-9c30-1f707457128b}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cardata.cpp">
@@ -59,23 +56,17 @@
     <ClCompile Include="PIDController.cpp">
       <Filter>Source Files\ControlModule</Filter>
     </ClCompile>
-    <ClCompile Include="SeqRRTStar.cpp">
-      <Filter>Source Files\PlanningModule\Search\RRT</Filter>
-    </ClCompile>
-    <ClCompile Include="ParRRTStar.cpp">
-      <Filter>Source Files\PlanningModule\Search\RRT</Filter>
-    </ClCompile>
-    <ClCompile Include="RRTStar.cpp">
-      <Filter>Source Files\PlanningModule\Search\RRT</Filter>
-    </ClCompile>
     <ClCompile Include="driver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StatsLogWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Heuristics.cu">
-      <Filter>Source Files\PlanningModule\Heuristics</Filter>
+    <ClCompile Include="ParRRT.cpp">
+      <Filter>Source Files\PlanningModule\Search\RRT</Filter>
+    </ClCompile>
+    <ClCompile Include="SeqRRT.cpp">
+      <Filter>Source Files\PlanningModule\Search\RRT</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -87,12 +78,6 @@
     </ClInclude>
     <ClInclude Include="PIDController.h">
       <Filter>Header Files\ControlModule</Filter>
-    </ClInclude>
-    <ClInclude Include="SeqRRTStar.h">
-      <Filter>Header Files\PlanningModule\Search\RRT</Filter>
-    </ClInclude>
-    <ClInclude Include="ParRRTStar.h">
-      <Filter>Header Files\PlanningModule\Search\RRT</Filter>
     </ClInclude>
     <ClInclude Include="driver.h">
       <Filter>Header Files</Filter>
@@ -106,14 +91,20 @@
     <ClInclude Include="Kernel.cuh">
       <Filter>Header Files\PlanningModule\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="RRTStar.cuh">
-      <Filter>Header Files\PlanningModule\Search\RRT</Filter>
-    </ClInclude>
     <ClInclude Include="StatsLogWriter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Heuristics.cuh">
       <Filter>Header Files\PlanningModule\Heuristics</Filter>
+    </ClInclude>
+    <ClInclude Include="ParRRT.h">
+      <Filter>Header Files\PlanningModule\Search\RRT</Filter>
+    </ClInclude>
+    <ClInclude Include="RRT.cuh">
+      <Filter>Header Files\PlanningModule\Search\RRT</Filter>
+    </ClInclude>
+    <ClInclude Include="SeqRRT.h">
+      <Filter>Header Files\PlanningModule\Search\RRT</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -128,5 +119,6 @@
     <None Include="bt.def">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>

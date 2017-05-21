@@ -1,4 +1,13 @@
 
+/***************************************************************************
+*                                                                         *
+*  This is the driver class implementation that creates and links         *
+*      the bots modules.                                                  *
+*                                                                         *
+*  It was developed under the base of the "bt" TORCS driver.              *
+*                                                                         *
+***************************************************************************/
+
 #ifndef _DRIVER_H_
 #define _DRIVER_H_
 
@@ -17,14 +26,12 @@
 #include <robot.h>
 #include <portability.h>
 
-#include "SeqRRTStar.h"
-#include "ParRRTStar.h"
-#include "RRTStar.cuh"
-
+#include "SeqRRT.h"
+#include "ParRRT.h"
+#include "Kernel.cuh"
+#include "RRT.cuh"
 
 #include "PIDController.h"
-
-#include "Kernel.cuh"
 
 #include "GL/glut.h"
 
@@ -40,7 +47,6 @@ class Opponent;
 
 
 class Driver {
-
 	private:
 
 		// Class constants.
@@ -59,13 +65,11 @@ class Driver {
 		float clutchtime;
 		float *radius;
 
-		tPolarVel maxCarAcceleration;
+		tPolarVel maxCarAcceleration; //can be used in the future to limit car acceleration (not currently used)
 
-		PIDController gasPidController;
-		PIDController brakePidController;
-		PIDController steerPidController;
+		PIDController pedalsPidController;
 
-		RRTStar* RRTStarAux = NULL;	
+		RRT* RRTAux = NULL;	
 	
 		std::vector<State*> searchedPaths; //save the searched paths
 		std::vector<State*> pathAhead; //ahead of current path
@@ -78,7 +82,6 @@ class Driver {
 		//search tunning vars
 		int delay = 0;
 		int SEARCH_RECALC_DELAY = 150;
-		int SEARCH_SEGMENTS_AHEAD = 30;
 		double ACTION_SIM_DELTA_TIME = 2.5;
 
 
@@ -92,10 +95,9 @@ class Driver {
 		
 		tTrack* track;
 
-
 	private:// methods
 
-		//------------CONTROLLER MODULE-----------------
+		//------------CONTROL MODULE-----------------
 		void computeRadius(float *radius);
 		float getPedalsPos(double targetSpeed);
 		int getGear();
@@ -108,11 +110,11 @@ class Driver {
 		void recalcPath(State initialState);
 		void simplePlan(); // algorithm test
 		void humanControl();
+
 		//--------------MAIN UPDATE-------------------
 		void update(tSituation *s);
 
 	public:
-
 		Driver(int index);
 		~Driver();
 
@@ -125,7 +127,6 @@ class Driver {
 		tCarElt *getCarPtr() { return car; }
 		tTrack *getTrackPtr() { return track; }
 		float getSpeed() { return mycardata->getSpeedInTrackDirection(); /*speed;*/ }
-
 
 		//display related local procedures
 		void initGLUTWindow();
@@ -146,4 +147,5 @@ void drawLine(double initialPointX, double initialPointY, double finalPointX, do
 void drawCubicBezier(tPosd p0, tPosd p1, tPosd p2, tPosd p3, unsigned int numPartialPoints);
 GLuint loadTexture(const char * filename);
 void printTextInWindow(int x, int y, char *st);
+
 #endif

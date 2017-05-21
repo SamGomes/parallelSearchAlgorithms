@@ -17,10 +17,8 @@ public:
 
 	CUDA_HOSTDEV //the nearest point is the one in which its finalPos prediction ajusts to the current pos
 	static State nearestNeighbor(State state, State* graph, int graphSize){
-
 		State closestState;
 		double minDist = DBL_MAX;
-
 		
 		for (int i = 0; i < graphSize; i++){
 			State currState = graph[i];
@@ -40,12 +38,10 @@ public:
 	CUDA_HOSTDEV
 	static bool SimpleRtTrackGlobal2Local(tStateRelPos* p, tTrackSeg* segmentArray, int nTrackSegs, tdble X, tdble Y, int type)
 	{
-
 		int 	segnotfound = 1;
 		float 	x, y;
 
 		tTrackSeg* seg = getSegmentOf(segmentArray, nTrackSegs, X, Y);
-		
 		if (seg==nullptr){
 			return false;
 		}
@@ -55,8 +51,6 @@ public:
 		int 	depl = 0;
 		p->type = type;
 		p->segId = segArrayIterator;
-
-
 
 		while (segnotfound) {
 
@@ -149,14 +143,11 @@ public:
 			}
 			
 		}
-
 		/* The track is of constant width */
 		/* This is subject to change */
 		p->toMiddle = p->toRight - seg->width / 2.0;
 		p->toLeft = seg->width - p->toRight;
-
 		return true;
-
 	}
 
 
@@ -164,9 +155,8 @@ public:
 	CUDA_HOSTDEV
 	static tTrackSeg* getSegmentOf(tTrackSeg* segmentArray, int nTrackSegs, tdble x, tdble y){
 		tTrackSeg* seg = nullptr;
-		
-		for (int i = 0; i <= nTrackSegs; i++){
 
+		for (int i = 0; i <= nTrackSegs; i++){
 			t3Dd* bounds = segmentArray[i].vertex;
 
 			double dist03 = getEuclideanQuadranceBetween({ bounds[0].x, bounds[0].y, bounds[0].z }, { bounds[3].x, bounds[3].y, bounds[3].z });
@@ -181,7 +171,6 @@ public:
 			double a2 = distP3 / dist03;
 			double a3 = distP1 / dist12;
 			double a4 = distP2 / dist12;
-
 			
 			if ((a1<1) && (a2<1) && (a3<1) && (a4<1)){
 				seg = &segmentArray[i];
@@ -198,10 +187,8 @@ public:
 		l1 = s1->getLocalPos();
 		l2 = s2->getLocalPos();
 
-
 		tTrackSeg	l1Seg = segmentArray[l1.segId];
 		tTrackSeg	l2Seg = segmentArray[l2.segId];
-
 
 		double totalCost = 0;
 
@@ -240,7 +227,6 @@ public:
 					l1ToEnd = l1Seg.length - l1.toStart*l1Seg.radius;
 					break;
 			}
-
 			switch (l2Seg.type) {
 				case 3:
 					l2ToEnd = (l2Seg.length - l2.toStart);
@@ -250,9 +236,7 @@ public:
 					break;
 			}
 
-
 			while (currSegFwd.id != currSegBwd.id && fwdLimit>0){
-
 				if (currSegFwd.id == l2Seg.id){
 					switch (currSegFwd.type) {
 						case 3:
@@ -264,7 +248,6 @@ public:
 					}
 					break;
 				}
-
 				if (currSegBwd.id == l2Seg.id){
 					switch (currSegBwd.type) {
 						case 3:
@@ -276,12 +259,9 @@ public:
 					}
 					break;
 				}
-
 				
 				fwdDist += currSegFwd.length;
 				bwdDist += currSegBwd.length;
-						
-
 
 				fwdIterator++;
 				fwdIterator = (fwdIterator >(nTrackSegs - 1)) ? 0 : fwdIterator;
@@ -297,7 +277,6 @@ public:
 				totalCost =  (bwdDist); //when they exceed forward segs limit (or equidistant if limit exceeds half the segments)
 			}
 		}
-
 		return totalCost;
 	}
 
@@ -350,15 +329,10 @@ public:
 	CUDA_HOSTDEV
 	static double rotationBetween(double first, double second)
 	{
-
 		double diff = second - first;
-
 		diff = norm0_2PI(diff) + 3 * PI;
-
 		diff = norm0_2PI(diff);
-
 		diff -= PI;
-
 		return diff;
 	}
 
@@ -369,10 +343,9 @@ public:
 		return (p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y);
 	}
 
-
+	//used only when projecting states in a 2D plane
 	CUDA_HOSTDEV
 	static double getMockedQuadranceBetween(tPolarVel p1, tPolarVel p2){
-
 		tPosd stateMockedPos = tPosd();
 		stateMockedPos.x = p1.intensity;
 		stateMockedPos.y = p1.angle;
@@ -388,19 +361,8 @@ public:
 	CUDA_HOSTDEV
 	static double getPolarQuadranceBetween(tPolarVel p1, tPolarVel p2){
 
-	/*	double w1 = 0.5;
-		double w2 = 0.5;*/
-
 		//get shortest angle
-
-		//velocity: 0 .. 80 (quad: 0 ..1600)
-		//angle 0 .. PI
-
-
 		double deltaAngle = rotationBetween(p1.angle, p2.angle);
-
-
-		//double deltaIntesity = p2.intensity - p1.intensity;
 		return deltaAngle/PI;
 	}
 
@@ -408,7 +370,6 @@ public:
 	static double getDotBetween(tPosd p1, tPosd p2){
 		return p1.x*p2.x + p1.y*p2.y;
 	}
-
 };
 
 
@@ -423,7 +384,6 @@ public:
 			return (double)std::rand() / (double)RAND_MAX;
 		#endif
 	}
-
 
 	CUDA_HOSTDEV
 	static double randToNormalRand(double mean, double stddev, void* curandState)
@@ -481,25 +441,18 @@ public:
 		return State(randVelocity);
 	}
 	
+	//based on normal distribuition (not used currently)
 	CUDA_HOSTDEV
 	static State gaussianRandomState(tTrackSeg* trackSegArray, int nTrackSegs, tPolarVel velAngleBias, void* curandState){
 
-
 		//-------------------- random velocity calculation --------------------
-
 
 		double minSpeed = 0;
 		double maxSpeed = 100;
 
-		/*double minAngle = 0;
-		double maxAngle = 2*PI;*/
-
 		double speedDelta = maxSpeed - minSpeed;
-
 		double randAngle = randToNormalRand(velAngleBias.angle, 10, curandState);
-		//double randIntensity = randToNormalRand(velIntensityBias, 1);
 		double randIntensity = speedDelta * generateRandomNumber0_1(curandState) + minSpeed;
-
 
 		tPolarVel randVelocity;
 		randVelocity.angle = randAngle;
@@ -565,7 +518,6 @@ public:
 		}
 		return from * (1 - t) + to * t;
 	}
-
 };
 
 class DeltaFunctions{
@@ -573,7 +525,6 @@ class DeltaFunctions{
 public:
 
 	//-------------bezier based forward model (for future work maybe)----------------------
-
 	CUDA_HOSTDEV
 	static double calcBezierLengthApprox(tPosd p0, tPosd p1, tPosd p2, tPosd p3, int nSamples){
 		double length = 0;
@@ -610,7 +561,6 @@ public:
 		tPosd newPos = tPosd();
 		tPolarVel newSpeed = tPolarVel();
 
-
 		tPosd cartesianStateVel;
 		cartesianStateVel.x = state->getVelocity().intensity*cos(state->getVelocity().angle);
 		cartesianStateVel.y = state->getVelocity().intensity*sin(state->getVelocity().angle);
@@ -619,9 +569,7 @@ public:
 		cartesianParentVel.x = parent->getVelocity().intensity*cos(parent->getVelocity().angle);
 		cartesianParentVel.y = parent->getVelocity().intensity*sin(parent->getVelocity().angle);
 
-
 		tPosd p0 = parent->getPos();
-
 
 		tPosd p1;
 		p1.x = (parent->getPos().x + actionSimDeltaTime*cartesianParentVel.x);
@@ -629,13 +577,11 @@ public:
 		State p1State = State();
 		p1State.setPos(p1);
 
-
 		tPosd p2;
 		p2.x = (state->getPos().x - actionSimDeltaTime*cartesianStateVel.x);
 		p2.y = (state->getPos().y - actionSimDeltaTime*cartesianStateVel.y);
 		State p2State = State();
 		p2State.setPos(p2);
-
 
 		tPosd p3 = state->getPos();
 
@@ -696,14 +642,11 @@ public:
 		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, state)){
 			return false;
 		}
-
 		return true;
-
 	}
 
 
-	//--------------------used physics based forward model----------------------------------
-
+	//--------------------(used) physics based forward model----------------------------------
 	CUDA_HOSTDEV
 	static bool applyPhysicsDelta(State* state, State* parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
 		
@@ -724,7 +667,7 @@ public:
 
 		double inc = (double) 1.0 / k;
 
-		//divide the pathe between the two states and pick the state on the delta variation
+		//divide the path between the two states and pick the state on the delta variation
 		for (int i = 0; i < k; i ++){
 				
 			double angle_i = Interpolations::angleLinearInterpolation(angle0, angleF, inc);
@@ -759,7 +702,7 @@ public:
 		return true;
 	}
 
-
+	//used only when projecting states in a 2D plane
 	CUDA_HOSTDEV
 	static bool applyMockedDelta(State* state, State* parent){
 
@@ -785,7 +728,6 @@ public:
 	CUDA_HOSTDEV
 	static bool applyDelta(State* state, State* parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
 		return applyPhysicsDelta(state, parent, trackSegArray, nTrackSegs, actionSimDeltaTime);
-		//return applyMockedDelta(state, parent);
 	}
 
 };

@@ -3,20 +3,19 @@
 #ifndef SEQRRTSTAR_H
 #define SEQRRTSTAR_H
 
-#include "RRTStar.cuh"
+#include "RRT.cuh"
 #include "Heuristics.cuh"
 #include <robottools.h>
 #include <iostream>
 
 #include<time.h>
 
-//-------------- Sequential Search class--------------------------
-// In this version there are two types of cost:
-// - the cost of the node represents the smoothness between the transition from the node to its son
-// - the path cost is the distance travelled by the path along the track
+//------------------ SeqRRT Search class--------------------------
+// This class represents the sequential search procedure which  
+// implements the RRT base class virtual methods
 //----------------------------------------------------------------
 
-class SeqRRTStar : public RRTStar{
+class SeqRRT : public RRT{
 private: //vars
 
 	//initialization vars
@@ -28,15 +27,15 @@ private: //vars
 	int nTrackSegs;
 	int nIterations;
 	State initialState;
-	//Opponent *opponent;		// The array of opponents.
 
 	//aux vars
 	double maxCost;
 	State bestState;
 
-	State* graph; // the RRT itself!
+	State* graph; // the returned search tree!
 	unsigned int graphSize;
 	int graphIterator;
+
 
 private: //methods
 
@@ -50,9 +49,9 @@ private: //methods
 	void generateStates(double nIterations);
 	State generateRRT();
 
-public:
-	SeqRRTStar(State initialState, int nIterations, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration);
-	~SeqRRTStar();
+public: //methods
+	SeqRRT(State initialState, int nIterations, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration);
+	~SeqRRT();
 
 	std::vector<State*> search();
 	std::vector<State>  getGraph(); //for debug purposes
