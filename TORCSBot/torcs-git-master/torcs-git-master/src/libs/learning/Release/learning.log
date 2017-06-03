@@ -1,0 +1,14 @@
+﻿  ANN.cpp
+  ann_policy.cpp
+  Distribution.cpp
+  List.cpp
+  MathFunctions.cpp
+  policy.cpp
+  string_utils.cpp
+  Generating Code...
+     Creating library .\Release/learning.lib and object .\Release/learning.exp
+  learning.vcxproj -> C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\libs\learning\.\Release\learning.dll
+  C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\libs\learning\Release\learning.dll
+          1 file(s) copied.
+  C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\libs\learning\Release\learning.lib
+          1 file(s) copied.

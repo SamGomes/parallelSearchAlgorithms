@@ -1,0 +1,29 @@
+﻿  CarSoundData.cpp
+  grboard.cpp
+  grcam.cpp
+  grcar.cpp
+  grcarlight.cpp
+  grloadac.cpp
+  grmain.cpp
+  grmultitexstate.cpp
+  grscene.cpp
+  grscreen.cpp
+  grshadow.cpp
+  grskidmarks.cpp
+  grsmoke.cpp
+  grsound.cpp
+  grtexture.cpp
+  grtrackmap.cpp
+  grutil.cpp
+  grvtxtable.cpp
+  OpenalSoundInterface.cpp
+  PlibSoundInterface.cpp
+  Generating Code...
+  Compiling...
+  SoundInterface.cpp
+  ssggraph.cpp
+  TorcsSound.cpp
+  Generating Code...
+  ssggraphlib.vcxproj -> C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\modules\graphic\ssggraph\.\Release\ssggraphlib.lib
+  C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\modules\graphic\ssggraph\Release\ssggraphlib.lib
+          1 file(s) copied.

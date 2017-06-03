@@ -32,6 +32,14 @@ Cardata *Driver::cardata = NULL;
 double Driver::currentsimtime;
 
 
+// For test purposes
+int run;
+int numStates = 6400;
+
+int numKernelThreads = 400;
+int numKernelBlocks = 4;
+
+
 
 Driver::Driver(int index)
 {
@@ -59,6 +67,7 @@ Driver::~Driver()
 		delete &trackSegArray[i];
 	}
 	free(trackSegArray);
+	Kernel::gpuFree(kernelGraph,kernelSegArray);
 }
 
 
@@ -95,8 +104,8 @@ void Driver::initTrack(tTrack* t, void *carHandle, void **carParmHandle, tSituat
 	for (int i = 0; i < track->nseg; i++){
 		printf("segId:%d\n", trackSegArray[i].id);
 	}
-
-	Kernel::gpuWarmup();
+	
+	Kernel::gpuInit(&kernelGraph, &kernelSegArray, numStates, trackSegArray, track->nseg);
 }
 
 // Start a new race.
@@ -344,7 +353,8 @@ void Driver::simplePlan() // algorithm test
 		State initialState = State(carDynCg.pos, carVel);
 		initialState.setLocalPos(carLocPos);
 		initialState.setInitialState(true); //it is indeed the initial state!
-		RRTAux = new ParRRT(initialState, 800, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
+		//RRTAux = new SeqRRT(initialState, numStates, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
+		RRTAux = new ParRRT(initialState, numStates, kernelGraph, kernelSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration, numKernelBlocks, numKernelThreads);
 			
 		clock_t searchTimer = clock();
 			
@@ -358,13 +368,13 @@ void Driver::simplePlan() // algorithm test
 			oldLaps = car->race.remainingLaps;
 		}
 
-		if (strcmp(RRTAux->getSearchName(), "SequentialRRT")==0){
-				
-			StatsLogWriter::writeToLog("SequentialRRTSearchTimes", stats);
+		if (strcmp(RRTAux->getSearchName(), "SequentialRRT") == 0){
+		
+			StatsLogWriter::writeToLog((char*)std::string("SequentialRRT states_" + std::to_string(numStates) + " run_" + std::to_string(run)).c_str(), stats);
 		}
-
+		
 		if (strcmp(RRTAux->getSearchName(), "ParallelRRT") == 0){
-			StatsLogWriter::writeToLog("ParallelRRTSearchTimes", stats);
+			StatsLogWriter::writeToLog((char*)std::string("ParallelRRT(" + std::to_string(numKernelBlocks) + "," + std::to_string(numKernelThreads) + ") states_" + std::to_string(numStates) + " run_" + std::to_string(run)).c_str(), stats);
 		}
 
 		pathG = path;
@@ -418,7 +428,8 @@ void Driver::humanControl(){ //allows for manual car control and search call
 		initialState.setLocalPos(carLocPos);
 		initialState.setInitialState(true); //it is indeed the initial state!
 
-		RRTAux = new ParRRT(initialState, 100, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
+		RRTAux = new SeqRRT(initialState, numStates, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
+		//RRTAux = new ParRRT(initialState, numStates, kernelGraph, kernelSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration, numKernelBlocks, numKernelThreads);
 		path = RRTAux->search();
 		pathG = path;
 		std::reverse(pathG.begin(), pathG.end());
@@ -484,8 +495,8 @@ void Driver::update(tSituation *s)
 		currentsimtime = s->currentTime;
 		cardata->update();
 
-		this->simplePlan();
-		this->control();
+		//this->simplePlan();
+		//this->control();
 		this->humanControl(); //allows to control the car if the search makes unrecoverable error
 	}
 }

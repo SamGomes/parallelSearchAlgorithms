@@ -60,6 +60,10 @@ class Driver {
 		float MU_FACTOR;
 
 		tTrackSeg* trackSegArray; //needed because of CUDA memory management
+		
+		//Kernel vars (only used in ParRRT)
+		tTrackSeg* kernelSegArray;
+		State* kernelGraph;
 
 		static double currentsimtime;	// Store time to avoid useless updates.
 		float clutchtime;

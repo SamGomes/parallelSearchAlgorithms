@@ -1,0 +1,14 @@
+﻿  dllmain.c
+  gennmtab.c
+  hashtable.c
+  xmlparse.c
+  xmlrole.c
+  xmltok.c
+  Generating Code...
+  xml.cpp
+     Creating library .\Release/txml.lib and object .\Release/txml.exp
+  txml.vcxproj -> C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\libs\txml\.\Release\txml.dll
+  C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\libs\txml\Release\txml.dll
+          1 file(s) copied.
+  C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\libs\txml\Release\txml.lib
+          1 file(s) copied.

@@ -137,6 +137,15 @@ typedef struct {
     tdble	az;		/**< angle along z axis */
 } tPosd;
 
+
+//defines a polar velocity
+typedef struct
+{
+	tdble intensity;
+	tdble angle;
+} tPolarVel;
+
+
 /** Dynamic point structure.
     @ingroup definitions
 */

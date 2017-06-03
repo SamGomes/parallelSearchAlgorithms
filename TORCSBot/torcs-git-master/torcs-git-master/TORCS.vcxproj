@@ -46,8 +46,8 @@
     <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>.\Release\</OutDir>
-    <IntDir>.\Release\</IntDir>
+    <OutDir>.\runtimedRelease\</OutDir>
+    <IntDir>.\runtimedRelease\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -77,6 +77,10 @@
     <ProjectReference Include="src\drivers\bt\bt.vcxproj">
       <Project>{a0513cbb-8fe9-44f7-bbf3-7814efb5132c}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>true</Private>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="src\drivers\damned\damned.vcxproj">
       <Project>{85d049c2-bedd-4d57-8c44-0f40d0061a52}</Project>
@@ -145,6 +149,10 @@
     <ProjectReference Include="src\tools\accc\accc.vcxproj">
       <Project>{b207eb9e-56bc-4a80-9343-f08ea9c30951}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="src\tools\nfs2ac\nfs2ac.vcxproj">
       <Project>{61eb09c8-4d12-45f9-9e5e-9be0efb71de0}</Project>

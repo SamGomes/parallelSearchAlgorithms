@@ -425,6 +425,26 @@ typedef struct
     tdble	toLeft;		/**< Distance to left side of segment (+ to inside of track - to outside) */
 } tTrkLocPos;
 
+
+
+//special track local pos to be used on search states (added to the original file)
+typedef struct
+{
+	int		segId;		
+	int		type;		
+
+#define TR_LPOS_MAIN	0	
+#define TR_LPOS_SEGMENT	1	
+#define TR_LPOS_TRACK	2	
+
+	tdble	toStart;	
+	tdble	toRight;	
+	tdble	toMiddle;	
+	tdble	toLeft;		
+} tStateRelPos;
+
+
+
 struct CarElt;
 
 /** Driver's pit */

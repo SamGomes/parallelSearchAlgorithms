@@ -5,4 +5,9 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerWorkingDirectory>C:/Users/Samuel/Documents/faculdadeMestrado/2ºano/Tese/GitRepository/TORCSBot/torcs-git-master/torcs-git-master/runtimed/</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LocalDebuggerWorkingDirectory>C:/Users/Samuel/Documents/faculdadeMestrado/2ºano/Tese/GitRepository/TORCSBot/torcs-git-master/torcs-git-master/runtimedRelease/</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommand>./wtorcs.exe</LocalDebuggerCommand>
+  </PropertyGroup>
 </Project>

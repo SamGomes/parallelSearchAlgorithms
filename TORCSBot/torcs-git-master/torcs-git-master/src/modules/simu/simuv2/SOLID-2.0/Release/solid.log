@@ -1,0 +1,20 @@
+﻿  BBoxTree.cpp
+  Box.cpp
+  C-api.cpp
+  Complex.cpp
+  Cone.cpp
+  Convex.cpp
+  Cylinder.cpp
+  Endpoint.cpp
+  Object.cpp
+  Polygon.cpp
+  Polyhedron.cpp
+  Response.cpp
+  RespTable.cpp
+  Simplex.cpp
+  Sphere.cpp
+  Transform.cpp
+  Generating Code...
+  solid.vcxproj -> C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\modules\simu\simuv2\SOLID-2.0\.\Release\solid.lib
+  C:\Users\Samuel\Documents\faculdadeMestrado\2ºano\Tese\GitRepository\TORCSBot\torcs-git-master\torcs-git-master\src\modules\simu\simuv2\SOLID-2.0\Release\solid.lib
+          1 file(s) copied.

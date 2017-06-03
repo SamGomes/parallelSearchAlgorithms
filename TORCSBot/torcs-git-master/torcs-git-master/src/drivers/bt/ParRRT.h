@@ -23,18 +23,21 @@ private: //vars
 	//initialization vars
 	tPolarVel maxCarAcceleration;
 	double actionSimDeltaTime;
-	int currentSearchSegIndex;
-	int forwardSearchSegIndex;
-	tTrackSeg* trackSegArray;
 	int nTrackSegs;
 	int nIterations;
 	State* initialState;
 	int forwardSegments;
 
+	//kernel vars
+	State* kernelGraph;
+	tTrackSeg* kernelSegArray;
+	int numKernelBlocks;
+	int numKernelThreadsPerBlock;
+
 	State* graph; //the returned search tree!
 
 public: //methods
-	ParRRT(State initialState, int nIterations, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration);
+	ParRRT(State initialState, int nIterations, State* kernelGraph, tTrackSeg* kernelSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration, int numKernelBlocks, int numKernelThreadsPerBlock);
 	~ParRRT();
 
 	std::vector<State*> search();

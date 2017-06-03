@@ -1,14 +1,20 @@
 #include "ParRRT.h"
 
 
-ParRRT::ParRRT(State initialState, int nIterations, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration){
+ParRRT::ParRRT(State initialState, int nIterations, State* kernelGraph, tTrackSeg* kernelSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration, int numKernelBlocks, int numKernelThreadsPerBlock){
 	this->nIterations = nIterations;
 	this->initialState = new State(initialState);
+	this->initialState->setMyGraphIndex(0);
 
-	this->trackSegArray = trackSegArray;
+	this->kernelGraph = kernelGraph;
+	this->kernelSegArray = kernelSegArray;
+
 	this->nTrackSegs = nTrackSegs;
 	this->actionSimDeltaTime = actionSimDeltaTime;
 	this->maxCarAcceleration = maxCarAcceleration;
+
+	this->numKernelBlocks = numKernelBlocks;
+	this->numKernelThreadsPerBlock = numKernelThreadsPerBlock;
 }
 ParRRT::~ParRRT(){
 	if (this->initialState != nullptr){
@@ -27,7 +33,8 @@ ParRRT::~ParRRT(){
 std::vector<State*> ParRRT::search(){
  
 	State bestState;
-	graph = Kernel::callKernel(trackSegArray, nTrackSegs, initialState, nIterations, actionSimDeltaTime);
+	graph = Kernel::callKernel(kernelGraph, kernelSegArray, nTrackSegs, initialState, nIterations, numKernelBlocks, numKernelThreadsPerBlock, actionSimDeltaTime);
+
 
 	//-------------------- CALC BEST NODE -----------------------------
 	double maxCost = -1 * DBL_MAX; //force a change
