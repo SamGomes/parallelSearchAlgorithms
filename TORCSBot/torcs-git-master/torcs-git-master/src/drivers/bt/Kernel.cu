@@ -5,6 +5,22 @@
 //--------                                    CUDA Kernels                                            --------
 //------------------------------------------------------------------------------------------------------------
 
+CUDA_GLOBAL
+void graphInit(State* graph, int numThreads, int graphSize){
+
+	int idx = threadIdx.x + blockDim.x*blockIdx.x;
+	//initialize the graph
+	int partialOffset = 0;
+	int partialIterator = 0;
+	while (partialOffset < (graphSize)){
+		//printf("partialOffset:%d", partialOffset);
+		partialOffset = (partialIterator*numThreads + idx) + 1;
+		graph[partialOffset] = State();
+		partialIterator++;
+	}
+	
+}
+
 
 CUDA_GLOBAL
 void CUDAProcedure(tTrackSeg* trackSegArray, int nTrackSegs, State* graph, int stateIterator,
@@ -14,21 +30,7 @@ void CUDAProcedure(tTrackSeg* trackSegArray, int nTrackSegs, State* graph, int s
 	int offset = (stateIterator*numThreads + idx) + 1; //the initial state does not need this computation
 
 	State* initialState = &graph[0];
-	initialState->setMyGraphIndex(0);
 	
-	//initialize the graph
-	if (stateIterator == 0){
-		int partialOffset = 0;
-		int partialIterator = 0;
-		while (partialOffset < (graphSize)){
-			//printf("partialOffset:%d", partialOffset);
-			partialOffset = (partialIterator*numThreads + idx) + 1;
-			graph[partialOffset] = State();
-			partialIterator++;
-		}
-	}
-	__syncthreads();
-
 	curandState_t curandState;
 	/* we have to initialize the state */
 	curand_init(clock(), /* the seed controls the sequence of random values that are produced */
@@ -157,6 +159,8 @@ State* Kernel::callKernel(State* auxGraph, tTrackSeg* auxSegArray, int nTrackSeg
 	if (numPartialIterations == 0) numPartialIterations++;
 
 	cudaMemcpy(auxGraph, initialState, sizeof(State), cudaMemcpyHostToDevice);
+
+	graphInit << < NUM_BLOCKS, NUM_THREADS_EACH_BLOCK >> >(auxGraph, NUM_THREADS, graphSize);
 
 	for (int i = 0; i < numPartialIterations; i++)
 	{
