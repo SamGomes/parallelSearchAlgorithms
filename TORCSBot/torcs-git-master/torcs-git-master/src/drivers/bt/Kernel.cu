@@ -101,11 +101,11 @@ void graphBacktrack(State* initialState, State* bestStates, int bestStatesSize, 
 	*bestPathSize = bestState.getLevelFromStart()-1;
 	//bestStates = (State*)malloc(sizeof(State)*(*bestPathSize));
 	//printf("size %d \n---\n", *bestPathSize);
-	int bestPathIterator = *bestPathSize-1;
+	int bestPathIterator = 0;
 	while (!bestState.getInitialState()){
 		bestStates[bestPathIterator]=bestState;
 		bestState = graph[bestState.getParentGraphIndex()];
-		bestPathIterator--;
+		bestPathIterator++;
 	}
 /*
 
@@ -213,21 +213,19 @@ State* Kernel::callKernel(int& bestPathSize, State* kernelGraph, tTrackSeg* kern
 	cudaMemcpy(kernelGraph, initialState, sizeof(State), cudaMemcpyHostToDevice);
 
 	graphInit << < NUM_BLOCKS, NUM_THREADS_EACH_BLOCK >> >(kernelGraph, NUM_THREADS, graphSize, bestThreadStates); cudaDeviceSynchronize();
-	printf("init error: %s\n------------\n", cudaGetErrorString(cudaPeekAtLastError()));
+	//printf("init error: %s\n------------\n", cudaGetErrorString(cudaPeekAtLastError()));
 	for (int i = 0; i < numPartialIterations; i++)
 	{
 		CUDAProcedure << < NUM_BLOCKS, NUM_THREADS_EACH_BLOCK >> > (kernelSegArray, nTrackSegs, kernelGraph, bestThreadStates, i,
 			NUM_THREADS, graphSize, actionSimDeltaTime);
 		cudaDeviceSynchronize();
-		printf("kernel error: %s\n------------\n", cudaGetErrorString(cudaPeekAtLastError()));
+		//printf("kernel error: %s\n------------\n", cudaGetErrorString(cudaPeekAtLastError()));
 	}
-	
-
 
 	cudaMalloc(&kernelBestPathSize, sizeof(int));
 	graphBacktrack << < 1, 1 >> > (kernelGraph, bestThreadStates, bestStatesSize, kernelBestPathSize, kernelGraph); cudaDeviceSynchronize();
 	cudaMemcpy(&bestPathSize, kernelBestPathSize, sizeof(int), cudaMemcpyDeviceToHost);
-	printf(" backtrack error: %s\n------------\n", cudaGetErrorString(cudaPeekAtLastError()));
+	//printf(" backtrack error: %s\n------------\n", cudaGetErrorString(cudaPeekAtLastError()));
 	State* bestPath = new State[(unsigned int)bestPathSize];
 	cudaMemcpy(bestPath, bestThreadStates, sizeof(State)*(unsigned int)bestPathSize, cudaMemcpyDeviceToHost); //copy the graph back to main memory
 
