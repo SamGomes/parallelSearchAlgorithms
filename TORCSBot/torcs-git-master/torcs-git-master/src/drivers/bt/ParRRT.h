@@ -8,7 +8,7 @@
 #include "Heuristics.cuh"
 #include <robottools.h>
 #include <iostream>
-
+#include <algorithm>    // std::transform
 #include<time.h>
 
 //----------------- ParRRT Search class---------------------------
@@ -34,7 +34,8 @@ private: //vars
 	int numKernelBlocks;
 	int numKernelThreadsPerBlock;
 
-	State* graph; //the returned search tree!
+	State* pathArray; //the returned search tree!
+
 
 public: //methods
 	ParRRT(State initialState, int nIterations, State* kernelGraph, tTrackSeg* kernelSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration, int numKernelBlocks, int numKernelThreadsPerBlock);

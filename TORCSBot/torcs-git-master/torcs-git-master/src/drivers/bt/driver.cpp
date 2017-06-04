@@ -428,8 +428,8 @@ void Driver::humanControl(){ //allows for manual car control and search call
 		initialState.setLocalPos(carLocPos);
 		initialState.setInitialState(true); //it is indeed the initial state!
 
-		RRTAux = new SeqRRT(initialState, numStates, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
-		//RRTAux = new ParRRT(initialState, numStates, kernelGraph, kernelSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration, numKernelBlocks, numKernelThreads);
+		//RRTAux = new SeqRRT(initialState, numStates, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
+		RRTAux = new ParRRT(initialState, numStates, kernelGraph, kernelSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration, numKernelBlocks, numKernelThreads);
 		path = RRTAux->search();
 		pathG = path;
 		std::reverse(pathG.begin(), pathG.end());

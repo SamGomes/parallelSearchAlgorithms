@@ -21,24 +21,16 @@
 //#undef free
 //#undef malloc
 
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true)
-{
-	if (code != cudaSuccess)
-	{
-		fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-		if (abort) exit(code);
-	}
-}
-
-CUDA_GLOBAL void CUDAProcedure(tTrackSeg* trackSegArray, int nTrackSegs, State* initialState, State* graph, int stateIterator,
-							  int numThreads, int graphSize, double maxCost, State* bestState, double actionSimDeltaTime);
+CUDA_GLOBAL void graphInit(State* graph, int numThreads, int graphSize, State* bestThreadStates);
+CUDA_GLOBAL void CUDAProcedure(tTrackSeg* trackSegArray, int nTrackSegs, State* graph, State* bestStates, int stateIterator,
+	int numThreads, int graphSize, double actionSimDeltaTime);
+CUDA_GLOBAL void graphBacktrack(State* initialState, State* bestStates, int bestStatesSize, int* bestPathSize, State* graph);
 
 class Kernel{
 public:
-	static void gpuFree(State* auxGraph, tTrackSeg* auxSegArray);
-	static void gpuInit(State** auxGraph, tTrackSeg** auxSegArray, int numIterations, tTrackSeg* segArray, int nTrackSegs);
-	static	State* callKernel(State* auxGraph, tTrackSeg* auxSegArray, int nTrackSegs, State* initialState, int numIterations, int numBlocks, int numThreadsPerBlock, double actionSimDeltaTime);
+	static void gpuFree(State* kernelGraph, tTrackSeg* kernelSegArray);
+	static void gpuInit(State** kernelGraph, tTrackSeg** kernelSegArray, int numIterations, tTrackSeg* segArray, int nTrackSegs);
+	static	State* callKernel(int& bestPathSize, State* kernelGraph, tTrackSeg* kernelSegArray, int nTrackSegs, State* initialState, int numIterations, int numBlocks, int numThreadsPerBlock, double actionSimDeltaTime);
 };
 
 //#pragma pop_macro("tgfCUDAUncompatibleStuff")

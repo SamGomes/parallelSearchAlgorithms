@@ -64,6 +64,7 @@ class Driver {
 		//Kernel vars (only used in ParRRT)
 		tTrackSeg* kernelSegArray;
 		State* kernelGraph;
+		State* kernelBestPath;
 
 		static double currentsimtime;	// Store time to avoid useless updates.
 		float clutchtime;

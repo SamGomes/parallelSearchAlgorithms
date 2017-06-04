@@ -20,8 +20,8 @@ ParRRT::~ParRRT(){
 	if (this->initialState != nullptr){
 		delete initialState;
 	}
-	if (this->graph != nullptr){
-		delete[] graph; //allocated on the kernel
+	if (this->pathArray != nullptr){
+		delete[] pathArray; //allocated on the kernel
 	}
 }
 
@@ -32,37 +32,14 @@ ParRRT::~ParRRT(){
 
 std::vector<State*> ParRRT::search(){
  
-	State bestState;
-	graph = Kernel::callKernel(kernelGraph, kernelSegArray, nTrackSegs, initialState, nIterations, numKernelBlocks, numKernelThreadsPerBlock, actionSimDeltaTime);
+	int bestPathSize;
+	pathArray = Kernel::callKernel(bestPathSize, kernelGraph, kernelSegArray, nTrackSegs, initialState, nIterations, numKernelBlocks, numKernelThreadsPerBlock, actionSimDeltaTime);
 
-
-	//-------------------- CALC BEST NODE -----------------------------
-	double maxCost = -1 * DBL_MAX; //force a change
-	for (int i = 1; i < nIterations+1; i++){
-		State currentState = graph[i];
-		if (currentState.getMyGraphIndex() == -1)  //xRand is still unassigned
-			continue;
-		double distFromStart = currentState.distFromStart;
-		if (distFromStart > maxCost){
-			maxCost = distFromStart;
-			bestState = currentState;
-		}
-	}
-
-	//if no path can be found just return a copy of the initial state! ;)
-	if (bestState.getMyGraphIndex() == -1){
-		State initialStateCopy = State(*initialState);
-		initialStateCopy.setInitialState(false);
-		initialStateCopy.setParentGraphIndex(initialState->getMyGraphIndex());
-		bestState = initialStateCopy;
-	}
-
-	//---------------------- BACKTRACKING ----------------------------------
-	std::vector<State*> path;
-	//lets put a path copy in the Heap (calling new), separating the path from the graph eliminated after!
-	while (!bestState.getInitialState()){
-		path.push_back(new State(bestState));
-		bestState = graph[bestState.getParentGraphIndex()];
+	std::vector<State*> path = std::vector<State*>(bestPathSize);
+	
+	//to cope with the interface -.-
+	for (int i = 0; i < bestPathSize; i++){
+		path[i] = &pathArray[i];
 	}
 	return path;
 
@@ -70,7 +47,7 @@ std::vector<State*> ParRRT::search(){
 
 
 std::vector<State> ParRRT::getGraph(){
-	std::vector<State>  graphVector = std::vector<State>(graph, &graph[nIterations + 1]);
+	std::vector<State>  graphVector; // = std::vector<State>(pathArray, &pathArray[2]);
 	return graphVector;
 }
 
