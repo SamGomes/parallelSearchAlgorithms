@@ -11,9 +11,11 @@
 
 //(for CUDA)
 #define PI 3.14159265358979323846
+#define PIInverse 0.318309492
 
 class UtilityMethods{
 public:
+
 
 	CUDA_HOSTDEV //the nearest point is the one in which its finalPos prediction ajusts to the current pos
 	static State nearestNeighbor(State state, State* graph, int graphSize){
@@ -36,12 +38,12 @@ public:
 
 
 	CUDA_HOSTDEV
-	static bool SimpleRtTrackGlobal2Local(tStateRelPos* p, tTrackSeg* segmentArray, int nTrackSegs, tdble X, tdble Y, int type)
+	static bool SimpleRtTrackGlobal2Local(tStateRelPos* p, tTrackSeg* segmentArray, int nTrackSegs, tdble X, tdble Y, int type, int parentSegId)
 	{
 		int 	segnotfound = 1;
 		float 	x, y;
 
-		tTrackSeg* seg = getSegmentOf(segmentArray, nTrackSegs, X, Y);
+		tTrackSeg* seg = getSegmentOf(segmentArray, nTrackSegs, X, Y, parentSegId);
 		if (seg==nullptr){
 			return false;
 		}
@@ -153,12 +155,16 @@ public:
 
 	//this returns a close approximation of the current segment that can be used to find the local pos (because of the floating point errors)
 	CUDA_HOSTDEV
-	static tTrackSeg* getSegmentOf(tTrackSeg* segmentArray, int nTrackSegs, tdble x, tdble y){
+	static tTrackSeg* getSegmentOf(tTrackSeg* segmentArray, int nTrackSegs, tdble x, tdble y, int parentSeg){
+		
 		tTrackSeg* seg = nullptr;
 
-		for (int i = 0; i <= nTrackSegs; i++){
+		int i = parentSeg;
+		int lastSeg = parentSeg == 0 ? nTrackSegs : parentSeg - 1;
+		while (i != lastSeg){
 			t3Dd* bounds = segmentArray[i].vertex;
 
+			
 			double dist03 = getEuclideanQuadranceBetween({ bounds[0].x, bounds[0].y, bounds[0].z }, { bounds[3].x, bounds[3].y, bounds[3].z });
 			double dist12 = getEuclideanQuadranceBetween({ bounds[1].x, bounds[1].y, bounds[1].z }, { bounds[2].x, bounds[2].y, bounds[2].z });
 
@@ -174,9 +180,14 @@ public:
 			
 			if ((a1<1) && (a2<1) && (a3<1) && (a4<1)){
 				seg = &segmentArray[i];
+				return seg;
 			}
+			
+			if (i == nTrackSegs) i = 0;
+			else i++;
 		}
 		return seg;
+		
 	}
 
 	CUDA_HOSTDEV
@@ -366,7 +377,7 @@ public:
 
 		//get shortest angle
 		double deltaAngle = rotationBetween(p1.angle, p2.angle);
-		return deltaAngle/PI;
+		return deltaAngle*PIInverse;// / PI;
 	}
 
 	CUDA_HOSTDEV
@@ -469,8 +480,8 @@ public:
 class ConstraintChecking{
 public:
 	CUDA_HOSTDEV
-	static	bool validPoint(tTrackSeg* segArray, int nTrackSegs, State* target){
-		return (UtilityMethods::getSegmentOf(segArray, nTrackSegs, target->getPos().x, target->getPos().y)!=nullptr);
+	static	bool validPoint(tTrackSeg* segArray, int nTrackSegs, State* target, State* parent){
+		return (UtilityMethods::getSegmentOf(segArray, nTrackSegs, target->getPos().x, target->getPos().y,parent->getLocalPos().segId)!=nullptr);
 	}
 };
 
@@ -559,7 +570,7 @@ public:
 	}
 
 	CUDA_HOSTDEV
-	static bool applyBezierDelta(State* state, State* parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
+	static bool applyBezierDelta(State* graph, State* state, State* parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
 	
 		tPosd newPos = tPosd();
 		tPolarVel newSpeed = tPolarVel();
@@ -589,8 +600,8 @@ public:
 		tPosd p3 = state->getPos();
 
 		//the bezier lies outside of the track
-		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, &p1State) ||
-			!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, &p2State) //||
+		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, &p1State, parent) ||
+			!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, &p2State, parent) //||
 			//(p1.x / p1.x + p2.x / p2.x != 0 && p1.y / p1.y + p2.y / p2.y != 0)
 			){
 			return false;
@@ -642,7 +653,7 @@ public:
 		state->setVelocity(newSpeed);
 
 		//if the control points are inside but the middle point is out (that can supposidely happen)
-		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, state)){
+		if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, state, parent)){
 			return false;
 		}
 		return true;
@@ -651,7 +662,7 @@ public:
 
 	//--------------------(used) physics based forward model----------------------------------
 	CUDA_HOSTDEV
-	static bool applyPhysicsDelta(State* state, State* parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
+	static bool applyPhysicsDelta(State* graph, State* state, State* parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
 		
 		double angle0 = parent->getVelocity().angle;
 		double angleF = state->getVelocity().angle;
@@ -690,7 +701,7 @@ public:
 			State aux = State(p_i, v_i);
 
 			//if one point in the path is not valid, the path is discarded
-			if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, &aux)){
+			if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, &aux, parent)){
 				return false;
 			}
 
@@ -730,8 +741,8 @@ public:
 
 	//--------------------------------wrapper--------------------------------
 	CUDA_HOSTDEV
-	static bool applyDelta(State* state, State* parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
-		return applyPhysicsDelta(state, parent, trackSegArray, nTrackSegs, actionSimDeltaTime);
+	static bool applyDelta(State* graph, State* state, State* parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
+		return applyPhysicsDelta(graph, state, parent, trackSegArray, nTrackSegs, actionSimDeltaTime);
 	}
 
 };

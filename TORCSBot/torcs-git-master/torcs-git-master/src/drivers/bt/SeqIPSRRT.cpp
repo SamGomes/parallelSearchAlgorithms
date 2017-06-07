@@ -83,14 +83,14 @@ void SeqIPSRRT::generateStates(double nIterations){
 
 			//----------------------------------------- constraint checking ------------------------------------------------
 			//the delta application also checks if the trajectory is valid
-			if (!DeltaFunctions::applyDelta(&xRand, &xNearest, trackSegArray, nTrackSegs, actionSimDeltaTime)){
+			if (!DeltaFunctions::applyDelta(graph, &xRand, &xNearest, trackSegArray, nTrackSegs, actionSimDeltaTime)){
 				continue;
 			}
 
 			//---------------------------------------- calculate best path --------------------------------------------------
 			//the best state is the one that is furthest from the start lane
 			tStateRelPos xRandLocalPos;
-			UtilityMethods::SimpleRtTrackGlobal2Local(&xRandLocalPos, trackSegArray, nTrackSegs, xRand.getPos().x, xRand.getPos().y, 0);
+			UtilityMethods::SimpleRtTrackGlobal2Local(&xRandLocalPos, trackSegArray, nTrackSegs, xRand.getPos().x, xRand.getPos().y, 0, xNearest.getLocalPos().segId);
 			xRand.setLocalPos(xRandLocalPos);
 			double distFromStart = UtilityMethods::getTrackCenterDistanceBetween(trackSegArray, nTrackSegs, &xRand, &initialState, 500) / xRand.getLevelFromStart();
 			xRand.distFromStart = distFromStart;
