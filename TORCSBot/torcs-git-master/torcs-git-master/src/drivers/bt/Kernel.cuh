@@ -17,12 +17,12 @@
 #include <device_functions.h>
 #include <device_launch_parameters.h>
 
-//#pragma push_macro("tgfCUDAUncompatibleStuff")
-//#undef free
-//#undef malloc
+#pragma push_macro("tgfCUDAUncompatibleStuff")
+#undef free
+#undef malloc
 
-CUDA_GLOBAL void graphInit(State* graph, int numThreads, int graphSize, State* bestThreadStates);
-CUDA_GLOBAL void CUDAProcedure(tTrackSeg* trackSegArray, int nTrackSegs, State* graph, State* bestStates, int stateIterator,
+CUDA_GLOBAL void graphInit(State* graph, int numThreads, int graphSize);
+CUDA_GLOBAL void CUDAProcedure(tTrackSeg* trackSegArray, int nTrackSegs, State* graph, int stateIterator,
 	int numThreads, int graphSize, double actionSimDeltaTime);
 CUDA_GLOBAL void graphBacktrack(State* initialState, State* bestStates, int bestStatesSize, int* bestPathSize, State* graph);
 
@@ -30,9 +30,9 @@ class Kernel{
 public:
 	static void gpuFree(State* kernelGraph, tTrackSeg* kernelSegArray);
 	static void gpuInit(State** kernelGraph, tTrackSeg** kernelSegArray, int numIterations, tTrackSeg* segArray, int nTrackSegs);
-	static	State* callKernel(int& bestPathSize, State* kernelGraph, tTrackSeg* kernelSegArray, int nTrackSegs, State* initialState, int numIterations, int numBlocks, int numThreadsPerBlock, double actionSimDeltaTime);
+	static	State* callKernel(State* auxGraph, tTrackSeg* auxSegArray, int nTrackSegs, State* initialState, int numIterations, int numBlocks, int numThreadsPerBlock, double actionSimDeltaTime);
 };
 
-//#pragma pop_macro("tgfCUDAUncompatibleStuff")
+#pragma pop_macro("tgfCUDAUncompatibleStuff")
 
 #endif

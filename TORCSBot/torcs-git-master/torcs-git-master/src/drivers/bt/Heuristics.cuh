@@ -182,13 +182,16 @@ public:
 	CUDA_HOSTDEV
 	static double getTrackCenterDistanceBetween(tTrackSeg* segmentArray, int nTrackSegs, State* s2, State* s1, int fwdLimit){
 
+
 		tStateRelPos l1, l2;
 
 		l1 = s1->getLocalPos();
 		l2 = s2->getLocalPos();
 
+
 		tTrackSeg	l1Seg = segmentArray[l1.segId];
 		tTrackSeg	l2Seg = segmentArray[l2.segId];
+
 
 		double totalCost = 0;
 
@@ -690,6 +693,7 @@ public:
 			if (!ConstraintChecking::validPoint(trackSegArray, nTrackSegs, &aux)){
 				return false;
 			}
+
 			p_i_1 = p_i;
 			if (i == deltaI){
 				pDelta = p_i;

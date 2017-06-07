@@ -81,7 +81,8 @@ void SeqRRT::generateStates(double nIterations){
 		//---------------------------------------- calculate best path --------------------------------------------------
 		//the best state is the one that is furthest from the start lane
 		tStateRelPos xRandLocalPos;
-		UtilityMethods::SimpleRtTrackGlobal2Local(&xRandLocalPos, trackSegArray, nTrackSegs, xRand.getPos().x, xRand.getPos().y, 0);
+		if (!UtilityMethods::SimpleRtTrackGlobal2Local(&xRandLocalPos, trackSegArray, nTrackSegs, xRand.getPos().x, xRand.getPos().y, 0))
+			continue;
 		xRand.setLocalPos(xRandLocalPos);
 		double distFromStart = UtilityMethods::getTrackCenterDistanceBetween(trackSegArray, nTrackSegs, &xRand, &initialState, 500) / xRand.getLevelFromStart();
 		xRand.distFromStart = distFromStart;

@@ -26,6 +26,7 @@
 #include <robot.h>
 #include <portability.h>
 
+#include "SeqIPSRRT.h"
 #include "SeqRRT.h"
 #include "ParRRT.h"
 #include "Kernel.cuh"
@@ -86,6 +87,7 @@ class Driver {
 
 		//search tunning vars
 		int delay = 0;
+		int tickCounter = 0;
 		int SEARCH_RECALC_DELAY = 150;
 		double ACTION_SIM_DELTA_TIME = 2.5;
 

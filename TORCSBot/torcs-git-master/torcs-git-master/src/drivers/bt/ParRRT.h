@@ -27,14 +27,14 @@ private: //vars
 	int nIterations;
 	State* initialState;
 	int forwardSegments;
+	State* graph; //the returned search tree!
+
 
 	//kernel vars
 	State* kernelGraph;
 	tTrackSeg* kernelSegArray;
 	int numKernelBlocks;
 	int numKernelThreadsPerBlock;
-
-	State* pathArray; //the returned search tree!
 
 
 public: //methods

@@ -33,11 +33,11 @@ double Driver::currentsimtime;
 
 
 // For test purposes
-int run;
-int numStates = 6400;
+int run = 5;
+int numStates = 800;
 
-int numKernelThreads = 400;
-int numKernelBlocks = 4;
+int numKernelThreads = 1;
+int numKernelBlocks = 1;
 
 
 
@@ -353,6 +353,7 @@ void Driver::simplePlan() // algorithm test
 		State initialState = State(carDynCg.pos, carVel);
 		initialState.setLocalPos(carLocPos);
 		initialState.setInitialState(true); //it is indeed the initial state!
+		//RRTAux = new SeqIPSRRT(initialState, numStates, numKernelThreads, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
 		//RRTAux = new SeqRRT(initialState, numStates, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
 		RRTAux = new ParRRT(initialState, numStates, kernelGraph, kernelSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration, numKernelBlocks, numKernelThreads);
 			
@@ -361,22 +362,26 @@ void Driver::simplePlan() // algorithm test
 		path = RRTAux->search();
 			
 		searchTimer = clock() - searchTimer;
-		std::string stats = std::string(" ") + std::to_string(double(searchTimer) / (double)CLOCKS_PER_SEC);
-			
-		if (car->race.remainingLaps != oldLaps){
-			stats += std::string("; lap time: ") + std::to_string(car->race.lastLapTime);
-			oldLaps = car->race.remainingLaps;
-		}
-
-		if (strcmp(RRTAux->getSearchName(), "SequentialRRT") == 0){
 		
-			StatsLogWriter::writeToLog((char*)std::string("SequentialRRT states_" + std::to_string(numStates) + " run_" + std::to_string(run)).c_str(), stats);
-		}
-		
-		if (strcmp(RRTAux->getSearchName(), "ParallelRRT") == 0){
-			StatsLogWriter::writeToLog((char*)std::string("ParallelRRT(" + std::to_string(numKernelBlocks) + "," + std::to_string(numKernelThreads) + ") states_" + std::to_string(numStates) + " run_" + std::to_string(run)).c_str(), stats);
-		}
+		//if (car->race.laps > 1){
+			std::string stats = "States: " + std::to_string(numStates) + ":" + std::string(RRTAux->getSearchName()) + "(" + std::to_string(numKernelBlocks) + ", " + std::to_string(numKernelThreads) + ");" + std::to_string(run) + std::string(";") + std::to_string(double(searchTimer) / (double)CLOCKS_PER_SEC);
+			if (car->race.remainingLaps != oldLaps){// && car->race.laps > 2){
+				stats += std::string(";") + std::to_string(car->race.lastLapTime);
+				oldLaps = car->race.remainingLaps;
+			}
 
+			if (strcmp(RRTAux->getSearchName(), "SequentialIPSRRT") == 0){
+				StatsLogWriter::writeToLog((char*)std::string("SequentialIPSRRT states_" + std::to_string(numStates) + " run_" + std::to_string(run)).c_str(), stats);
+			}
+
+			if (strcmp(RRTAux->getSearchName(), "SequentialRRT") == 0){
+				StatsLogWriter::writeToLog((char*)std::string("SequentialRRT states_" + std::to_string(numStates) + " run_" + std::to_string(run)).c_str(), stats);
+			}
+
+			if (strcmp(RRTAux->getSearchName(), "ParallelRRT") == 0){
+				StatsLogWriter::writeToLog((char*)std::string("ParallelRRT(" + std::to_string(numKernelBlocks) + "," + std::to_string(numKernelThreads) + ") states_" + std::to_string(numStates) + " run_" + std::to_string(run)).c_str(), stats);
+			}
+		//}
 		pathG = path;
 		graphG = RRTAux->getGraph();
 		std::reverse(pathG.begin(), pathG.end());
@@ -392,7 +397,6 @@ void Driver::simplePlan() // algorithm test
 		}
 	}
 	currStateG = *currState;
-	delay++;
 }
 
 State initialState; 
@@ -428,9 +432,16 @@ void Driver::humanControl(){ //allows for manual car control and search call
 		initialState.setLocalPos(carLocPos);
 		initialState.setInitialState(true); //it is indeed the initial state!
 
+		//RRTAux = new SeqIPSRRT(initialState, numStates, numKernelThreads, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
 		//RRTAux = new SeqRRT(initialState, numStates, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
 		RRTAux = new ParRRT(initialState, numStates, kernelGraph, kernelSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration, numKernelBlocks, numKernelThreads);
+		
+		clock_t searchTimer = clock();
 		path = RRTAux->search();
+		searchTimer = clock() - searchTimer;
+
+		printf("searchTime:%f\n", double(searchTimer) / (double)CLOCKS_PER_SEC);
+
 		pathG = path;
 		std::reverse(pathG.begin(), pathG.end());
 		graphG = RRTAux->getGraph();
@@ -457,6 +468,7 @@ void Driver::humanControl(){ //allows for manual car control and search call
 	else{
 		car->_gearCmd = getGear();
 	}
+
 	
 	//-------------------AUX WINDOW VARS-------------------------------------
 	carDynCg = car->pub.DynGCg;
@@ -488,8 +500,17 @@ void Driver::humanControl(){ //allows for manual car control and search call
 //--------------------------------------------------------------------
 // - Main update (calls the planning module and the control module). -
 //--------------------------------------------------------------------
+
 void Driver::update(tSituation *s)
 {	
+	if (tickCounter == 10000){
+		getchar();
+	}
+	else{
+		//printf("delay: %d", tickCounter);
+		tickCounter++; //tick counter
+		delay++;//search recalc delay
+	}
 	// Update global car data (shared by all instances) just once per timestep.
 	if (currentsimtime != s->currentTime) {
 		currentsimtime = s->currentTime;
