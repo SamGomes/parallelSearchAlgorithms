@@ -1,7 +1,7 @@
 #include "SeqIPSRRT.h"
 
 
-SeqIPSRRT::SeqIPSRRT(State initialState, int nIterations, int nMockedThreads, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration){
+SeqIPSRRT::SeqIPSRRT(State initialState, int nIterations, int nMockedThreads, tSimpleTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration){
 	this->maxCost = -1 * DBL_MAX; //force a change
 	this->bestState = State();
 
@@ -73,7 +73,7 @@ void SeqIPSRRT::generateStates(double nIterations){
 		for (int j = 0; j < nMockedThreads; j++){
 			State xRand;
 			//--------------------------------------- generate random sample -----------------------------------------------
-			xRand = RandomStateGenerators::uniformRandomState(trackSegArray, nTrackSegs, nullptr);
+			xRand = RandomStateGenerators::uniformRandomState(nTrackSegs, nullptr);
 			//xRand = RandomStateGenerators::gaussianRandomState(trackSegArray, nTrackSegs, initialState.getVelocity());
 
 			//---------------------------------------- select neighbor ----------------------------------------------------

@@ -60,10 +60,10 @@ class Driver {
 		int INDEX;
 		float MU_FACTOR;
 
-		tTrackSeg* trackSegArray; //needed because of CUDA memory management
+		tSimpleTrackSeg* trackSegArray; //needed because of CUDA memory management
 		
 		//Kernel vars (only used in ParRRT)
-		tTrackSeg* kernelSegArray;
+		tSimpleTrackSeg* kernelSegArray;
 		State* kernelGraph;
 		State* kernelBestPath;
 

@@ -19,7 +19,7 @@ private: //vars
 	double actionSimDeltaTime;
 	int startSegIndex;
 	int finalIndex;
-	tTrackSeg* trackSegArray;
+	tSimpleTrackSeg* trackSegArray;
 	int nTrackSegs;
 	int nIterations;
 	int nPartialIterations;
@@ -48,7 +48,7 @@ private: //methods
 	State generateRRT();
 
 public: //methods
-	SeqIPSRRT(State initialState, int nIterations, int nMockedThreads, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration);
+	SeqIPSRRT(State initialState, int nIterations, int nMockedThreads, tSimpleTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration);
 	~SeqIPSRRT();
 
 	std::vector<State*> search();

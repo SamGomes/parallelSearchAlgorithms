@@ -1,7 +1,7 @@
 #include "ParRRT.h"
 
 
-ParRRT::ParRRT(State initialState, int nIterations, State* kernelGraph, tTrackSeg* kernelSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration, int numKernelBlocks, int numKernelThreadsPerBlock){
+ParRRT::ParRRT(State initialState, int nIterations, State* kernelGraph, tSimpleTrackSeg* kernelSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration, int numKernelBlocks, int numKernelThreadsPerBlock){
 	this->nIterations = nIterations;
 	this->initialState = new State(initialState);
 	this->initialState->setMyGraphIndex(0);
@@ -90,7 +90,7 @@ std::vector<State*> ParRRT::search(){
 
 
 std::vector<State> ParRRT::getGraph(){
-	std::vector<State>  graphVector; // = std::vector<State>(pathArray, &pathArray[2]);
+	std::vector<State>  graphVector = std::vector<State>(graph, &graph[nIterations+1]);
 	return graphVector;
 }
 

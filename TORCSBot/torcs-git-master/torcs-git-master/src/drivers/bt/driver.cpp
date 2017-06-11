@@ -8,7 +8,7 @@ double trkMaxX;
 double trkMaxY;
 State currStateG;
 
-trackSeg* segmentArrayG;
+tSimpleTrackSeg* segmentArrayG;
 int nsegsG;
 
 int pathsauxWindow;
@@ -34,9 +34,9 @@ double Driver::currentsimtime;
 
 // For test purposes
 int run = 5;
-int numStates = 800;
+int numStates = 3200;
 
-int numKernelThreads = 1;
+int numKernelThreads = 400;
 int numKernelBlocks = 1;
 
 
@@ -86,15 +86,15 @@ void Driver::initTrack(tTrack* t, void *carHandle, void **carParmHandle, tSituat
 
 	// Load and set parameters.
 	MU_FACTOR = GfParmGetNum(*carParmHandle, BT_SECT_PRIV, BT_ATT_MUFACTOR, (char*)NULL, 0.69f);
-	trackSegArray = (tTrackSeg*)malloc(sizeof(tTrackSeg)*track->nseg);
+	trackSegArray = (tSimpleTrackSeg*)malloc(sizeof(tSimpleTrackSeg)*track->nseg);
 	double size = sizeof(trackSegArray);
 
 	// pass segments to array in order to pass them to the kernel when needed later on
-	trackSegArray[0] = *(track->seg->next);
+	trackSegArray[0] = { (track->seg->next)->id, { (track->seg->next)->vertex[0], (track->seg->next)->vertex[1], (track->seg->next)->vertex[2], (track->seg->next)->vertex[3] }, { (track->seg->next)->angle[0], (track->seg->next)->angle[6] }, (track->seg->next)->type, (track->seg->next)->width, (track->seg->next)->length, (track->seg->next)->radius, (track->seg->next)->radiusr, (track->seg->next)->center, (track->seg->next)->arc, (track->seg->next)->lgfromstart };
 	tTrackSeg* currSeg = track->seg->next->next;
 	int trackSegIterator=1;
 	while (currSeg != track->seg->next){
-		trackSegArray[trackSegIterator] = *currSeg;
+		trackSegArray[trackSegIterator] = { currSeg->id, { currSeg->vertex[0], currSeg->vertex[1], currSeg->vertex[2], currSeg->vertex[3] }, { currSeg->angle[0], currSeg->angle[6] }, currSeg->type, currSeg->width, currSeg->length, currSeg->radius, currSeg->radiusr, currSeg->center, currSeg->arc, currSeg->lgfromstart };
 		currSeg = currSeg->next;
 		trackSegIterator++;
 	}
@@ -355,7 +355,7 @@ void Driver::simplePlan() // algorithm test
 		initialState.setInitialState(true); //it is indeed the initial state!
 		//RRTAux = new SeqIPSRRT(initialState, numStates, numKernelThreads, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
 		//RRTAux = new SeqRRT(initialState, numStates, trackSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration);
-		RRTAux = new ParRRT(initialState, numStates, kernelGraph, kernelSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration, numKernelBlocks, numKernelThreads);
+		//RRTAux = new ParRRT(initialState, numStates, kernelGraph, kernelSegArray, track->nseg, ACTION_SIM_DELTA_TIME, maxCarAcceleration, numKernelBlocks, numKernelThreads);
 			
 		clock_t searchTimer = clock();
 			
@@ -620,7 +620,7 @@ void drawSearchPoints(){
 		glColor3f(0, 0 + 0.2*i, 1);
 		drawCircle(pathG[i]->getPos(), 2);
 
-		std::string statePosSeg = std::to_string((double)pathG[i]->distFromStart);
+		std::string statePosSeg = std::to_string((float)pathG[i]->distFromStart);
 		printTextInWindow(pathG[i]->getPos().x + 10, (h - pathG[i]->getPos().y) + 10, (char*)statePosSeg.c_str());
 	}
 
