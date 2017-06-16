@@ -1,7 +1,7 @@
 #include "SeqRRT.h"
 
 
-SeqRRT::SeqRRT(State initialState, int nIterations, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration){
+SeqRRT::SeqRRT(State initialState, int nIterations, tSimpleTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration){
 	this->maxCost = -1 * DBL_MAX; //force a change
 	this->bestState = State();
 
@@ -64,7 +64,7 @@ void SeqRRT::generateStates(double nIterations){
 	for (int k = 0; k < nIterations; k++){
 
 		//--------------------------------------- generate random sample -----------------------------------------------
-		xRand = RandomStateGenerators::uniformRandomState(trackSegArray, nTrackSegs,nullptr);
+		xRand = RandomStateGenerators::uniformRandomState(nTrackSegs,nullptr);
 		//xRand = RandomStateGenerators::gaussianRandomState(trackSegArray, nTrackSegs, initialState.getVelocity());
 
 		//---------------------------------------- select neighbor ----------------------------------------------------

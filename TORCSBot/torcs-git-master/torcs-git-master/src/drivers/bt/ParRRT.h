@@ -32,13 +32,14 @@ private: //vars
 
 	//kernel vars
 	State* kernelGraph;
-	tTrackSeg* kernelSegArray;
+	tPolarVel* kernelVelArray;
+	tSimpleTrackSeg* kernelSegArray;
 	int numKernelBlocks;
 	int numKernelThreadsPerBlock;
 
 
 public: //methods
-	ParRRT(State initialState, int nIterations, State* kernelGraph, tTrackSeg* kernelSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration, int numKernelBlocks, int numKernelThreadsPerBlock);
+	ParRRT(State initialState, int nIterations, State* kernelGraph, tPolarVel* kernelVelArray, tSimpleTrackSeg* kernelSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration, int numKernelBlocks, int numKernelThreadsPerBlock);
 	~ParRRT();
 
 	std::vector<State*> search();

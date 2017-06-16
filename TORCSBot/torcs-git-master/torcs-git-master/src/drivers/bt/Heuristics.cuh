@@ -21,13 +21,12 @@ public:
 	static State nearestNeighbor(State state, State* graph, int graphSize){
 		State closestState;
 		double minDist = DBL_MAX;
-		
 		for (int i = 0; i < graphSize; i++){
 			State currState = graph[i];
 			if (currState.getMyGraphIndex() == -1 || state.getMyGraphIndex()==i)  //still unassigned
 				continue;
 			
-			double dist = UtilityMethods::getPolarQuadranceBetween(state.getVelocity(), graph[i].getVelocity());
+			double dist = UtilityMethods::getPolarQuadranceBetween(state.getVelocity(), currState.getVelocity());
 			if (dist <= minDist){
 				minDist = dist;
 				closestState = currState;
@@ -36,14 +35,31 @@ public:
 		return closestState;
 	}
 
+	CUDA_HOSTDEV //the nearest point is the one in which its finalPos prediction ajusts to the current pos
+	static State nearestNeighborKernel(State state, tPolarVel* velArray, State* graph, int graphSize){
+		int closestState = 0;
+		double minDist = DBL_MAX;
+		for (int i = 0; i < graphSize; i++){
+			tPolarVel currStateVel = velArray[i];
+			if (currStateVel.intensity == -1 || state.getMyGraphIndex() == i)  //still unassigned
+				continue;
+			double dist = UtilityMethods::getPolarQuadranceBetween(state.getVelocity(), currStateVel);
+			if (dist <= minDist){
+				minDist = dist;
+				closestState = i;
+			}
+		}
+		return graph[closestState];
+	}
+
 
 	CUDA_HOSTDEV
-	static bool SimpleRtTrackGlobal2Local(tStateRelPos* p, tTrackSeg* segmentArray, int nTrackSegs, tdble X, tdble Y, int type, int parentSegId)
+	static bool SimpleRtTrackGlobal2Local(tStateRelPos* p, tSimpleTrackSeg* segmentArray, int nTrackSegs, tdble X, tdble Y, int type, int parentSegId)
 	{
 		int 	segnotfound = 1;
 		float 	x, y;
 
-		tTrackSeg* seg = getSegmentOf(segmentArray, nTrackSegs, X, Y, parentSegId);
+		tSimpleTrackSeg* seg = getSegmentOf(segmentArray, nTrackSegs, X, Y, parentSegId);
 		if (seg==nullptr){
 			return false;
 		}
@@ -92,7 +108,7 @@ public:
 					x = X - seg->center.x;
 					y = Y - seg->center.y;
 					a2 = seg->arc / 2.0;
-					theta = atan2(y, x) - (seg->angle[6] + a2);
+					theta = atan2(y, x) - (seg->angle[1] + a2);
 					theta = normPI_PI(theta);
 					p->segId = segArrayIterator;
 					p->toStart = theta + a2;
@@ -120,7 +136,7 @@ public:
 					x = X - seg->center.x;
 					y = Y - seg->center.y;
 					a2 = seg->arc / 2.0;
-					theta = seg->angle[6] - a2 - atan2(y, x);
+					theta = seg->angle[1] - a2 - atan2(y, x);
 					theta = normPI_PI(theta);
 					p->segId = segArrayIterator;
 					p->toStart = theta + a2;
@@ -155,9 +171,9 @@ public:
 
 	//this returns a close approximation of the current segment that can be used to find the local pos (because of the floating point errors)
 	CUDA_HOSTDEV
-	static tTrackSeg* getSegmentOf(tTrackSeg* segmentArray, int nTrackSegs, tdble x, tdble y, int parentSeg){
+	static tSimpleTrackSeg* getSegmentOf(tSimpleTrackSeg* segmentArray, int nTrackSegs, tdble x, tdble y, int parentSeg){
 		
-		tTrackSeg* seg = nullptr;
+		tSimpleTrackSeg* seg = nullptr;
 
 		int i = parentSeg;
 		int lastSeg = parentSeg == 0 ? nTrackSegs : parentSeg - 1;
@@ -183,15 +199,14 @@ public:
 				return seg;
 			}
 			
-			if (i == nTrackSegs) i = 0;
-			else i++;
+			(i == nTrackSegs)? i = 0 : i++;
 		}
 		return seg;
 		
 	}
 
 	CUDA_HOSTDEV
-	static double getTrackCenterDistanceBetween(tTrackSeg* segmentArray, int nTrackSegs, State* s2, State* s1, int fwdLimit){
+	static double getTrackCenterDistanceBetween(tSimpleTrackSeg* segmentArray, int nTrackSegs, State* s2, State* s1, int fwdLimit){
 
 
 		tStateRelPos l1, l2;
@@ -200,8 +215,8 @@ public:
 		l2 = s2->getLocalPos();
 
 
-		tTrackSeg	l1Seg = segmentArray[l1.segId];
-		tTrackSeg	l2Seg = segmentArray[l2.segId];
+		tSimpleTrackSeg	l1Seg = segmentArray[l1.segId];
+		tSimpleTrackSeg	l2Seg = segmentArray[l2.segId];
 
 
 		double totalCost = 0;
@@ -224,8 +239,8 @@ public:
 		{
 			int fwdIterator = (l1Seg.id + 1 > (nTrackSegs - 1)) ? 0 : l1Seg.id + 1;
 			int bwdIterator = (l1Seg.id - 1 <0) ? nTrackSegs - 1 : l1Seg.id - 1;
-			tTrackSeg currSegFwd = segmentArray[fwdIterator];
-			tTrackSeg currSegBwd = segmentArray[bwdIterator];
+			tSimpleTrackSeg currSegFwd = segmentArray[fwdIterator];
+			tSimpleTrackSeg currSegBwd = segmentArray[bwdIterator];
 			double bwdDist = 0;
 			double fwdDist = 0;
 
@@ -432,12 +447,12 @@ public:
 	}
 
 	CUDA_HOSTDEV
-	static State uniformRandomState(tTrackSeg* trackSegArray, int nTrackSegs, void* curandState){
+	static State uniformRandomState(int nTrackSegs, void* curandState){
 
 		//-------------------- random velocity calculation --------------------
 
 		double minSpeed = 0;
-		double maxSpeed = 80;
+		double maxSpeed = 78;
 
 		double minAngle = -PI;
 		double maxAngle = PI;
@@ -480,7 +495,7 @@ public:
 class ConstraintChecking{
 public:
 	CUDA_HOSTDEV
-	static	bool validPoint(tTrackSeg* segArray, int nTrackSegs, State* target, State* parent){
+	static	bool validPoint(tSimpleTrackSeg* segArray, int nTrackSegs, State* target, State* parent){
 		return (UtilityMethods::getSegmentOf(segArray, nTrackSegs, target->getPos().x, target->getPos().y,parent->getLocalPos().segId)!=nullptr);
 	}
 };
@@ -570,7 +585,7 @@ public:
 	}
 
 	CUDA_HOSTDEV
-	static bool applyBezierDelta(State* graph, State* state, State* parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
+	static bool applyBezierDelta(State* graph, State* state, State* parent, tSimpleTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
 	
 		tPosd newPos = tPosd();
 		tPolarVel newSpeed = tPolarVel();
@@ -646,8 +661,8 @@ public:
 		newSpeed.angle = atan2(bezierTangent.y,bezierTangent.x);
 		newSpeed.intensity = sqrt(bezierTangent.x*bezierTangent.x + bezierTangent.y*bezierTangent.y);
 
-		state->posRand = state->getPos();
-		state->speedRand = cartesianStateVel;
+		//state->posRand = state->getPos();
+		//state->speedRand = cartesianStateVel;
 
 		state->setPos(newPos);
 		state->setVelocity(newSpeed);
@@ -662,7 +677,7 @@ public:
 
 	//--------------------(used) physics based forward model----------------------------------
 	CUDA_HOSTDEV
-	static bool applyPhysicsDelta(State* graph, State* state, State* parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
+	static bool applyPhysicsDelta(State* state, State* parent, tSimpleTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
 		
 		double angle0 = parent->getVelocity().angle;
 		double angleF = state->getVelocity().angle;
@@ -741,8 +756,8 @@ public:
 
 	//--------------------------------wrapper--------------------------------
 	CUDA_HOSTDEV
-	static bool applyDelta(State* graph, State* state, State* parent, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
-		return applyPhysicsDelta(graph, state, parent, trackSegArray, nTrackSegs, actionSimDeltaTime);
+	static bool applyDelta(State* graph, State* state, State* parent, tSimpleTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime){
+		return applyPhysicsDelta(state, parent, trackSegArray, nTrackSegs, actionSimDeltaTime);
 	}
 
 };

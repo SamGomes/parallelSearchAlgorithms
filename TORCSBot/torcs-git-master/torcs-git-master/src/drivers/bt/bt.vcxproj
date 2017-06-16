@@ -124,6 +124,7 @@
       <AdditionalOptions>-Xptxas="-v" %(AdditionalOptions)</AdditionalOptions>
       <GPUDebugInfo>false</GPUDebugInfo>
       <HostDebugInfo>false</HostDebugInfo>
+      <CodeGeneration>compute_50,sm_50</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -159,7 +160,7 @@
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
     <Link>
-      <AdditionalDependencies>tgf.lib;robottools.lib;sg_vs2008_32.lib;ul_vs2008_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cudart.lib;tgf.lib;robottools.lib;sg_vs2008_32.lib;ul_vs2008_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>.\Release/bt.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>../../../export/lib;../../windows/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -172,6 +173,8 @@
       <DataExecutionPrevention />
       <ImportLibrary>.\Release/bt.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -180,6 +183,16 @@
     <PostBuildEvent>
       <Command>copy $(TargetDir)*.dll $(SolutionDir)runtime\drivers\bt</Command>
     </PostBuildEvent>
+    <CudaLink>
+      <GPUDebugInfo>false</GPUDebugInfo>
+      <Optimization>O2</Optimization>
+    </CudaLink>
+    <CudaCompile>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
+      <CudaRuntime>Static</CudaRuntime>
+      <Runtime>InheritFromHost</Runtime>
+      <CodeGeneration>compute_50,sm_50</CodeGeneration>
+    </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="bt.cpp" />
@@ -188,6 +201,7 @@
     <ClCompile Include="opponent.cpp" />
     <ClCompile Include="ParRRT.cpp" />
     <ClCompile Include="PIDController.cpp" />
+    <ClCompile Include="SeqIPSRRT.cpp" />
     <ClCompile Include="SeqRRT.cpp">
       <FileType>CppCode</FileType>
     </ClCompile>
@@ -208,6 +222,7 @@
     <ClInclude Include="opponent.h" />
     <ClInclude Include="PIDController.h" />
     <ClInclude Include="RRT.cuh" />
+    <ClInclude Include="SeqIPSRRT.h" />
     <ClInclude Include="SeqRRT.h" />
     <ClInclude Include="State.cuh" />
     <ClInclude Include="StatsLogWriter.h" />

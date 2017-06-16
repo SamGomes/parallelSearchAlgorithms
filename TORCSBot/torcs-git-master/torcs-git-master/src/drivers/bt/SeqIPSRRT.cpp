@@ -106,6 +106,7 @@ void SeqIPSRRT::generateStates(double nIterations){
 				bestState = statesToInsert[i];
 			}
 		}
+		delete[] statesToInsert;
 	}
 }
 

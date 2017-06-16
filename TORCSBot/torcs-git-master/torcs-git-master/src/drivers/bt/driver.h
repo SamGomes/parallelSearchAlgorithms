@@ -63,6 +63,7 @@ class Driver {
 		tSimpleTrackSeg* trackSegArray; //needed because of CUDA memory management
 		
 		//Kernel vars (only used in ParRRT)
+		tPolarVel* kernelVelArray;
 		tSimpleTrackSeg* kernelSegArray;
 		State* kernelGraph;
 		State* kernelBestPath;

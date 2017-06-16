@@ -22,15 +22,15 @@
 #undef malloc
 
 CUDA_GLOBAL void graphInit(State* graph, tPolarVel* velArray, int numThreads, int graphSize);
-CUDA_GLOBAL void CUDAProcedure(tSimpleTrackSeg* trackSegArray, int nTrackSegs, State* graph, tPolarVel* velArray, int stateIterator,
+CUDA_GLOBAL void CUDAProcedure(tSimpleTrackSeg* trackSegArray, int nTrackSegs, State* graph, tPolarVel* kernelVelArray, int stateIterator,
 	int numThreads, int graphSize, double actionSimDeltaTime);
 CUDA_GLOBAL void graphBacktrack(State* initialState, State* bestStates, int bestStatesSize, int* bestPathSize, State* graph);
 
 class Kernel{
 public:
-	static void gpuFree(State* kernelGraph, tSimpleTrackSeg* kernelSegArray);
-	static void gpuInit(State** kernelGraph, tSimpleTrackSeg** kernelSegArray, int numIterations, tSimpleTrackSeg* segArray, int nTrackSegs);
-	static	State* callKernel(State* auxGraph, tSimpleTrackSeg* auxSegArray, int nTrackSegs, State* initialState, int numIterations, int numBlocks, int numThreadsPerBlock, double actionSimDeltaTime);
+	static void gpuFree(State* kernelGraph, tPolarVel* kernelVelArray, tSimpleTrackSeg* kernelSegArray);
+	static void gpuInit(State** kernelGraph, tPolarVel** kernelVelArray, tSimpleTrackSeg** kernelSegArray, int numIterations, tSimpleTrackSeg* segArray, int nTrackSegs);
+	static	State* callKernel(State* kernelGraph, tPolarVel* kernelVelArray, tSimpleTrackSeg* kernelSegArray, int nTrackSegs, State* initialState, int numIterations, int numBlocks, int numThreadsPerBlock, double actionSimDeltaTime);
 };
 
 #pragma pop_macro("tgfCUDAUncompatibleStuff")

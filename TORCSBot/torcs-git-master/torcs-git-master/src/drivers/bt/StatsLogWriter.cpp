@@ -7,7 +7,7 @@ bool StatsLogWriter::writeToLog(char* logName, std::string line) {
 
 	if (!logFile.is_open())
 	{
-		std::string initLine = std::string("searchID;run;searchTimes;lapTimes");
+		std::string initLine = std::string("searchID;numStates;numIterations;run;searchTimes;lapTimes");
 		logFile.open(logPath);
 		logFile << (initLine + std::string("\n")).c_str();
 

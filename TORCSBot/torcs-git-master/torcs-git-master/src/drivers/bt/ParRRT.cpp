@@ -1,12 +1,13 @@
 #include "ParRRT.h"
 
 
-ParRRT::ParRRT(State initialState, int nIterations, State* kernelGraph, tSimpleTrackSeg* kernelSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration, int numKernelBlocks, int numKernelThreadsPerBlock){
+ParRRT::ParRRT(State initialState, int nIterations, State* kernelGraph, tPolarVel* kernelVelArray, tSimpleTrackSeg* kernelSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration, int numKernelBlocks, int numKernelThreadsPerBlock){
 	this->nIterations = nIterations;
 	this->initialState = new State(initialState);
 	this->initialState->setMyGraphIndex(0);
 
 	this->kernelGraph = kernelGraph;
+	this->kernelVelArray = kernelVelArray;
 	this->kernelSegArray = kernelSegArray;
 
 	this->nTrackSegs = nTrackSegs;
@@ -35,7 +36,7 @@ std::vector<State*> ParRRT::search(){
 
 	State bestState;
 
-	graph = Kernel::callKernel(kernelGraph, kernelSegArray, nTrackSegs, initialState, nIterations, numKernelBlocks, numKernelThreadsPerBlock, actionSimDeltaTime);
+	graph = Kernel::callKernel(kernelGraph, kernelVelArray, kernelSegArray, nTrackSegs, initialState, nIterations, numKernelBlocks, numKernelThreadsPerBlock, actionSimDeltaTime);
 
 	//-------------------- CALC BEST NODE -----------------------------
 

@@ -23,7 +23,7 @@ private: //vars
 	double actionSimDeltaTime; 
 	int startSegIndex;
 	int finalIndex;
-	tTrackSeg* trackSegArray;
+	tSimpleTrackSeg* trackSegArray;
 	int nTrackSegs;
 	int nIterations;
 	State initialState;
@@ -50,7 +50,7 @@ private: //methods
 	State generateRRT();
 
 public: //methods
-	SeqRRT(State initialState, int nIterations, tTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration);
+	SeqRRT(State initialState, int nIterations, tSimpleTrackSeg* trackSegArray, int nTrackSegs, double actionSimDeltaTime, tPolarVel maxCarAcceleration);
 	~SeqRRT();
 
 	std::vector<State*> search();

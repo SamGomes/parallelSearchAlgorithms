@@ -1,19 +1,24 @@
 
 #include "Kernel.cuh"
 
+__constant__ tPolarVel constVelArray[6401];
+
+
 //------------------------------------------------------------------------------------------------------------
 //--------                                    CUDA Kernels                                            --------
 //------------------------------------------------------------------------------------------------------------
 
 CUDA_GLOBAL
-void graphInit(State* graph, int numThreads, int graphSize){
+void graphInit(State* graph, tPolarVel* velArray, int numThreads, int graphSize){
 
 	int idx = threadIdx.x + blockDim.x*blockIdx.x;
 	//initialize the graph
 	int partialOffset = idx+1;
 	int partialIterator = 0;
+	velArray[0] = graph[0].getVelocity();
 	while (partialOffset < (graphSize)){
 		graph[partialOffset] = State();
+		velArray[partialOffset].intensity = -1;
 		partialIterator++;
 		partialOffset = (partialIterator*numThreads + idx) + 1;
 	}
@@ -22,12 +27,21 @@ void graphInit(State* graph, int numThreads, int graphSize){
 
 
 CUDA_GLOBAL
-void CUDAProcedure(tTrackSeg* trackSegArray, int nTrackSegs, State* graph, int stateIterator,
+void CUDAProcedure(tSimpleTrackSeg* trackSegArray, int nTrackSegs, State* graph, tPolarVel* kernelVelArray, int stateIterator,
 	int numThreads, int graphSize, double actionSimDeltaTime){
 
 	int idx = threadIdx.x + blockDim.x*blockIdx.x;
 	int offset = (stateIterator*numThreads + idx) + 1; //the initial state does not need this computation
-	
+
+	/*extern __shared__ tPolarVel sharedSegArray[];
+
+	if (threadIdx.x == 0){
+		for (int i = 0; i < graphSize; i++){
+			sharedSegArray[i] = kernelVelArray[i];
+		}
+	}
+	__syncthreads();*/
+
 	curandState_t curandState;
 	/* we have to initialize the state */
 	curand_init(clock(), /* the seed controls the sequence of random values that are produced */
@@ -39,16 +53,17 @@ void CUDAProcedure(tTrackSeg* trackSegArray, int nTrackSegs, State* graph, int s
 	State xRand;
 
 	//--------------------------------------- generate random sample -----------------------------------------------
-	xRand = RandomStateGenerators::uniformRandomState(trackSegArray, nTrackSegs, &curandState);
+	xRand = RandomStateGenerators::uniformRandomState(nTrackSegs, &curandState);
 
 	//---------------------------------------- select neighbor ----------------------------------------------------
-	State xNearest = UtilityMethods::nearestNeighbor(xRand, graph, graphSize);
+	//State xNearest = UtilityMethods::nearestNeighbor(xRand, graph, graphSize);
+	State xNearest = UtilityMethods::nearestNeighborKernel(xRand, constVelArray, graph, graphSize);
 	xRand.setParentGraphIndex(xNearest.getMyGraphIndex());
 	xRand.setLevelFromStart(xNearest.getLevelFromStart() + 1);
 
 	//----------------------------------------- constraint checking ------------------------------------------------
 	//the delta application also checks if the trajectory is valid
-	if (!DeltaFunctions::applyDelta(graph,&xRand, &xNearest, trackSegArray, nTrackSegs, actionSimDeltaTime)){
+	if (!DeltaFunctions::applyDelta(graph, &xRand, &xNearest, trackSegArray, nTrackSegs, actionSimDeltaTime)){
 		return;
 	}
 	//the best state is the one that is furthest from the start lane
@@ -61,6 +76,8 @@ void CUDAProcedure(tTrackSeg* trackSegArray, int nTrackSegs, State* graph, int s
 
 	xRand.setMyGraphIndex(offset);
 	graph[offset]= xRand;
+	kernelVelArray[offset] = xRand.getVelocity();
+	//printf("bug:%d", offset);
 }
 
 
@@ -78,22 +95,25 @@ void warmStart(int* f)
 //--------                                  Invocation Methods                                        --------
 //------------------------------------------------------------------------------------------------------------
 
-void Kernel::gpuFree(State* kernelGraph, tTrackSeg* auxSegArray){
-	cudaFree(auxSegArray); 
+void Kernel::gpuFree(State* kernelGraph, tPolarVel* kernelVelArray, tSimpleTrackSeg* kernelSegArray){
+	cudaFree(kernelSegArray);
 	cudaFree(kernelGraph);
+	cudaFree(kernelVelArray);
 }
 
-void Kernel::gpuInit(State** kernelGraph, tTrackSeg** kernelSegArray, int numIterations, tTrackSeg* segArray, int nTrackSegs){
+void Kernel::gpuInit(State** kernelGraph, tPolarVel** kernelVelArray, tSimpleTrackSeg** kernelSegArray, int numIterations, tSimpleTrackSeg* segArray, int nTrackSegs){
 	//----------------------- Print devices info -------------------------------
 	int count;
 	cudaDeviceProp prop;
 	cudaGetDeviceCount(&count);
 
+	cudaFuncSetCacheConfig(CUDAProcedure, cudaFuncCachePreferL1);
+
 	int graphSize = numIterations + 1;
 
 	for (int i = 0; i<count; i++) {
 		cudaGetDeviceProperties(&prop, i);
-		printf("---General  Information for device %d----\n", i);
+		printf("---General  Information for device %d-----\n", i);
 		printf("Name: %s\n", prop.name);
 		printf("Compute capability: %d.%d\n", prop.major, prop.minor);
 		printf("Clock rate: %d\n", prop.clockRate);
@@ -123,12 +143,13 @@ void Kernel::gpuInit(State** kernelGraph, tTrackSeg** kernelSegArray, int numIte
 		printf("\n");
 	}
 
-	//copy segments to gpu
-	cudaMalloc(kernelSegArray, sizeof(tTrackSeg)*(unsigned int)nTrackSegs);
-	cudaMalloc(kernelGraph, sizeof(State)*(unsigned int)graphSize);
-	cudaMemcpy(*kernelSegArray, segArray, sizeof(tTrackSeg)*(unsigned int)nTrackSegs, cudaMemcpyHostToDevice);
+	//copy data to gpu
+	cudaMalloc(kernelSegArray, sizeof(tSimpleTrackSeg)*(unsigned int)nTrackSegs);
+	cudaMalloc(kernelGraph, graphSize*sizeof(State));
+	cudaMemcpy(*kernelSegArray, segArray, sizeof(tSimpleTrackSeg)*(unsigned int)nTrackSegs, cudaMemcpyHostToDevice);
+	cudaMalloc(kernelVelArray, graphSize*sizeof(tPolarVel));
 
-	printf("segs error: %s\n----------\n", cudaGetErrorString(cudaPeekAtLastError()));
+	printf("init error: %s\n----------\n", cudaGetErrorString(cudaPeekAtLastError()));
 
 	// ---------------- create a context -- kernel warmup -------------------------------
 	int *f = NULL;
@@ -137,56 +158,12 @@ void Kernel::gpuInit(State** kernelGraph, tTrackSeg** kernelSegArray, int numIte
 	cudaFree(f);
 
 	cudaDeviceSynchronize();
-	printf( "warmup kernel error : %s" , cudaGetErrorString(cudaPeekAtLastError()) );
+	printf( "warmup kernel error: %s" , cudaGetErrorString(cudaPeekAtLastError()) );
 }
 
-//State* Kernel::callKernel(int& bestPathSize, State* kernelGraph, tTrackSeg* kernelSegArray, int nTrackSegs, State* initialState, int numIterations, int numBlocks, int numThreadsPerBlock, double actionSimDeltaTime){
-//
-//	int graphSize = numIterations + 1;
-//	
-//	int NUM_BLOCKS = numBlocks;
-//	int NUM_THREADS_EACH_BLOCK = numThreadsPerBlock;
-//	int NUM_THREADS = NUM_BLOCKS*NUM_THREADS_EACH_BLOCK;
-//
-//	State* bestThreadStates;
-//	int bestStatesSize = NUM_THREADS;
-//
-//	int* kernelBestPathSize;
-//	
-//	float iterationRatio = (float) numIterations / (float) NUM_THREADS;
-//	int numPartialIterations = 0;
-//	numPartialIterations = ceilf(iterationRatio) == iterationRatio ? (int) iterationRatio : (int) iterationRatio + 1;
-//	if (numPartialIterations == 0) numPartialIterations++;
-//
-//	cudaMalloc(&bestThreadStates, sizeof(State)*(unsigned int)graphSize);
-//	cudaMemcpy(kernelGraph, initialState, sizeof(State), cudaMemcpyHostToDevice);
-//
-//	graphInit << < NUM_BLOCKS, NUM_THREADS_EACH_BLOCK >> >(kernelGraph, NUM_THREADS, graphSize, bestThreadStates); cudaDeviceSynchronize();
-//	//printf("init error: %s\n------------\n", cudaGetErrorString(cudaPeekAtLastError()));
-//	for (int i = 0; i < numPartialIterations; i++)
-//	{
-//		CUDAProcedure << < NUM_BLOCKS, NUM_THREADS_EACH_BLOCK >> > (kernelSegArray, nTrackSegs, kernelGraph, bestThreadStates, i,
-//			NUM_THREADS, graphSize, actionSimDeltaTime);
-//		//cudaDeviceSynchronize();
-//		//printf("kernel error: %s\n------------\n", cudaGetErrorString(cudaPeekAtLastError()));
-//	}
-//
-//	cudaMalloc(&kernelBestPathSize, sizeof(int));
-//	graphBacktrack << < 1, 1 >> > (kernelGraph, bestThreadStates, bestStatesSize, kernelBestPathSize, kernelGraph); cudaDeviceSynchronize();
-//	cudaMemcpy(&bestPathSize, kernelBestPathSize, sizeof(int), cudaMemcpyDeviceToHost);
-//	//printf(" backtrack error: %s\n------------\n", cudaGetErrorString(cudaPeekAtLastError()));
-//	State* bestPath = new State[(unsigned int)bestPathSize];
-//	cudaMemcpy(bestPath, bestThreadStates, sizeof(State)*(unsigned int)bestPathSize, cudaMemcpyDeviceToHost); //copy the graph back to main memory
-//
-//	cudaFree(bestThreadStates);
-//	cudaFree(kernelBestPathSize);
-//
-//	cudaDeviceSynchronize();
-//	return bestPath;
-//}
 
 
-State* Kernel::callKernel(State* kernelGraph, tTrackSeg* kernelSegArray, int nTrackSegs, State* initialState, int numIterations, int numBlocks, int numThreadsPerBlock, double actionSimDeltaTime){
+State* Kernel::callKernel(State* kernelGraph, tPolarVel* kernelVelArray, tSimpleTrackSeg* kernelSegArray, int nTrackSegs, State* initialState, int numIterations, int numBlocks, int numThreadsPerBlock, double actionSimDeltaTime){
 
 	int graphSize = numIterations + 1;
 
@@ -201,15 +178,18 @@ State* Kernel::callKernel(State* kernelGraph, tTrackSeg* kernelSegArray, int nTr
 
 	cudaMemcpy(kernelGraph, initialState, sizeof(State), cudaMemcpyHostToDevice);
 
-	graphInit << < NUM_BLOCKS, NUM_THREADS_EACH_BLOCK >> >(kernelGraph, NUM_THREADS, graphSize);
+	graphInit << < NUM_BLOCKS, NUM_THREADS_EACH_BLOCK >> >(kernelGraph, kernelVelArray, NUM_THREADS, graphSize);
+
 
 	for (int i = 0; i < numPartialIterations; i++)
 	{
-		CUDAProcedure << < NUM_BLOCKS, NUM_THREADS_EACH_BLOCK >> > (kernelSegArray, nTrackSegs, kernelGraph, i,
+		cudaMemcpyToSymbol(constVelArray, kernelVelArray, sizeof(tPolarVel)*graphSize, 0, cudaMemcpyDeviceToDevice);
+		//CUDAProcedure << < NUM_BLOCKS, NUM_THREADS_EACH_BLOCK, NUM_BLOCKS*graphSize*sizeof(tPolarVel) >> > (kernelSegArray, nTrackSegs, kernelGraph, kernelVelArray, i,
+		//	NUM_THREADS, graphSize, actionSimDeltaTime); 
+		CUDAProcedure << <NUM_BLOCKS, NUM_THREADS_EACH_BLOCK>> > (kernelSegArray, nTrackSegs, kernelGraph, kernelVelArray, i,
 			NUM_THREADS, graphSize, actionSimDeltaTime);
-		printf("kernel error: %s\n-------------\n", cudaGetErrorString(cudaPeekAtLastError()));
+		//printf("kernel error: %s\n------------\n", cudaGetErrorString(cudaPeekAtLastError()));
 	}
-
 
 	State* graph = new State[(unsigned int)graphSize];
 	cudaMemcpy(graph, kernelGraph, sizeof(State)*(unsigned int)graphSize, cudaMemcpyDeviceToHost); //copy the graph back to main memory

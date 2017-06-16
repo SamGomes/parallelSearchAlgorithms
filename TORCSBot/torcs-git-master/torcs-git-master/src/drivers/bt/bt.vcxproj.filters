@@ -68,6 +68,9 @@
     <ClCompile Include="SeqRRT.cpp">
       <Filter>Source Files\PlanningModule\Search\RRT</Filter>
     </ClCompile>
+    <ClCompile Include="SeqIPSRRT.cpp">
+      <Filter>Source Files\PlanningModule\Search\RRT</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cardata.h">
@@ -104,6 +107,9 @@
       <Filter>Header Files\PlanningModule\Search\RRT</Filter>
     </ClInclude>
     <ClInclude Include="SeqRRT.h">
+      <Filter>Header Files\PlanningModule\Search\RRT</Filter>
+    </ClInclude>
+    <ClInclude Include="SeqIPSRRT.h">
       <Filter>Header Files\PlanningModule\Search\RRT</Filter>
     </ClInclude>
   </ItemGroup>
